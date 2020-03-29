@@ -1,0 +1,62 @@
+#include "/Engine/Private/Common.ush"
+
+
+struct vs_in {
+	float3 Position : ATTRIBUTE0;
+	float4 Color : ATTRIBUTE1;
+	float4 YearData : ATTRIBUTE2;
+};
+
+
+void MainVertexShader(
+	in uint id : SV_VertexID,
+	in vs_in input,
+	out float2 OutUV : TEXCOORD0,
+	out float4 Color : COLOR0,
+	out float4 OutPosition : SV_POSITION
+	)
+{
+	OutUV       = float2(0, 0);	
+	OutPosition = float4(2 * (input.Position.xy - PSVariable.Rect.xz) / (PSVariable.Rect.yw - PSVariable.Rect.xz) - 1, 0, 1);
+	OutPosition.y = -OutPosition.y;
+	//OutPosition = float4(2 * (input.Position.xy  + 10) / (20) - 1, 0, 1);
+
+	//OutPosition = float4(input.Position.xy, input.Position.z, 1);
+	float p = 0;
+	if (PSVariable.Year < 0) {
+		Color = float4(input.Color.rgba);
+	}
+	else 
+	{
+		if (PSVariable.Year < input.YearData.y) {
+			p = saturate((PSVariable.Year - input.YearData.x) / (input.YearData.y - input.YearData.x));		
+		} else if (PSVariable.Year < input.YearData.z) {
+			p = 1;
+		} else {
+			p = saturate(1 - (PSVariable.Year - input.YearData.z) / (input.YearData.w - input.YearData.z));
+		}
+		Color = float4(input.Color.rgba * p);
+	}
+
+	//OutPosition = float4(input.Position, 1.0f);
+}
+
+
+
+Texture2D<float4> TextureParameter;
+
+void MainPixelShader(
+	in float2 uv : TEXCOORD0,
+	in float4 Color : COLOR0,
+	out float4 OutColor : SV_Target0
+	)
+{
+	//First we need to unpack the uint material and retrieve the underlying R8G8B8A8_UINT values.
+	//float sizeX, sizeY;
+	//TextureParameter.GetDimensions(sizeX, sizeY);
+
+
+	OutColor = Color;
+    //OutColor = TextureParameter.Load(int3(sizeX * uv.x, sizeY * uv.y, 0));
+	//OutColor = float4(uv.x, uv.y, 1.0f, 1.0f);
+}
