@@ -38,8 +38,7 @@ UMaskLoader::UMaskLoader()
 	bIsUnloading = false;
 
 	CurrentTexture = NULL;
-	CurrentRenderTarget1 = NULL;
-	CurrentRenderTarget2 = NULL;
+	CurrentRenderTarget = NULL;
 	TextureParameterSRV = NULL;
 }
 
@@ -48,14 +47,14 @@ UMaskLoader::~UMaskLoader()
 	bIsUnloading = true;
 }
 
-void UMaskLoader::ExecutePixelShader(UTextureRenderTarget2D* inclTarget, UTextureRenderTarget2D* exclTarget)
+void UMaskLoader::ExecutePixelShader(UTextureRenderTarget2D* inclTarget)
 {
 	check(IsInGameThread());
 
 	if (bIsUnloading || bIsPixelShaderExecuting) //Skip this execution round if we are already executing
 		return;
 
-	if (!inclTarget || !exclTarget)
+	if (!inclTarget)
 		return;
 
 	bIsPixelShaderExecuting = true;
@@ -65,8 +64,7 @@ void UMaskLoader::ExecutePixelShader(UTextureRenderTarget2D* inclTarget, UTextur
 	//Now set our runtime parameters!
 	//VariableParameters.WorldViewProj = FMatrix::Identity;	
 
-	CurrentRenderTarget1 = inclTarget;
-	CurrentRenderTarget2 = exclTarget;
+	CurrentRenderTarget = inclTarget;
 	//CurrentRenderTarget->ClearColor = FLinearColor(0, 1, 0, 0);
 
 	//This macro sends the function we declare inside to be run on the render thread. What we do is essentially just send this class and tell the render thread to run the internal render function as soon as it can.
@@ -84,11 +82,6 @@ void UMaskLoader::ExecutePixelShaderInternal(FRHICommandListImmediate& RHICmdLis
 {
 	check(IsInRenderingThread());
 
-	auto CurrentRenderTarget = isExclude ? CurrentRenderTarget1 : CurrentRenderTarget1;
-	auto& Vertices = isExclude ? ExclVertices : InclVertices;
-	auto& Triangles = isExclude ? ExclTriangles : InclTriangles;
-	auto& vertBuf = isExclude ? vertBuf1 : vertBuf2;
-	auto& indBuf = isExclude ? indBuf1 : indBuf2;
 	if (!CurrentRenderTarget)
 		return;
 	if (!CurrentRenderTarget->GetRenderTargetResource())
@@ -216,9 +209,9 @@ void UMaskLoader::UpdateRect() {
 	VariableParameters.Rect = Rect;
 }
 
-void UMaskLoader::RenderMaskForTime(int year, UTextureRenderTarget2D* inclTarget, UTextureRenderTarget2D* exclTarget, float p)
+void UMaskLoader::RenderMaskForTime(int year, UTextureRenderTarget2D* inclTarget, float p)
 {
 	VariableParameters.Year = year + p;
 	VariableParameters.Rect = Rect;
-	ExecutePixelShader(inclTarget, exclTarget);
+	ExecutePixelShader(inclTarget);
 }

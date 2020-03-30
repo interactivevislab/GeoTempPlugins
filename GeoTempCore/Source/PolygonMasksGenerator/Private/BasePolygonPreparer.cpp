@@ -17,9 +17,9 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* target, TArray<FPosgis
 	float minX, maxX, minY, maxY;
 	minX = minY = MAX_FLT;
 	maxX = maxY = MAX_FLT * -1.0f;
-	target->InclVertices.Empty();
+	target->Vertices.Empty();
 	target->ExclVertices.Empty();
-	target->InclTriangles.Empty();
+	target->Triangles.Empty();
 	target->ExclTriangles.Empty();
 	int polyNumber = 0;
 	for (auto polygon : polygons)
