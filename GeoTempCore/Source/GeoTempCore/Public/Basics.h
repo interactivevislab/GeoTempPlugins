@@ -6,8 +6,17 @@
 #include "OSMBasics.h"
 #include "Basics.Generated.h"
 
+#ifndef PI
+#define PI (3.1415926535897932)
+#endif
+#define DEG2RAD(a) ((a) / (180 / PI))
+#define RAD2DEG(a) ((a) * (180 / PI))
+#define EARTH_RADIUS 6378137
 
-void GEOTEMPCORE_API Triangulate(TArray<FContour>& outer, TArray<FContour>& inner, std::vector<FVector>& points, std::vector<int>& triangles, std::string flags = "");
+void GEOTEMPCORE_API  Triangulate(TArray<FContour>& outer, TArray<FContour>& inner, std::vector<FVector>& points, std::vector<int>& triangles, std::string flags, TArray<FContour> otherLines, int& contourPointsNum);
+
+void GEOTEMPCORE_API  Triangulate(TArray<FContour>& outer, TArray<FContour>& inner, std::vector<FVector>& points, std::vector<int>& triangles, std::string flags = "");
+
 
 UENUM(BlueprintType)
 enum class ProjectionType : uint8
@@ -18,7 +27,7 @@ enum class ProjectionType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FContour
+struct GEOTEMPCORE_API FContour
 {
 	GENERATED_BODY()
 
@@ -28,14 +37,6 @@ struct FContour
 	FContour()
 	{
 	} ;
-
-	FContour(BasicData::Curve curve)
-	{ 
-		for (auto point : curve.Points)
-		{
-			points.Add(FVector(point.X, point.Y, point.Z));
-		}
-	}
 	
 	FContour(std::vector<FVector> initPoints) 
 	{
@@ -145,8 +146,7 @@ struct FContour
 		}		
 	}
 	
-
-	static FContour RemoveCollinear(FContour contour, float treshold = 0.001f)
+	static FContour RemoveCollinear(FContour contour, float threshold = 0.001f)
 	{
 		TArray<FVector> pointsNew;
 		bool revert = contour.FixClockwise();
@@ -164,7 +164,7 @@ struct FContour
 				auto dir0 = p1 - p0;
 				auto dir1 = contour.points[i] - p1;
 				float turn = FMath::Abs(FVector::CrossProduct(dir0.GetSafeNormal(), dir1.GetSafeNormal()).Z);
-				if (turn < treshold)
+				if (turn < threshold)
 				{
 					pointsNew.RemoveAt(pointsNew.Num() - 1);
 				}
@@ -225,7 +225,7 @@ struct FContour
 
 
 UCLASS()
-class UGeoHelpers : public UObject
+class GEOTEMPCORE_API UGeoHelpers : public UObject
 {
 	GENERATED_BODY()
 
@@ -295,7 +295,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FPosgisLinesData
+struct GEOTEMPCORE_API  FPosgisLinesData
 {
 	GENERATED_BODY()
 public:
@@ -304,17 +304,17 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FPosgisContourData
+struct GEOTEMPCORE_API  FPosgisContourData
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 		TArray<FContour> Outer;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 		float ZeroLon;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 		float ZeroLat;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
@@ -322,6 +322,12 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 		TMap<FString, FString> Tags;
+
+	void Append(FPosgisContourData* other)
+	{
+		Outer.Append(other->Outer);
+		Holes.Append(other->Holes);
+	}
 
 public:
 
@@ -339,44 +345,46 @@ public:
 		return point;
 	}
 
-	inline BasicData::Curve* BinaryParseCurve(uint8* array, int& offset, ProjectionType projection, bool skipBOM = false, float height = 0) {
+	inline TArray<FVector> BinaryParseCurve(uint8* array, int& offset, ProjectionType projection, bool skipBOM = false, float height = 0) {
 		return BinaryParseCurve(array, offset, projection, ZeroLon, ZeroLat, skipBOM, height);
 	}
 
-	inline static BasicData::Curve* BinaryParseCurve(uint8* array, int& offset, ProjectionType projection, float ZeroLon, float ZeroLat, bool skipBOM = false, float height = 0) {
+	inline static TArray<FVector> BinaryParseCurve(uint8* array, int& offset, ProjectionType projection, float ZeroLon, float ZeroLat, bool skipBOM = false, float height = 0) {
 		if (skipBOM) {
 			offset += 5;
 		}
 		uint32 count = *((uint32*)(array + offset * sizeof(uint8)));
 		offset += 4;
-		BasicData::Curve* curve = new BasicData::Curve();
+		TArray<FVector> points;
 		for (uint32 i = 0; i < count; i++) {
 
 			FVector* point = BinaryParsePoint(array, offset, projection, ZeroLon, ZeroLat, height);
-			curve->Points.push_back(*point);
+			points.Add(*point);
 		}
-		return curve;
+		return points;
 	}
 
-
-
-	inline BasicData::Multypoligon* BinaryParsePolygon(uint8* array, int& offset, ProjectionType projection, bool skipBOM, float height = 0) {
+	inline FPosgisContourData* BinaryParsePolygon(uint8* array, int& offset, ProjectionType projection, bool skipBOM, float height = 0) {
 		return BinaryParsePolygon(array, offset, projection, ZeroLon, ZeroLat, skipBOM, height);
 	}
-	inline static BasicData::Multypoligon* BinaryParsePolygon(uint8* array, int& offset, ProjectionType projection, float ZeroLon, float ZeroLat, bool skipBOM, float height = 0) {
+
+	inline static FPosgisContourData* BinaryParsePolygon(uint8* array, int& offset, ProjectionType projection, float ZeroLon, float ZeroLat, bool skipBOM, float height = 0) {
 		if (skipBOM) {
 			offset += 5;
 		}
 		uint32 count = *((uint32*)(array + offset * sizeof(uint8)));
 		offset += 4;
-		BasicData::Multypoligon* poly = new BasicData::Multypoligon();
+		FPosgisContourData* poly = new FPosgisContourData();
+		poly->ZeroLat = ZeroLat;
+		poly->ZeroLon = ZeroLon;
+		
 		for (uint32 i = 0; i < count; i++) {
-			BasicData::Curve* curve = BinaryParseCurve(array, offset, projection, ZeroLon, ZeroLat, false, height);
+			auto points = BinaryParseCurve(array, offset, projection, ZeroLon, ZeroLat, false, height);
 			if (i == 0) {
-				poly->Outer.push_back(curve);
+				poly->Outer.Add(points);
 			}
 			else {
-				poly->Inner.push_back(curve);
+				poly->Outer.Add(points);
 			}
 		}
 		return poly;

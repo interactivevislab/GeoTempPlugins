@@ -266,74 +266,60 @@ FPosgisContourData APostgisReader::CreateContourFromBinary(FPostGisBinaryEntity 
 
 	switch (typeVal)
 	{
-	case 1:
-	{
-		//point
-		FVector* point = contour.BinaryParsePoint(c, offset, projection, height);
-	}
-	break;
-	case 2:
-	{
-		//line
-		BasicData::Curve* curve = contour.BinaryParseCurve(c, offset, projection, false, height);
-	}
-	break;
-	case 3:
-	{
-		//polygon
-		BasicData::Multypoligon* poly = contour.BinaryParsePolygon(c, offset, projection, false, height);
-		for (auto cont : poly->Outer)
+		case 1:
 		{
-			contour.Outer.Push(FContour(*cont));
-		}
-		for (auto cont : poly->Inner)
-		{
-			contour.Holes.Push(FContour(*cont));
-		}
-	}
-	break;
-	case 4:
-	{
-		//multi-point
-		uint32 pcount = *((uint32*)(c + offset * sizeof(char)));
-		offset += 4;
-		for (uint32 pi = 0; pi < pcount; pi++)
-		{
+			//point
 			FVector* point = contour.BinaryParsePoint(c, offset, projection, height);
 		}
-	}
-	break;
-	case 5:
-	{
-		//multi-line
-		uint32 pcount = *((uint32*)(c + offset * sizeof(char)));
-		offset += 4;
-		for (uint32 pi = 0; pi < pcount; pi++)
+		break;
+		case 2:
 		{
-			BasicData::Curve* curve = contour.BinaryParseCurve(c, offset, projection, true, height);
+			//line
+			contour.BinaryParseCurve(c, offset, projection, false, height);
 		}
-	}
-	break;
-	case 6:
-	{
-		//multi-polygon
-		uint32 polyCount = *((uint32*)(c + offset * sizeof(char)));
-		offset += 4;
+		break;
+		case 3:
+		{
+			//polygon
+			auto other = contour.BinaryParsePolygon(c, offset, projection, false, height);
+			contour.Append(other);
+		}
+		break;
+		case 4:
+		{
+			//multi-point
+			uint32 pcount = *((uint32*)(c + offset * sizeof(char)));
+			offset += 4;
+			for (uint32 pi = 0; pi < pcount; pi++)
+			{
+				FVector* point = contour.BinaryParsePoint(c, offset, projection, height);
+			}
+		}
+		break;
+		case 5:
+		{
+			//multi-line
+			uint32 pcount = *((uint32*)(c + offset * sizeof(char)));
+			offset += 4;
+			for (uint32 pi = 0; pi < pcount; pi++)
+			{
+				contour.BinaryParseCurve(c, offset, projection, true, height);
+			}
+		}
+		break;
+		case 6:
+		{
+			//multi-polygon
+			uint32 polyCount = *((uint32*)(c + offset * sizeof(char)));
+			offset += 4;
 
-		std::vector<std::vector<float>>* contours = new std::vector<std::vector<float>>;
-		for (uint32 pi = 0; pi < polyCount; pi++)
-		{
-			BasicData::Multypoligon* poly = contour.BinaryParsePolygon(c, offset, projection, true, height);
-			for (auto cont : poly->Outer)
+			std::vector<std::vector<float>>* contours = new std::vector<std::vector<float>>;
+			for (uint32 pi = 0; pi < polyCount; pi++)
 			{
-				contour.Outer.Push(FContour(*cont));
-			}
-			for (auto cont : poly->Inner)
-			{
-				contour.Holes.Push(FContour(*cont));
+				auto cont = contour.BinaryParsePolygon(c, offset, projection, true, height);
+				contour.Append(cont);
 			}
 		}
-	}
 	}
 	contour.Tags = entity.Tags;
 	return contour;
@@ -371,21 +357,21 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity ent
 	case 2:
 	{
 		//line
-		BasicData::Curve* curve = contour.BinaryParseCurve(c, offset, projection, false, height);
-		ret.lines.Add(FContour(*curve));
+		auto points = contour.BinaryParseCurve(c, offset, projection, false, height);
+		ret.lines.Add(FContour(points));
 	}
 	break;
 	case 3:
 	{
 		//polygon
-		BasicData::Multypoligon* poly = contour.BinaryParsePolygon(c, offset, projection, false, height);
-		for (auto cont : poly->Outer)
+		auto contData = contour.BinaryParsePolygon(c, offset, projection, false, height);
+		for (auto cont : contData->Outer)
 		{
-			ret.lines.Add(FContour(*cont));
+			ret.lines.Add(cont);
 		}
-		for (auto cont : poly->Inner)
+		for (auto cont : contData->Holes)
 		{
-			ret.lines.Add(FContour(*cont));
+			ret.lines.Add(cont);
 		}
 	}
 	break;
@@ -407,8 +393,8 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity ent
 		offset += 4;
 		for (uint32 pi = 0; pi < pcount; pi++)
 		{
-			BasicData::Curve* curve = contour.BinaryParseCurve(c, offset, projection, true, height);
-			ret.lines.Add(FContour(*curve));
+			auto curve = contour.BinaryParseCurve(c, offset, projection, true, height);
+			ret.lines.Add(FContour(curve));
 		}
 	}
 	break;
@@ -421,14 +407,14 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity ent
 		std::vector<std::vector<float>>* contours = new std::vector<std::vector<float>>;
 		for (uint32 pi = 0; pi < polyCount; pi++)
 		{
-			BasicData::Multypoligon* poly = contour.BinaryParsePolygon(c, offset, projection, true, height);
+			auto poly = contour.BinaryParsePolygon(c, offset, projection, true, height);
 			for (auto cont : poly->Outer)
 			{				
-				ret.lines.Add(FContour(*cont));
+				ret.lines.Add(FContour(cont));
 			}
-			for (auto cont : poly->Inner)
+			for (auto cont : poly->Holes)
 			{
-				ret.lines.Add(FContour(*cont));
+				ret.lines.Add(FContour(cont));
 			}
 		}
 	}
