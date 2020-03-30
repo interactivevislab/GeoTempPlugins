@@ -31,10 +31,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Masks Generation")
 		FVector4 Rect;
 	
-	TArray<FMyTextureVertex> InclVertices;
-	TArray<FMyTextureVertex> ExclVertices;
-	TArray<uint32> InclTriangles;
-	TArray<uint32> ExclTriangles;
+	TArray<FMyTextureVertex> Vertices;
+	TArray<uint32> Triangles;
 
 	UPROPERTY(/*Category = "Inner  Mask Data"*/) TArray<FPosgisContourData> Polygons;
 #pragma region Render Data
@@ -46,17 +44,14 @@ protected:
 	/** Main texture */
 	FTexture2DRHIRef CurrentTexture;
 	FTexture2DRHIRef TextureParameter;
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* CurrentRenderTarget1 = nullptr;
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* CurrentRenderTarget2 = nullptr;
+	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* CurrentRenderTarget = nullptr;
 	
 
 	/** Since we are only reading from the resource, we do not need a UAV; an SRV is sufficient */
 	FShaderResourceViewRHIRef TextureParameterSRV;
 
-	FVertexBufferRHIRef vertBuf1;
-	FVertexBufferRHIRef vertBuf2;
-	FIndexBufferRHIRef indBuf1;
-	FIndexBufferRHIRef indBuf2;
+	FVertexBufferRHIRef vertBuf;
+	FIndexBufferRHIRef indBuf;
 	
 	bool bIsPixelShaderExecuting;
 	bool bMustRegenerateSRV;
@@ -71,7 +66,7 @@ protected:
 /********************************************************************************************************/
 public:
 	UFUNCTION(BlueprintCallable, Category = "Render Data")
-		void ExecutePixelShader(UTextureRenderTarget2D* inclTarget, UTextureRenderTarget2D* exclTarget);
+		void ExecutePixelShader(UTextureRenderTarget2D* inclTarget);
 
 	/************************************************************************/
 	/* Only execute this from the render thread!!!                          */
@@ -86,5 +81,5 @@ public:
 		void SaveMasksState();*/
 
 	UFUNCTION(BlueprintCallable)
-		void RenderMaskForTime(int year, UTextureRenderTarget2D* inclTarget, UTextureRenderTarget2D* exclTarget, float p);
+		void RenderMaskForTime(int year, UTextureRenderTarget2D* inclTarget, float p);
 };

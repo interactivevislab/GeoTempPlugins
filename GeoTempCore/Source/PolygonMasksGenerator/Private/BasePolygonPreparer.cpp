@@ -17,10 +17,8 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* target, TArray<FPosgis
 	float minX, maxX, minY, maxY;
 	minX = minY = MAX_FLT;
 	maxX = maxY = MAX_FLT * -1.0f;
-	target->InclVertices.Empty();
-	target->ExclVertices.Empty();
-	target->InclTriangles.Empty();
-	target->ExclTriangles.Empty();
+	target->Vertices.Empty();	
+	target->Triangles.Empty();	
 	int polyNumber = 0;
 	for (auto polygon : polygons)
 	{
@@ -34,8 +32,8 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* target, TArray<FPosgis
 		auto altValue = polygon.Tags.Find(AltTag);
 		bool isAlt = altValue && AltValue.Equals(*altValue);
 
-		auto& Vertices = isExclude ? target->ExclVertices : target->ExclVertices;
-		auto& Triangles = isExclude ? target->ExclTriangles : target->ExclTriangles;
+		auto& Vertices = target->Vertices;
+		auto& Triangles = target->Triangles;
 
 		auto startAppearValue = polygon.Tags.Find(StartAppearTag);
 		int startAppearYear = !startAppearValue ? 0 : FCString::Atoi(**startAppearValue);

@@ -18,10 +18,8 @@ void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* target, TArray<FPosgi
 	float minX, maxX, minY, maxY;
 	minX = minY = MAX_FLT;
 	maxX = maxY = MAX_FLT * -1.0f;
-	target->InclVertices.Empty();
-	target->ExclVertices.Empty();
-	target->InclTriangles.Empty();
-	target->ExclTriangles.Empty();
+	target->Vertices.Empty();	
+	target->Triangles.Empty();	
 	int polyNumber = 0;
 	for (auto polygon : polygons)
 	{
@@ -38,8 +36,8 @@ void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* target, TArray<FPosgi
 		else if (CatValue->Equals(Mask3Tag)) Color = FColor(0, 0, 255, 0);
 		else if (CatValue->Equals(Mask4Tag)) Color = FColor(0, 0, 0, 255);
 		else continue;
-		auto& Vertices = target->ExclVertices;
-		auto& Triangles = target->ExclTriangles;
+		auto& Vertices = target->Vertices;
+		auto& Triangles = target->Triangles;
 
 		auto startAppearValue = polygon.Tags.Find(StartAppearTag);
 		int startAppearYear = !startAppearValue ? 0 : FCString::Atoi(**startAppearValue);
