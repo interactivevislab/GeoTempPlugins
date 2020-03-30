@@ -2,8 +2,10 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
+
 #include "CoreMinimal.h"
-#include "OSMBasics.h"
 #include "Basics.Generated.h"
 
 #ifndef PI
@@ -12,6 +14,9 @@
 #define DEG2RAD(a) ((a) / (180 / PI))
 #define RAD2DEG(a) ((a) * (180 / PI))
 #define EARTH_RADIUS 6378137
+#define SCALE_MULT 100
+
+struct FContour;
 
 void GEOTEMPCORE_API  Triangulate(TArray<FContour>& outer, TArray<FContour>& inner, std::vector<FVector>& points, std::vector<int>& triangles, std::string flags, TArray<FContour> otherLines, int& contourPointsNum);
 
@@ -238,7 +243,7 @@ public:
 		case ProjectionType::WGS84_PsevdoMerkator: {
 			double ox = DEG2RAD(originLon) * EARTH_RADIUS;
 			double oy = log(tan(DEG2RAD(originLat) / 2 + PI / 4)) * EARTH_RADIUS;
-			return (FVector(float((x - ox) * scaleMult), float((y - oy) * scaleMult), z * scaleMult));
+			return (FVector(float((x - ox) * SCALE_MULT), float((y - oy) * SCALE_MULT), z * SCALE_MULT));
 		}
 												 break;
 		case ProjectionType::WGS84: {
@@ -248,7 +253,7 @@ public:
 			double x1 = DEG2RAD(x) * EARTH_RADIUS;
 			double y1 = log(tan(DEG2RAD(y) / 2 + PI / 4)) * EARTH_RADIUS;
 
-			return -FVector(float((ox + -x1) * scaleMult * s), float((y1 - oy) * scaleMult * s), z * scaleMult);
+			return -FVector(float((ox + -x1) * SCALE_MULT * s), float((y1 - oy) * SCALE_MULT * s), z * SCALE_MULT);
 		}
 								  break;
 		}
@@ -269,8 +274,8 @@ public:
 			double ox = DEG2RAD(originLon) * EARTH_RADIUS;
 			double oy = log(tan(DEG2RAD(originLat) / 2 + PI / 4)) * EARTH_RADIUS;
 
-			double posX = ox + x / scaleMult;
-			double posY = oy + y / scaleMult;
+			double posX = ox + x / SCALE_MULT;
+			double posY = oy + y / SCALE_MULT;
 
 			return FVector2D(posX, posY);
 		}
@@ -281,8 +286,8 @@ public:
 			double s = cos(DEG2RAD(originLat));
 			//double x1 = DEG2RAD(x) * EARTH_RADIUS;
 			//double y1 = log(tan(DEG2RAD(y) / 2 + PI / 4)) * EARTH_RADIUS;
-			double posX1 = x / scaleMult / s + ox;
-			double posY1 = -y / scaleMult / s + oy;
+			double posX1 = x / SCALE_MULT / s + ox;
+			double posY1 = -y / SCALE_MULT / s + oy;
 
 			double posX = RAD2DEG(posX1 / EARTH_RADIUS);
 			double posY = RAD2DEG(2 * atan(exp(posY1 / EARTH_RADIUS)) - PI / 2);

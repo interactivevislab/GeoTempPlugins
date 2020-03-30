@@ -131,7 +131,7 @@ TArray<FPostGisBinaryEntity> APostgisReader::ExecuteRawQuery(FString query, int 
 TMap<FString, FPostGisBinaryEntity> APostgisReader::ExecuteIndexedRawQuery(FString query, int keyColumnIndex, int geometryColumnIndex)
 {
 #if NOPOSTGRES
-	throw "Postgresql is not installed on build pc"; return TArray<FPostGisBinaryEntity>();
+	throw "Postgresql is not installed on build pc"; return TMap<FString, FPostGisBinaryEntity>();
 #else
 	CheckConnectionStatus(0);
 	if (Status != EStatus::Connected || conn == nullptr)
