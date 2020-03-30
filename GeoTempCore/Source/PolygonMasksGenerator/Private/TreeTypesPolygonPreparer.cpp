@@ -21,10 +21,8 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* target, TArray<FP
 	float minX, maxX, minY, maxY;
 	minX = minY = MAX_FLT;
 	maxX = maxY = MAX_FLT * -1.0f;
-	target->Vertices.Empty();
-	target->ExclVertices.Empty();
-	target->Triangles.Empty();
-	target->ExclTriangles.Empty();
+	target->Vertices.Empty();	
+	target->Triangles.Empty();	
 	int polyNumber = 0;
 	for (auto polygon : polygons)
 	{
@@ -42,8 +40,8 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* target, TArray<FP
 		else Color = FColor(128, 128, 128, 0);
 		//else if (CatValue->Equals(Mask4Tag)) Color = FColor(0, 0, 0, 255);
 
-		auto& Vertices = target->ExclVertices;
-		auto& Triangles = target->ExclTriangles;
+		auto& Vertices = target->Vertices;
+		auto& Triangles = target->Triangles;
 
 		auto startAppearValue = polygon.Tags.Find(StartAppearTag);
 		int startAppearYear = !startAppearValue ? 0 : FCString::Atoi(**startAppearValue);
