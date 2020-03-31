@@ -25,7 +25,7 @@ FApiRoadNetwork URoadBuilder::ReadRoadNetworkFromPostgisBinary(TArray<FPostGisBi
 			auto presenceTag = segmentData.Tags.Find("Presence");
 			if ((presenceTag != nullptr) && (!presenceTag->IsEmpty()) && (FCString::Atoi(**presenceTag) == 0)) continue;	//ignoring roads with Presence = 0
 
-			auto points = FPosgisContourData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, inProjection, inOriginLon, inOriginLat, true);
+			auto points = FPosgisContourData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, FGeoCoords{inProjection, inOriginLon, inOriginLat}, true, 0);
 			FApiRoadSegment segment;
 
 			segment.Line = {
@@ -121,7 +121,7 @@ FRoadNetwork URoadBuilder::ProcessRoadNetwork(FApiRoadNetwork inApiRoadNetwork)
 			crossroadEnd = crossroads.Find(*ptr);
 		}
 
-		segment.allPoints = apiSegmentPair.Value.Line.AllPoints;
+		segment.AllPoints = apiSegmentPair.Value.Line.AllPoints;
 
 		crossroadStart	->Roads.Add(nextSegmentId, segment.EndCrossroadId);
 		crossroadEnd	->Roads.Add(nextSegmentId, segment.StartCrossroadId);
@@ -166,10 +166,10 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 
 		auto roadZ = (segment.Type == EHighwayType::Auto) ? inAutoRoadZ : inRailRoadZ;
 
-		for (int i = 0; i < segment.allPoints.Num() - 1; i++)
+		for (int i = 0; i < segment.AllPoints.Num() - 1; i++)
 		{
-			auto startPoint	= segment.allPoints[i];
-			auto endPoint		= segment.allPoints[i + 1];
+			auto startPoint	= segment.AllPoints[i];
+			auto endPoint		= segment.AllPoints[i + 1];
 			startPoint.Z	= roadZ;
 			endPoint.Z		= roadZ - 1;
 

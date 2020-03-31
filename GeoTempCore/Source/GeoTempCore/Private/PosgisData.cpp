@@ -10,14 +10,14 @@ void FPosgisContourData::Append(FPosgisContourData* inOther)
 }
 
 
-inline FVector* FPosgisContourData::BinaryParsePoint(uint8* inArray, int& outOffset, ProjectionType inProjection,
+FVector* FPosgisContourData::BinaryParsePoint(uint8* inArray, int& outOffset, ProjectionType inProjection,
 	float inHeight)
 {
 	return BinaryParsePoint(inArray, outOffset, FGeoCoords(inProjection, ZeroLon, ZeroLat), inHeight);
 }
 
 
-inline FVector* FPosgisContourData::BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight)
+FVector* FPosgisContourData::BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight)
 {
 	double* arr = reinterpret_cast<double*>(inArray + outOffset * sizeof(uint8));
 	double lon = arr[0];
@@ -29,14 +29,14 @@ inline FVector* FPosgisContourData::BinaryParsePoint(uint8* inArray, int& outOff
 }
 
 
-inline TArray<FVector> FPosgisContourData::BinaryParseCurve(uint8* inArray, int& outOffset, ProjectionType inProjection,
+TArray<FVector> FPosgisContourData::BinaryParseCurve(uint8* inArray, int& outOffset, ProjectionType inProjection,
 	bool skipBOM, float inHeight)
 {
 	return BinaryParseCurve(inArray, outOffset, FGeoCoords(inProjection, ZeroLon, ZeroLat), skipBOM, inHeight);
 }
 
 
-inline TArray<FVector> FPosgisContourData::BinaryParseCurve(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
+TArray<FVector> FPosgisContourData::BinaryParseCurve(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 	bool skipBOM, float inHeight)
 {
 	if (skipBOM) {
@@ -56,14 +56,14 @@ inline TArray<FVector> FPosgisContourData::BinaryParseCurve(uint8* inArray, int&
 }
 
 
-inline FPosgisContourData* FPosgisContourData::BinaryParsePolygon(uint8* inArray, int& outOffset,
+FPosgisContourData* FPosgisContourData::BinaryParsePolygon(uint8* inArray, int& outOffset,
 	ProjectionType inProjection, bool skipBOM, float inHeight)
 {
 	return BinaryParsePolygon(inArray, outOffset, FGeoCoords(inProjection, ZeroLon, ZeroLat), skipBOM, inHeight);
 }
 
 
-inline FPosgisContourData* FPosgisContourData::BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
+FPosgisContourData* FPosgisContourData::BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 	bool skipBOM, float inHeight)
 {
 	if (skipBOM) {
