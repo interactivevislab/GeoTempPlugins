@@ -72,5 +72,11 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+/GeoTempVis/Intermediate
+/GeoTempVis/Binaries
+/GeoTempCore/Intermediate
+/GeoTempCore/Binaries
+/RuntimeMeshComponent/Binaries
+/RuntimeMeshComponent/Intermediate
 Intermediate
 Binaries

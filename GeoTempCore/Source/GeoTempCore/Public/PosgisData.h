@@ -40,16 +40,16 @@ public:
 
 	void Append(FPosgisContourData* inOther);
 
-	inline FVector* BinaryParsePoint(uint8* inArray, int& outOffset, ProjectionType inProjection, float inHeight = 0);
-	inline static FVector* BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight = 0);
+	FVector* BinaryParsePoint(uint8* inArray, int& outOffset, ProjectionType inProjection, float inHeight = 0);
+	static FVector* BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight = 0);
 
-	inline TArray<FVector> BinaryParseCurve(uint8* inArray, int& outOffset, ProjectionType inProjection,
+	TArray<FVector> BinaryParseCurve(uint8* inArray, int& outOffset, ProjectionType inProjection,
 		bool inSkipBOM = false, float inHeight = 0);
-	inline static TArray<FVector> BinaryParseCurve(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
+	static TArray<FVector> BinaryParseCurve(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 		bool inSkipBOM = false, float inHeight = 0);
 
-	inline FPosgisContourData* BinaryParsePolygon(uint8* inArray, int& outOffset, ProjectionType inProjection,
+	FPosgisContourData* BinaryParsePolygon(uint8* inArray, int& outOffset, ProjectionType inProjection,
 		bool inSkipBOM, float inHeight = 0);
-	inline static FPosgisContourData* BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
+	static FPosgisContourData* BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 		bool inSkipBOM, float inHeight = 0);
 };
