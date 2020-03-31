@@ -8,75 +8,6 @@
 #define LIST_8_TIMES(something) LIST_4_TIMES(something), LIST_4_TIMES(something)
 #define LIST_12_TIMES(something) LIST_3_TIMES(LIST_4_TIMES(something))
 
-
-
-//TODO: Reading road network for API JSON. Will be reafcatored later
-//FApiRoadNetwork URoadBuilder::ReadRoadNetworkFromJson(FString roadJson, ProjectionType projection, float originLon, float originLat)
-//{
-//	TSharedPtr<FJsonObject> JsonObject;
-//	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(roadJson);
-//
-//	FApiRoadNetwork road;
-//
-//	if (FJsonSerializer::Deserialize(Reader, JsonObject))
-//	{
-//		auto segmentsJsons = JsonObject->GetArrayField("features");
-//
-//		int segmentId = 0;
-//		for (auto segmentJsonValue : segmentsJsons)
-//		{
-//			auto segmentJson = segmentJsonValue->AsObject();
-//			FApiRoadSegment segment;
-//
-//			auto pointsJsons = segmentJson->GetObjectField("geometry")->GetArrayField("coordinates");
-//			auto roadJsonType = segmentJson->GetObjectField("geometry")->GetStringField("type");
-//
-//			TArray<TSharedPtr<FJsonValue>> allPointsJsons;
-//
-//			if (roadJsonType == "LineString") 
-//			{
-//				allPointsJsons.Append(pointsJsons);
-//			} 
-//			else 
-//			{
-//				for (auto points : pointsJsons) {
-//					allPointsJsons.Append(points->AsArray());
-//				}
-//			}
-//
-//			TArray<FVector> allPoints;
-//			for (auto pointJson : allPointsJsons) {
-//				auto coordsJson = pointJson->AsArray();
-//				allPoints.Add(
-//					UGeoHelpers::getLocalCoordinates(coordsJson[0]->AsNumber(), coordsJson[1]->AsNumber(), 0, projection, originLon, originLat)
-//				);
-//			}
-//
-//			auto lineStart = allPoints[0];
-//			auto lineEnd = allPoints[allPoints.Num() - 1];
-//
-//			segment.Line = { 
-//				allPoints[0], allPoints[allPoints.Num() - 1], allPoints
-//			};
-//			
-//			segment.Highway = segmentJson->GetObjectField("properties")
-//				->GetStringField("highway").Equals("secondary") ? EHighwayType::Rail : EHighwayType::Auto;
-//			//auto propertiesJson = segmentJson->GetObjectField("properties");
-//			//segment.Properties = {
-//			//	propertiesJson->GetStringField("highway").Equals("secondary") ? EHighwayType::Secondary : EHighwayType::Primary,
-//			//	float(propertiesJson->GetNumberField("angle")),
-//			//	float(propertiesJson->GetNumberField("length")),
-//			//	propertiesJson->GetIntegerField("parentId")
-//			//};
-//
-//			road.Segments.Add(segmentId++, segment); //road.Segments.Add(segmentJson->GetIntegerField("id"), segment);
-//		}
-//	}
-//
-//	return road;
-//}
-
-
 FApiRoadNetwork URoadBuilder::ReadRoadNetworkFromPostgisBinary(TArray<FPostGisBinaryEntity> inRoadData,
 	ProjectionType inProjection, float inOriginLon, float inOriginLat)
 {
@@ -98,7 +29,9 @@ FApiRoadNetwork URoadBuilder::ReadRoadNetworkFromPostgisBinary(TArray<FPostGisBi
 			FApiRoadSegment segment;
 
 			segment.Line = {
-				points[0], points[points.Num() - 1], points
+				points[0],
+				points[points.Num() - 1],
+				points
 			};
 
 			auto typeTag		= segmentData.Tags.Find("Type");
@@ -159,8 +92,8 @@ FRoadNetwork URoadBuilder::ProcessRoadNetwork(FApiRoadNetwork inApiRoadNetwork)
 		auto pointStart	= apiSegment.Line.Start;
 		auto pointEnd		= apiSegment.Line.End;
 
-		FCrossroad * crossroadStart;
-		FCrossroad * crossroadEnd;
+		FCrossroad* crossroadStart;
+		FCrossroad* crossroadEnd;
 
 		auto ptr = crossroadIds.Find(pointStart);
 		if (ptr == nullptr)
