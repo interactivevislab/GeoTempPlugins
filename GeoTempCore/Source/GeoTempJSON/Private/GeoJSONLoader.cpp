@@ -110,12 +110,13 @@ void AJsonLoader::ParsePolygon(TArray<TSharedPtr<FJsonValue>> geometry, FPosgisC
 	FContour contour;
 	auto coords2 = geometry[0]->AsArray();
 	TArray<FVector> points;
+	FGeoCoords geoCoords = FGeoCoords(_projection, _originLon, _originLat);
 	for (int i = 0; i < coords2.Num(); i++)
 	{
 		auto coords3 = coords2[i]->AsArray();
-		points.Add(UGeoHelpers::getLocalCoordinates(coords3[0]->AsNumber(), coords3[1]->AsNumber(), 0, _projection, _originLon, _originLat));
+		points.Add(UGeoHelpers::GetLocalCoordinates(coords3[0]->AsNumber(), coords3[1]->AsNumber(), 0, geoCoords));
 	}
-	contour.points = points;
+	contour.Points = points;
 
 	contourData.Outer.Add(contour);
 
@@ -128,11 +129,11 @@ void AJsonLoader::ParsePolygon(TArray<TSharedPtr<FJsonValue>> geometry, FPosgisC
 		for (int j = 0; j < coords2.Num(); j++)
 		{
 			auto coords3 = coords2[j]->AsArray();
-			points2.Add(UGeoHelpers::getLocalCoordinates(coords3[0]->AsNumber(), coords3[1]->AsNumber(), 0, _projection, _originLon, _originLat));
+			points2.Add(UGeoHelpers::GetLocalCoordinates(coords3[0]->AsNumber(), coords3[1]->AsNumber(), 0, geoCoords));
 		}
-		contour.points = points2;
+		contour.Points = points2;
 	}
-	if (contour.points.Num()>0)
+	if (contour.Points.Num()>0)
 	{
 		contourData.Holes.Add(contour);
 	}

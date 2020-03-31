@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Basics.h"
+#include "PosgisData.h"
 #include "Dom/JsonObject.h"
 #include "GeoJSONLoader.generated.h"
 
