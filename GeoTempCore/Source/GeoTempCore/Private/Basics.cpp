@@ -126,8 +126,8 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 
 		//add hole
 		int ind = way.LeftmostIndex();
-		int indMinus = (ind - 1 + way.Points.Num()) % way.Points.Num();
-		int indPlus = (ind + 1 + way.Points.Num()) % way.Points.Num();
+		int indMinus	= (ind - 1 + way.Points.Num()) % way.Points.Num();
+		int indPlus		= (ind + 1 + way.Points.Num()) % way.Points.Num();
 		while (way.Points[indMinus].Equals(way.Points[ind]) && indMinus != ind)
 		{
 			indMinus = (indMinus - 1 + way.Points.Num()) % way.Points.Num();
