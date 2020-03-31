@@ -69,7 +69,8 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 			int id = nodeIds[node];
 			if (i == 0) firstId = id;
 
-			if ((i > 0) && (prevId != id) && (addEdges.find(Edge{ prevId, id }) == addEdges.end())) {
+			if ((i > 0) && (prevId != id) && (addEdges.find(Edge{ prevId, id }) == addEdges.end()))
+			{
 				inEdges.push_back(prevId);
 				inEdges.push_back(id);
 				addEdges.insert(Edge{ prevId, id });
@@ -77,7 +78,8 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 			prevId = id;
 		}
 
-		if ((prevId != firstId) && (addEdges.find(Edge{ prevId, firstId }) == addEdges.end())) {
+		if ((prevId != firstId) && (addEdges.find(Edge{ prevId, firstId }) == addEdges.end()))
+		{
 			inEdges.push_back(prevId);
 			inEdges.push_back(firstId);
 			addEdges.insert(Edge{ prevId, firstId });
