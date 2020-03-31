@@ -49,4 +49,3 @@ public:
 
 	static void InitBuildingPart(const OsmRelation* inRelation, FBuildingPart* inPart);
 };
-
