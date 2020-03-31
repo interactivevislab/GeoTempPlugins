@@ -1,6 +1,7 @@
 #include "CoreMinimal.h"
 #include <GeoTempOSM\tinyxml2-master\tinyxml2.h>
-#include "Data.h"
+#include "BuildingsData.h"
+#include "Basics.h"
 #include <unordered_map>
 #include "Components/ActorComponent.h"
 #include "OSMLoader.generated.h"
@@ -15,7 +16,7 @@ struct OSMNode
 
 	OSMNode(long id, double lon, double lat, float originLon, float originLat, float height = 0) : id(id)
 	{
-		Point = UGeoHelpers::getLocalCoordinates(lon, lat, 0, ProjectionType::WGS84, originLon, originLat);
+		Point = UGeoHelpers::GetLocalCoordinates(lon, lat, 0, FGeoCoords(ProjectionType::WGS84, originLon, originLat));
 	}
 };
 

@@ -358,7 +358,7 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity ent
 	{
 		//line
 		auto points = contour.BinaryParseCurve(c, offset, projection, false, height);
-		ret.lines.Add(FContour(points));
+		ret.Lines.Add(FContour(points));
 	}
 	break;
 	case 3:
@@ -367,11 +367,11 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity ent
 		auto contData = contour.BinaryParsePolygon(c, offset, projection, false, height);
 		for (auto cont : contData->Outer)
 		{
-			ret.lines.Add(cont);
+			ret.Lines.Add(cont);
 		}
 		for (auto cont : contData->Holes)
 		{
-			ret.lines.Add(cont);
+			ret.Lines.Add(cont);
 		}
 	}
 	break;
@@ -394,7 +394,7 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity ent
 		for (uint32 pi = 0; pi < pcount; pi++)
 		{
 			auto curve = contour.BinaryParseCurve(c, offset, projection, true, height);
-			ret.lines.Add(FContour(curve));
+			ret.Lines.Add(FContour(curve));
 		}
 	}
 	break;
@@ -410,11 +410,11 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity ent
 			auto poly = contour.BinaryParsePolygon(c, offset, projection, true, height);
 			for (auto cont : poly->Outer)
 			{				
-				ret.lines.Add(FContour(cont));
+				ret.Lines.Add(FContour(cont));
 			}
 			for (auto cont : poly->Holes)
 			{
-				ret.lines.Add(FContour(cont));
+				ret.Lines.Add(FContour(cont));
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Basics.h"
+#include "PosgisData.h"
 #include "PostgisLoader.generated.h"
 
 UENUM(BlueprintType)

@@ -101,7 +101,7 @@ void UOSMReader::ParseBuildings()
 				auto c = new FContour();
 				for (auto node : way->Nodes)
 				{
-					c->points.Add(node->Point);
+					c->Points.Add(node->Point);
 					pointsRelParts[node->id].push_back(relation->id);
 					relPartPoints[relation->id].push_back(node->id);
 				}
@@ -144,7 +144,7 @@ void UOSMReader::ParseBuildings()
 					auto c = new FContour();
 					for (auto node : way->Nodes)
 					{
-						c->points.Add(node->Point);
+						c->Points.Add(node->Point);
 						pointsRelParts[node->id].push_back(relation->id);
 						relPartPoints[relation->id].push_back(node->id);
 					}
@@ -356,7 +356,7 @@ void UOSMReader::initBuildingPart(const OSMWay* way, FBuildingPart* part)
 
 	auto heightIt = way->Tags.Find("building:height");
 	if (!heightIt) heightIt = way->Tags.Find("height");
-	part->Height = heightIt ? FCString::Atoi(**heightIt) * SCALE_MULT : part->Floors * part->floorHeight + 2 * SCALE_MULT;
+	part->Height = heightIt ? FCString::Atoi(**heightIt) * UGeoHelpers::SCALE_MULT : part->Floors * part->FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
 
 	auto mfloorsIt = way->Tags.Find("building:min_levels");
 	if (!mfloorsIt) mfloorsIt = way->Tags.Find("min_levels");
@@ -364,7 +364,7 @@ void UOSMReader::initBuildingPart(const OSMWay* way, FBuildingPart* part)
 
 	auto mheightIt = way->Tags.Find("building:min_height");
 	if (!mheightIt) mheightIt = way->Tags.Find("min_height");
-	part->MinHeight = mheightIt ? FCString::Atoi(**mheightIt) * SCALE_MULT : part->MinFloors * part->floorHeight;
+	part->MinHeight = mheightIt ? FCString::Atoi(**mheightIt) * UGeoHelpers::SCALE_MULT : part->MinFloors * part->FloorHeight;
 
 	if (heightIt || mheightIt) part->OverrideHeight = true;
 }
@@ -377,7 +377,7 @@ void UOSMReader::initBuildingPart(const OSMRelation* relation, FBuildingPart* pa
 
 	auto heightIt = relation->Tags.Find("building:height");
 	if (!heightIt) heightIt = relation->Tags.Find("height");
-	part->Height = heightIt ? FCString::Atoi(**heightIt) * SCALE_MULT : part->Floors * part->floorHeight + 2 * SCALE_MULT;
+	part->Height = heightIt ? FCString::Atoi(**heightIt) * UGeoHelpers::SCALE_MULT : part->Floors * part->FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
 
 	auto mfloorsIt = relation->Tags.Find("building:min_levels");
 	if (!mfloorsIt) mfloorsIt = relation->Tags.Find("min_levels");
@@ -385,7 +385,7 @@ void UOSMReader::initBuildingPart(const OSMRelation* relation, FBuildingPart* pa
 
 	auto mheightIt = relation->Tags.Find("building:min_height");
 	if (!mheightIt) mheightIt = relation->Tags.Find("min_height");
-	part->MinHeight = mheightIt ? FCString::Atoi(**mheightIt) * SCALE_MULT : part->MinFloors * part->floorHeight;
+	part->MinHeight = mheightIt ? FCString::Atoi(**mheightIt) * UGeoHelpers::SCALE_MULT : part->MinFloors * part->FloorHeight;
 
 	if (heightIt || mheightIt) part->OverrideHeight = true;
 }
