@@ -19,8 +19,8 @@ TArray<FPosgisContourData> AJsonLoader::ReadContoursFromFile(FString inFilepath,
 
 TArray<FPosgisContourData> AJsonLoader::ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords)
 {
-	TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
-	TSharedRef<TJsonReader<>> jsonReader = TJsonReaderFactory<>::Create(inJsonString);
+	TSharedPtr<FJsonObject>		jsonObject = MakeShareable(new FJsonObject());
+	TSharedRef<TJsonReader<>>	jsonReader = TJsonReaderFactory<>::Create(inJsonString);
 
 	TArray<FPosgisContourData> contoursWithData;
 	if (FJsonSerializer::Deserialize(jsonReader, jsonObject))
@@ -50,17 +50,16 @@ void AJsonLoader::ParseJSON()
 
 	FFileHelper::LoadFileToString(jsonString, *jsonFilePath);
 
-	TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
-	TSharedRef<TJsonReader<>> jsonReader = TJsonReaderFactory<>::Create(jsonString);
+	TSharedPtr<FJsonObject>		jsonObject = MakeShareable(new FJsonObject());
+	TSharedRef<TJsonReader<>>	jsonReader = TJsonReaderFactory<>::Create(jsonString);
 
 	if (FJsonSerializer::Deserialize(jsonReader, jsonObject))
 	{
 		TArray<JsonValuesPtr> FeatureArray = jsonObject->GetArrayField("features");
-		FString ExampleString = jsonObject->GetStringField("exampleString");
-		JsonString += "{\n";
-		TabString += "\t";
+		JsonString	+= "{\n";
+		TabString	+= "\t";
 		ParseRecursion(jsonObject->Values);
-		JsonString += "}";
+		JsonString	+= "}";
 	}
 }
 
@@ -78,7 +77,7 @@ void AJsonLoader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FPo
 		FPosgisContourData contourData = FPosgisContourData();
 		contourData.Tags = featureTags;
 
-		auto geometry = feature->AsObject()->GetObjectField("geometry");
+		auto	geometry = feature->AsObject()->GetObjectField("geometry");
 		FString geomType = geometry->GetStringField("type");
 
 		if (geomType != "MultiPolygon" && geomType != "Polygon")
@@ -163,23 +162,23 @@ void AJsonLoader::ParseRecursion(TMap<FString, JsonValuesPtr> inValues)
 		switch (val.Value->Type)
 		{
 			case EJson::Object:
-				JsonString += "\n" + TabString + "{\n";
-				TabString += "\t";
+				JsonString	+= "\n" + TabString + "{\n";
+				TabString	+= "\t";
 				ParseRecursion(val.Value->AsObject()->Values);
 				TabString.RemoveFromEnd("\t");
-				JsonString += "\n" + TabString + "}";
+				JsonString	+= "\n" + TabString + "}";
 				break;
 
 			case EJson::Array:
-				JsonString += "\n" + TabString + "[\n";
-				TabString += "\t";
+				JsonString	+= "\n" + TabString + "[\n";
+				TabString	+= "\t";
 				ParseArray(val.Value->AsArray());
 				TabString.RemoveFromEnd("\t");
-				JsonString += "\n" + TabString + "]";
+				JsonString	+= "\n" + TabString + "]";
 				break;
 
 			default:
-				JsonString += " \"" + val.Value->AsString() + "\"";
+				JsonString	+= " \"" + val.Value->AsString() + "\"";
 		}
 
 		JsonString += ",\n";
@@ -195,23 +194,23 @@ void AJsonLoader::ParseArray(TArray<JsonValuesPtr> inValues)
 		switch (val->Type)
 		{
 			case EJson::Object:
-				JsonString += "\n" + TabString + "{\n";
-				TabString += "\t";
+				JsonString	+= "\n" + TabString + "{\n";
+				TabString	+= "\t";
 				ParseRecursion(val->AsObject()->Values);
 				TabString.RemoveFromEnd("\t");
-				JsonString += "\n" + TabString + "}";
+				JsonString	+= "\n" + TabString + "}";
 				break;
 
 			case EJson::Array:
-				JsonString += "\n" + TabString + "[\n" + TabString;
-				TabString += "\t";
+				JsonString	+= "\n" + TabString + "[\n" + TabString;
+				TabString	+= "\t";
 				ParseArray(val->AsArray());
 				TabString.RemoveFromEnd("\t");
-				JsonString += "\n" + TabString + "]";
+				JsonString	+= "\n" + TabString + "]";
 				break;
 
 			default:
-				JsonString += " \"" + val->AsString() + "\"";
+				JsonString	+= " \"" + val->AsString() + "\"";
 		}
 
 		JsonString += ", ";
