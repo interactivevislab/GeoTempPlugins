@@ -78,3 +78,5 @@ DerivedDataCache/*
 /GeoTempCore/Binaries
 /RuntimeMeshComponent/Binaries
 /RuntimeMeshComponent/Intermediate
+Intermediate
+Binaries
