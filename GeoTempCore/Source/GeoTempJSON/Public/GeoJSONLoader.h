@@ -1,79 +1,78 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
-#include "PosgisData.h"
-#include "Dom/JsonObject.h"
-#include "GeoJSONLoader.generated.h"
 
+#include "GameFramework/Actor.h"
+#include "Dom/JsonObject.h"
+
+#include "PosgisData.h"
+
+#include "GeoJSONLoader.generated.h"
 
 
 UENUM(BlueprintType)
 enum class EGeometryType : uint8
 {
-	Point 		UMETA(DisplayName = "Point"),
-	LineString 	UMETA(DisplayName = "LineString"),
-	Polygon		UMETA(DisplayName = "Polygon"),
-	MultiPoint 		UMETA(DisplayName = "MultiPoint"),
-	MultiLineString 	UMETA(DisplayName = "MultiLineString"),
+	Point				UMETA(DisplayName = "Point"),
+	LineString			UMETA(DisplayName = "LineString"),
+	Polygon				UMETA(DisplayName = "Polygon"),
+	MultiPoint			UMETA(DisplayName = "MultiPoint"),
+	MultiLineString		UMETA(DisplayName = "MultiLineString"),
 	MultiPolygon		UMETA(DisplayName = "MultiPolygon")
 };
 
+
 UCLASS()
-class GEOTEMPJSON_API   AJsonLoader : public AActor
+class GEOTEMPJSON_API AJsonLoader : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	AJsonLoader();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Default")
-		TArray<FPosgisContourData> ReadContoursFromFile(FString filepath, ProjectionType projection, float originLon, float originLat);
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TMap<FString, FString> JSONTags;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Default")
-	TArray<FPosgisContourData> ReadContoursFromString(FString JsonString, ProjectionType projection, float originLon, float originLat);
-
-	TArray<FPosgisContourData> ReadContoursFromJSON(TSharedPtr<FJsonObject> JsonObject, ProjectionType projection, float originLon, float originLat);
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="default")
-		TMap<FString, FString> JSONTags;
-
-	UPROPERTY(BlueprintReadWrite, Category="default")
-		FString JSONString;
+	UPROPERTY(BlueprintReadWrite)
+	FString JsonString;
 
 	FString TabString;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FGeoCoords GeoCoords;
+
 	TArray<FPosgisContourData> GlobalContoursWithData;
-public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="default")
-	ProjectionType _projection;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="default")
-	float _originLon;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="default")
-	float _originLat;
 
-public:
+	typedef TSharedPtr<FJsonValue> JsonValuesPtr;
 
-	UFUNCTION(BlueprintCallable, CallInEditor, Category="Default")
-		void ParseJSON();
+	AJsonLoader();
 
-	void ParseRecursion(TMap<FString, TSharedPtr<FJsonValue>> Values);
-	void ParseArray(TArray<TSharedPtr<FJsonValue>> Values);
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	TArray<FPosgisContourData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);
 
-	void ParseFeatures(TArray<TSharedPtr<FJsonValue>> FeatureArray, TArray<FPosgisContourData>& ContoursWithData);
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	TArray<FPosgisContourData> ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords);
 
-	void ParsePolygon(TArray<TSharedPtr<FJsonValue>> geometry, FPosgisContourData& contourData);
-	void ParseMultiPolygon(TArray<TSharedPtr<FJsonValue>> geometry, FPosgisContourData& contourData);
+	TArray<FPosgisContourData> ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords);
+
+	UFUNCTION(BlueprintCallable, CallInEditor)
+	void ParseJSON();
+
+	void ParseRecursion(TMap<FString, JsonValuesPtr> inValues);
+	void ParseArray(TArray<JsonValuesPtr> inValues);
+
+	void ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FPosgisContourData>& outContoursWithData);
+
+	void ParsePolygon(TArray<JsonValuesPtr> inGeometry, FPosgisContourData& outContourData);
+	void ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FPosgisContourData& outContourData);
 
 	template <typename EnumType>
-	static FORCEINLINE EnumType GetEnumValueFromString(const FString& EnumName, const FString& String)
+	static FORCEINLINE EnumType GetEnumValueFromString(const FString& inEnumName, const FString& inString)
 	{
-		UEnum* Enum = FindObject<UEnum>(ANY_PACKAGE, *EnumName, true);
+		UEnum* Enum = FindObject<UEnum>(ANY_PACKAGE, *inEnumName, true);
 		if (!Enum)
 		{
 			return EnumType(0);
 		}
-		return (EnumType)Enum->GetIndexByName(FName(*String));
+		return (EnumType)Enum->GetIndexByName(FName(*inString));
 	}
 };
