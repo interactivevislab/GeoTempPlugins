@@ -36,7 +36,7 @@ public:
 
 	///TODO: detach it from postgis data
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-		static FApiRoadNetwork ReadRoadNetworkFromPostgisBinary(TArray<FPostGisBinaryEntity> inRoadData, ProjectionType inProjection, float inOriginLon, float inOriginLat);	
+	static FApiRoadNetwork ReadRoadNetworkFromPostgisBinary(TArray<FPostGisBinaryEntity> inRoadData, ProjectionType inProjection, float inOriginLon, float inOriginLat);	
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	static FRoadNetwork ProcessRoadNetwork(FApiRoadNetwork inApiRoadNetwork);

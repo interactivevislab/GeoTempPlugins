@@ -18,3 +18,4 @@ void FGeoTempVisModule::ShutdownModule()
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FGeoTempVisModule, GeoTempVis)
+	

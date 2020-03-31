@@ -26,9 +26,14 @@ struct GEOTEMPROADS_API FApiRoadLine
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly) FVector Start;
-	UPROPERTY(BlueprintReadOnly) FVector End;
-	UPROPERTY(BlueprintReadOnly) TArray<FVector> AllPoints;
+	UPROPERTY(BlueprintReadOnly) 
+	FVector Start;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	FVector End;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	TArray<FVector> AllPoints;
 };
 
 
@@ -40,10 +45,17 @@ struct GEOTEMPROADS_API	FApiRoadProperties
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(BlueprintReadOnly) EHighwayType Highway;
-	UPROPERTY(BlueprintReadOnly) float Angle;
-	UPROPERTY(BlueprintReadOnly) float Length;
-	UPROPERTY(BlueprintReadOnly) int ParentId;
+	UPROPERTY(BlueprintReadOnly) 
+	EHighwayType Highway;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	float Angle;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	float Length;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	int ParentId;
 };
 
 
@@ -52,13 +64,26 @@ struct GEOTEMPROADS_API	FApiRoadSegment
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly) FApiRoadLine Line;
-	UPROPERTY(BlueprintReadOnly) EHighwayType Highway;
-	UPROPERTY(BlueprintReadOnly) int Lanes;
-	UPROPERTY(BlueprintReadOnly) float LaneWidth;
-	UPROPERTY(BlueprintReadOnly) int YearStart;
-	UPROPERTY(BlueprintReadOnly) int YearEnd;
-	UPROPERTY(BlueprintReadOnly) FString Change;
+	UPROPERTY(BlueprintReadOnly) 
+	FApiRoadLine Line;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	EHighwayType Highway;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	int Lanes;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	float LaneWidth;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	int YearStart;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	int YearEnd;
+	
+	UPROPERTY(BlueprintReadOnly) 
+	FString Change;
 };
 
 
@@ -67,5 +92,6 @@ struct GEOTEMPROADS_API	FApiRoadNetwork
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly) TMap<int, FApiRoadSegment> Segments;
+	UPROPERTY(BlueprintReadOnly) 
+	TMap<int, FApiRoadSegment> Segments;
 };

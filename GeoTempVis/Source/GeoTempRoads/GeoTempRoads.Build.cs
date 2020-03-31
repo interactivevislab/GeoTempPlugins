@@ -7,57 +7,42 @@ public class GeoTempRoads : ModuleRules
 	public GeoTempRoads(ReadOnlyTargetRules Target) : base(Target)
 	{
 
-
-
-
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicIncludePaths.AddRange(
-			new string[] {
-				// ... add public include paths required here ...
-			}
-			);
+		PublicIncludePaths.AddRange(new string[] {
+			// ... add public include paths required here ...
+		});
 
 
-		PrivateIncludePaths.AddRange(
-			new string[] {
-				// ... add other private include paths required here ...
-			}
-			);
+		PrivateIncludePaths.AddRange(new string[] {
+			// ... add other private include paths required here ...
+		});
 
 
-		PublicDependencyModuleNames.AddRange(
-			new string[]
-			{
-				"Core", "RuntimeMeshComponent", "GeoTempCore", "GeoTempPostgis"
-				// ... add other public dependencies that you statically link with here ...
-			}
-			);
+		PublicDependencyModuleNames.AddRange(new string[] {
+			"Core", 
+			"RuntimeMeshComponent", 
+			"GeoTempCore", 
+			"GeoTempPostgis"
+		});
 		if (Target.Type == TargetRules.TargetType.Editor)
 		{
-			PrivateDependencyModuleNames.AddRange(
-			new string[] {
+			PrivateDependencyModuleNames.AddRange(new string[] {
 				"ProceduralMeshComponentEditor",
 				"MeshDescription",
-					"MeshDescriptionOperations",
-					"AssetTools",
-					"AssetRegistry",
-			}
-			);
+				"MeshDescriptionOperations",
+				"AssetTools",
+				"AssetRegistry",
+			});
 		}
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Core",
-															"CoreUObject",
-															"Engine",
-															"RenderCore",
-															"GeoTempCore", "GeoTempPostgis" });
-
-
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-				// ... add any modules that your module loads dynamically here ...
-			}
-			);
+		PrivateDependencyModuleNames.AddRange(new string[] { 
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"RenderCore",
+			"GeoTempCore", 
+			"GeoTempPostgis" 
+		});		
 	}
 }
