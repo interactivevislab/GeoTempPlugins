@@ -29,9 +29,9 @@ UMaskLoader::UMaskLoader()
 	FeatureLevel = ERHIFeatureLevel::SM5;
 	FColor StartColor = FColor::Red;
 
-	ConstantParameters = FPixelShaderConstantParameters();	
+	ConstantParameters = FPsConstParams();
 
-	VariableParameters = FPixelShaderVariableParameters();
+	VariableParameters = FPsVarParams();
 
 	bMustRegenerateSRV = false;
 	bIsPixelShaderExecuting = false;
@@ -162,7 +162,7 @@ void UMaskLoader::ExecutePixelShaderInternal(FRHICommandListImmediate& RHICmdLis
 		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<>::GetRHI();
 		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<true, CF_LessEqual>::GetRHI();
 		GraphicsPSOInit.PrimitiveType = PT_TriangleList;
-		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GTextureVertexDeclarationMask.VertexDeclarationRHI;
+		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GTextureVertexDeclarationMask.VertexDeclarationRhi;
 		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 

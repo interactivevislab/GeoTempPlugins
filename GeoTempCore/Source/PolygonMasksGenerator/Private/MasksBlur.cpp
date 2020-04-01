@@ -18,9 +18,9 @@ UMaskBlurer::UMaskBlurer()
 	FeatureLevel = ERHIFeatureLevel::SM5;
 	FColor StartColor = FColor::Red;
 
-	ConstantParameters = FPixelShaderConstantParametersBlur();	
+	ConstantParameters = FPsConstParamsBlur();
 	
-	VariableParameters = FPixelShaderVariableParametersBlur();
+	VariableParameters = FPsVarParamsBlur();
 
 	bMustRegenerateSRV = false;
 	bIsPixelShaderExecuting = false;
@@ -139,7 +139,7 @@ void UMaskBlurer::ExecutePixelShaderInternal(FRHICommandListImmediate& RHICmdLis
 		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<>::GetRHI();
 		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, CF_Always>::GetRHI();
 		GraphicsPSOInit.PrimitiveType = PT_TriangleStrip;
-		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GTextureVertexDeclarationBlur.VertexDeclarationRHI;
+		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GTextureVertexDeclarationBlur.VertexDeclarationRhi;
 		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 
@@ -188,7 +188,7 @@ void UMaskBlurer::ExecutePixelShaderInternal(FRHICommandListImmediate& RHICmdLis
 		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<>::GetRHI();
 		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, CF_Always>::GetRHI();
 		GraphicsPSOInit.PrimitiveType = PT_TriangleStrip;
-		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GTextureVertexDeclarationBlur.VertexDeclarationRHI;
+		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GTextureVertexDeclarationBlur.VertexDeclarationRhi;
 		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 

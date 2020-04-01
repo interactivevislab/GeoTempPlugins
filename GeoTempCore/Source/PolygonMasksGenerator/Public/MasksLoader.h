@@ -37,8 +37,8 @@ public:
 	UPROPERTY(/*Category = "Inner  Mask Data"*/) TArray<FPosgisContourData> Polygons;
 #pragma region Render Data
 protected:
-	FPixelShaderConstantParameters ConstantParameters;
-	FPixelShaderVariableParameters VariableParameters;
+	FPsConstParams ConstantParameters;
+	FPsVarParams VariableParameters;
 	ERHIFeatureLevel::Type FeatureLevel;
 
 	/** Main texture */

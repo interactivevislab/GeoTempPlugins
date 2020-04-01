@@ -18,8 +18,8 @@ public:
 	
 #pragma region Render Data
 private:
-	FPixelShaderConstantParametersBlur ConstantParameters;
-	FPixelShaderVariableParametersBlur VariableParameters;
+	FPsConstParamsBlur ConstantParameters;
+	FPsVarParamsBlur VariableParameters;
 	ERHIFeatureLevel::Type FeatureLevel;
 	FVertexBufferRHIRef vertBuf;
 	/** Main texture */
