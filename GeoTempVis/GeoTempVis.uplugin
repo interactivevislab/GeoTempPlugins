@@ -14,18 +14,23 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
-	"Modules": [
-		{
-			"Name": "GeoTempVis",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "GeoTempRoads",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-	],
+  "Modules": [
+    {
+      "Name": "GeoTempVis",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "GeoTempRoads",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "GeoTempFoliage",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
 	"Plugins": [
 		{
 			"Name": "GeoTempCore",
