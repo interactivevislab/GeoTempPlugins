@@ -25,32 +25,37 @@ void APostgisReader::CheckConnectionStatus(float inDeltaTime)
 
 	switch (status)
 	{
-		CONNECTION_BAD:
-			FString s(PQerrorMessage(conn));
-			UE_LOG(LogTemp, Warning, TEXT("Postgress: Connection to database failed: %s"), *s);
-			if (!s.IsEmpty())
+		case CONNECTION_BAD:
+		{
+			FString badConErrMsg(PQerrorMessage(conn));
+			UE_LOG(LogTemp, Warning, TEXT("Postgress: Connection to database failed: %s"), *badConErrMsg);
+			if (!badConErrMsg.IsEmpty())
 			{
-				Error = FString::Format(TEXT("Postgress: Connection to database failed: %s"), { s });
+				Error = FString::Format(TEXT("Postgress: Connection to database failed: %s"), { badConErrMsg });
 				//if (conn) PQfinish(conn);
 				bool result;
 				InitConnect(result);
 			}
 			Status = EStatus::Unconnected;
 			break;
-
-		CONNECTION_OK:
+		}
+		
+		case CONNECTION_OK:
+		{
 			UE_LOG(LogTemp, Display, TEXT("Postgress: Connection Complete."));
 			Status = EStatus::Connected;
 			break;
-
+		}
+		
 		default:
+		{
 			auto pollResult = PQconnectPoll(conn);
 			if (pollResult == PGRES_POLLING_FAILED)
 			{
 				auto e = PQerrorMessage(conn);
-				FString s(e);
-				UE_LOG(LogTemp, Warning, TEXT("Postgress: Connection to database failed(poll): %s"), *s);
-				Error = FString::Format(TEXT("Postgress: Connection to database failed(poll): %s"), { s });
+				FString errorMsg(e);
+				UE_LOG(LogTemp, Warning, TEXT("Postgress: Connection to database failed(poll): %s"), *errorMsg);
+				Error = FString::Format(TEXT("Postgress: Connection to database failed(poll): %s"), { errorMsg });
 				//if (conn) PQfinish(conn);
 				Status = EStatus::Unconnected;
 			}
@@ -75,6 +80,7 @@ void APostgisReader::CheckConnectionStatus(float inDeltaTime)
 				}*/
 			}
 			break;
+		}
 	}
 #endif
 }
