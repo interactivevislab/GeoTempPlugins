@@ -27,11 +27,17 @@ void UBuildingSpawner::SpawnBuildingActors(const TArray<FBuilding>& inBuildingDa
 
 void UBuildingSpawner::CleanBuildings() {
 
-	for (auto building : this->Buildings) {
-		if (building) building->Destroy();
+	for (auto building : this->Buildings) 
+	{
+		if (building) 
+		{
+			building->Destroy();
+		}
 	}
+	
 	AActor* owner = GetOwner();
 	TArray<ABuildingActor*> toDestroy;
+	
 	for (auto child : owner->Children)
 	{
 		if (dynamic_cast<ABuildingActor*>(child))

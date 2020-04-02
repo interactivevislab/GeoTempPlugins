@@ -19,10 +19,13 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 
 	if (!buildingPart->OverrideHeight && buildingPart->Height == 0)
 	{
-		buildingPart->Height	= buildingPart->Floors * 350.0f + 50;
-		buildingPart->MinHeight	= buildingPart->MinFloors * 350.0f - 50;
-		if (buildingPart->MinFloors == 0) buildingPart->MinHeight = -1500;
-	}		
+		buildingPart->Height	= buildingPart->Floors		* 350.0f + 50;
+		buildingPart->MinHeight	= buildingPart->MinFloors	* 350.0f - 50;
+		if (buildingPart->MinFloors == 0) 
+		{
+			buildingPart->MinHeight = -1500;
+		}
+	}
 
 	Triangulate(buildingPart->OuterConts, buildingPart->InnerConts, nodes, triangles, std::string(TCHAR_TO_UTF8(*flags)));
 
@@ -36,9 +39,14 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 	bool isInner = false;
 	for (auto conts : { TArray<FContour>(buildingPart->OuterConts), TArray<FContour>(buildingPart->InnerConts) })
 	{
-		for (auto& cont : conts) {
+		for (auto& cont : conts) 
+		{
 			cont = cont.RemoveCollinear(); 
-			if (isInner) cont.FixClockwise(true);
+			if (isInner) 
+			{
+				cont.FixClockwise(true);
+			}
+			
 			auto& contour = cont.Points;
 
 			int z = Vertices.Num();
@@ -168,7 +176,8 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 	{
 		auto val = RoofMakers.FindRef(buildingPart->Owner->RoofType);
 		val->GenerateRoof(*buildingPart, meshData.LastFreeIndex, wallMaterial, roofMaterial);
-	} else if (RoofMakers.Contains("Default"))
+	}
+	else if (RoofMakers.Contains("Default"))
 	{
 		auto val = RoofMakers.FindRef("Default");
 		val->GenerateRoof(*buildingPart, meshData.LastFreeIndex, wallMaterial, roofMaterial);	
@@ -181,7 +190,8 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 
 void MeshHelpers::ConstructProceduralMesh(UProceduralMeshComponent* procMesh, FBuildingMeshData meshData)
 {
-	for (auto& segmentData : meshData.Segments) {
+	for (auto& segmentData : meshData.Segments) 
+	{
 		procMesh->CreateMeshSection_LinearColor(
 			segmentData.SectionIndex, 
 			segmentData.Vertices,
@@ -205,7 +215,8 @@ void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, FBuil
 	for (auto& segmentData : meshData.Segments)
 	{
 		TArray<FColor> vertexColors;
-		for (auto& linearColor : segmentData.VertexColors) {
+		for (auto& linearColor : segmentData.VertexColors) 
+		{
 			vertexColors.Add(linearColor.ToFColor(true));
 		}
 

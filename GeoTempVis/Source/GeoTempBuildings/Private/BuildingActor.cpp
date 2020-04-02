@@ -17,30 +17,37 @@ void ABuildingActor::OnConstruction(const FTransform& Transform)
 
 void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 {
-	if (RootComponent == nullptr) {
+	if (RootComponent == nullptr)
+	{
 		RootComponent = NewObject<USceneComponent>(this, TEXT("RootComponent"));
 		FinishAndRegisterComponent(RootComponent);
 	}
 	Building = building;
 
-	for (auto& cont : Building->MainPart->OuterConts) {
+	for (auto& cont : Building->MainPart->OuterConts)
+	{
 		Outer.Add(cont);
 	}
-	for (auto& cont : Building->MainPart->InnerConts) {
+	for (auto& cont : Building->MainPart->InnerConts)
+	{
 		Inner.Add(cont);
 	}
-	for (auto& part : Parts) {
+	
+	for (auto& part : Parts)
+	{
 		part->DestroyComponent();
 	}
+	
 	Id = Building->Id;
 	Parts.Empty();
 	BuildingTags = Building->Tags;
-	if (Building->Parts.size() == 0) {
+	
+	if (Building->Parts.size() == 0) 
+	{
 		auto name = FName(*(FString::FromInt(Building->Id) + "_" + FString::FromInt(Building->MainPart->Id)));
 		UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
 		
-		part->OnComponentCreated();
-		
+		part->OnComponentCreated();		
 		part->SetupAttachment(RootComponent);
 		part->RegisterComponent();
 		this->AddInstanceComponent(part);
@@ -56,18 +63,22 @@ void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 			Parts.Add(part);
 		}
 	}
-	else {
-		for (auto& partData : Building->Parts) {
+	else 
+	{
+		for (auto& partData : Building->Parts) 
+		{
 			auto name = FName(*(FString::FromInt(Building->Id) + "_" + FString::FromInt(partData->Id)));
 			UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
 			part->RegisterComponent();
 			part->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+			
 			if (part)
 			{
 				FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
 				part->WallMaterial = WallMaterial;
-				part->RoofMaterial = RoofMaterial;				
+				part->RoofMaterial = RoofMaterial;
 				part->Init(partData, Building->Tags);
+				
 				if (initPartsImmideately) part->ReInit();
 				part->StylePalette = partData->StylePalette;
 				Parts.Add(part);
