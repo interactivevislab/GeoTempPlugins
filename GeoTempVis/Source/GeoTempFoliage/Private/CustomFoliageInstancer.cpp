@@ -28,6 +28,17 @@ ACustomFoliageInstancer::ACustomFoliageInstancer()
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Roooot"));
 	SetRootComponent(Root);
+
+	MaskLoaderInitial	= NewObject<UMaskLoader>(this, TEXT("MaskLoaderInitial")	);
+	MaskLoaderFirst		= NewObject<UMaskLoader>(this, TEXT("MaskLoaderFirst")		);
+	MaskLoaderSecond	= NewObject<UMaskLoader>(this, TEXT("MaskLoaderSecond")		);
+	MaskLoaderTypes		= NewObject<UMaskLoader>(this, TEXT("MaskLoaderTypes")		);
+
+	PolygonPreparer = NewObject<UBasePolygonPreparer>(this, TEXT("PolygonPreparer"));
+
+	updateSecondRenderTarget	= false;
+	currentMaskIndex			= 0;
+	polygonDates				= TArray<int>();
 }
 
 
@@ -44,7 +55,8 @@ void ACustomFoliageInstancer::BeginPlay()
 			{
 				meshInfo.MaterialInstances.Add(x, Cast<UMaterialInstanceDynamic>(material));
 			}
-			else {
+			else
+			{
 				auto materialName		= FName(*(*TEXT("NewInstancedMaterial") + "_" + FString::FromInt(x)));
 				auto dynamicMaterial	= UMaterialInstanceDynamic::Create(material, meshInfo.Mesh, materialName);
 
@@ -81,24 +93,25 @@ void ACustomFoliageInstancer::Tick(float DeltaTime)
 
 void ACustomFoliageInstancer::BufferMask(UTexture2D* inInitialMask)
 {
-	MaskBuffer.Empty();
+	maskBuffer.Empty();
 	inInitialMask->UpdateResource();
 	TArray<FColor> OutData;
 
-	ENQUEUE_RENDER_COMMAND(FPixelShaderRunner)(
-		[&](FRHICommandListImmediate& RHICmdList)
-		{
+	ENQUEUE_RENDER_COMMAND(FPixelShaderRunner)([&](FRHICommandListImmediate& RHICmdList)
+	{
 			auto texture	= ((FTexture2DResource*)inInitialMask->Resource)->GetTexture2DRHI();
 			auto rect		= FIntRect(0, 0, inInitialMask->Resource->GetSizeX(), inInitialMask->Resource->GetSizeY());
 			RHICmdList.ReadSurfaceData(texture, rect, OutData, FReadSurfaceDataFlags());
-		}
-	);
+	});
 	FlushRenderingCommands();
-	for (int x = 0; x < inInitialMask->PlatformData->Mips[0].SizeY; x++)
+	auto maskSizeX = inInitialMask->PlatformData->Mips[0].SizeX;
+	auto maskSizeY = inInitialMask->PlatformData->Mips[0].SizeY;
+	for (int x = 0; x < maskSizeY; x++)
 	{
-		for (int y = 0; y < inInitialMask->PlatformData->Mips[0].SizeX; y++)
+		for (int y = 0; y < maskSizeX; y++)
 		{
-			MaskBuffer.Add((float)(OutData[x * inInitialMask->GetSizeX() + y].R) / 255);
+			int pixelIndex = x * inInitialMask->GetSizeX() + y;
+			maskBuffer.Add(static_cast<float>(OutData[pixelIndex].R) / 255);
 		}
 	}
 }
@@ -108,7 +121,8 @@ void ACustomFoliageInstancer::InterpolateFoliageWithMaterial(FFoliageMeshInfo Fo
 {
 	auto meshPtr = FoliageInstancers.FindRef(Fol.Mesh);
 
-	if (!meshPtr || !IsValid(meshPtr)) {
+	if (!meshPtr || !IsValid(meshPtr)) 
+	{
 		return;
 	}
 	meshPtr->SetScalarParameterValueOnMaterials("Interpolation", CurrentInterpolation);
@@ -119,7 +133,7 @@ void ACustomFoliageInstancer::FillFoliage_BP(FVector4 componentRect, bool DebugD
 {
 	Width = Height = componentRect.Y - componentRect.X;
 
-	const int StartCullDistance = 2000000000;
+	const int StartCullDistance	= 2000000000;
 	const int EndCullDistance	= 2100000000;
 	FVector componentOffset		= FVector(componentRect.X, componentRect.Z, 0);
 
@@ -141,8 +155,8 @@ void ACustomFoliageInstancer::FillFoliage_BP(FVector4 componentRect, bool DebugD
 				meshInfo.MaterialInstances.Add(x, Cast<UMaterialInstanceDynamic>(material));
 			}
 			else {
-				auto materialName	 = FName(*(*TEXT("NewInstancedMaterial") + "_" + FString::FromInt(x)));
-				auto dynamicMaterial = UMaterialInstanceDynamic::Create(material, meshInfo.Mesh, materialName);
+				auto materialName		= FName(*(*TEXT("NewInstancedMaterial") + "_" + FString::FromInt(x)));
+				auto dynamicMaterial	= UMaterialInstanceDynamic::Create(material, meshInfo.Mesh, materialName);
 
 				meshInfo.MaterialInstances.Add(x, dynamicMaterial);
 			}
@@ -265,10 +279,10 @@ void ACustomFoliageInstancer::FillFoliage(TArray<FFoliageMeshInfo> Infos, TArray
 				Y = FMath::Clamp(cellY + helperY + SpawnTranslate.Y, 0.0f, Height);
 				if (instancerAngle !=0)
 				{
-					auto newX = FMath::Cos(instancerAngle) * (X - originPoint.X) -
-								FMath::Sin(instancerAngle) * (Y - originPoint.Y) + originPoint.X;
-					auto newY = FMath::Sin(instancerAngle) * (X - originPoint.X) +
-								FMath::Cos(instancerAngle) * (Y - originPoint.Y) + originPoint.Y;
+					auto newX	=	FMath::Cos(instancerAngle) * (X - originPoint.X) -
+									FMath::Sin(instancerAngle) * (Y - originPoint.Y) + originPoint.X;
+					auto newY	=	FMath::Sin(instancerAngle) * (X - originPoint.X) +
+									FMath::Cos(instancerAngle) * (Y - originPoint.Y) + originPoint.Y;
 
 					X = FMath::Clamp(newX, 0.0f, Width	);
 					Y = FMath::Clamp(newY, 0.0f, Height	);
@@ -277,14 +291,14 @@ void ACustomFoliageInstancer::FillFoliage(TArray<FFoliageMeshInfo> Infos, TArray
 				int px = X / Width * (InitialMask->GetSizeX()-1);
 				int py = Y / Height * (InitialMask->GetSizeY()-1);
 
-				if (ColorBuffer[(int)(py * InitialMask->GetSizeX() + px)].R>0) 
+				if (colorBuffer[(int)(py * InitialMask->GetSizeX() + px)].R>0) 
 				{
 					totalAdded++;
 
 					if (!DebugDraw)
 					{
 						auto meshScale	= rs.FRandRange(meshInfo.MinScale, meshInfo.MaxScale);
-						float meshAngle = SpawnAngle + meshInfo.RotationOrigin;
+						float meshAngle	= SpawnAngle + meshInfo.RotationOrigin;
 						FQuat rotation;
 						if (meshInfo.UseRotationPresets && meshInfo.RotationPresets.Num() > 0)
 						{
@@ -316,24 +330,128 @@ void ACustomFoliageInstancer::FillFoliage(TArray<FFoliageMeshInfo> Infos, TArray
 }
 
 
+void ACustomFoliageInstancer::UpdateFoliageMasks(FDateTime currentTime) 
+{
+	int firstMaskYear	= FMath::Max(polygonDates[currentMaskIndex],	1);
+	int secondMaskYear	= FMath::Max(polygonDates[currentMaskIndex+1],	1);
+	FDateTime firstMaskDate		= FDateTime(firstMaskYear,	1, 1);
+	FDateTime secondMaskDate	= FDateTime(secondMaskYear,	1, 1);
+
+	if (updateSecondRenderTarget)
+	{
+		float secondsAfterFirstMask		= (currentTime		- firstMaskDate	).GetTotalSeconds();
+		float secondsBetweenMasks		= (secondMaskDate	- firstMaskDate	).GetTotalSeconds();
+		float secondsBeforeSecondMask	= (secondMaskDate	- currentTime	).GetTotalSeconds();
+
+		CurrentInterpolation = FMath::Clamp(secondsAfterFirstMask / secondsBetweenMasks, 0.0f, 1.0f);
+
+		if (secondsAfterFirstMask < 0 || secondsBeforeSecondMask < 0)
+		{
+			GetDatesNearCurrent(currentTime);
+		}
+	}
+
+	int renderYear		= polygonDates[currentMaskIndex];
+	if (CurrentInterpolation >= 1.0f)
+	{
+		MaskLoaderFirst	->RenderMaskForTime(renderYear, StartTarget, 0);
+	}
+	else
+	{
+		renderYear		= polygonDates[currentMaskIndex + 1];
+		MaskLoaderSecond->RenderMaskForTime(renderYear, EndTarget, 0);
+	}
+	MaskLoaderTypes->RenderMaskForTime(renderYear, TypesTarget, 0);
+	if (!updateSecondRenderTarget)
+	{
+		CurrentInterpolation = CurrentInterpolation >= 1.0f ? 0.0f : 1.0f;
+	}
+	updateSecondRenderTarget = !updateSecondRenderTarget;
+}
+
+
+void ACustomFoliageInstancer::GetDatesNearCurrent(FDateTime currentTime)
+{
+	int currentMaskIndexLocal = -1;
+
+	for (int i = 0; i < polygonDates.Num()-1; i++)
+	{
+		auto indexedMaskDate			= FDateTime(FMath::Max(polygonDates[i], 1),1,1);
+		auto secondsFromCurrentMaskDate	= (indexedMaskDate - currentTime).GetTotalSeconds();
+		if (secondsFromCurrentMaskDate <= 0.0f)
+		{
+			currentMaskIndexLocal++;
+		}
+		else
+		{
+			currentMaskIndexLocal = FMath::Max(currentMaskIndexLocal,0);
+			break;
+		}
+	}
+	currentMaskIndex = FMath::Min(currentMaskIndexLocal, polygonDates[polygonDates.Num() - 2]);
+}
+
+
+void ACustomFoliageInstancer::ParseDates()
+{
+	TSet<int> maskDates = TSet<int>();
+
+	for (int i = 0; i < InputPolygons.Num()-1; i++)
+	{
+		ParseTimeTags(InputPolygons[i], maskDates);
+	}
+	SortDatesByAscend(maskDates);
+}
+
+
+void ACustomFoliageInstancer::ParseTimeTags(FPosgisContourData contour, TSet<int>& outDates)
+{
+	int date	= FCString::Atoi(**contour.Tags.Find("AppearStart")		);
+	outDates.Add(date);
+	date		= FCString::Atoi(**contour.Tags.Find("DemolishStart")	);
+	outDates.Add(date);
+}
+
+
+void ACustomFoliageInstancer::SortDatesByAscend(TSet<int> dates)
+{
+	int minDate = 0;
+	auto datesArray = dates.Array();
+	while (datesArray.Num()>0)
+	{
+		minDate = datesArray[0];
+		for (int i = 0; i < datesArray.Num(); i++)
+		{
+			if (datesArray[i] < minDate)
+			{
+				minDate = datesArray[i];
+			}
+		}
+		polygonDates.Add(minDate);
+		datesArray.Remove(minDate);
+	}
+}
+
+
 void ACustomFoliageInstancer::UpdateBuffer()
 {
-	ColorBuffer.Reset();
+	colorBuffer.Reset();
 
 	if (InitialTarget != NULL)
 	{
 		FTextureRenderTarget2DResource* textureResource = (FTextureRenderTarget2DResource*)InitialTarget->Resource;
-		if (textureResource->ReadPixels(ColorBuffer))
+		if (textureResource->ReadPixels(colorBuffer))
 		{
 		}
 	}
 }
 
+
 FColor ACustomFoliageInstancer::GetRenderTargetValue(float x, float y)
 {
 	float size = 10000;
 
-	if (InitialTarget == NULL || ColorBuffer.Num() == 0)
+	if (InitialTarget == NULL || colorBuffer.Num() == 0)
 	{
 		return FColor(0);
 	}
@@ -355,7 +473,7 @@ FColor ACustomFoliageInstancer::GetRenderTargetValue(float x, float y)
 
 	int index = i + j * width;
 	if (index < 0) index = 0;
-	if (index >= ColorBuffer.Num()) index = ColorBuffer.Num();
+	if (index >= colorBuffer.Num()) index = colorBuffer.Num();
 
-	return ColorBuffer[index];
+	return colorBuffer[index];
 }

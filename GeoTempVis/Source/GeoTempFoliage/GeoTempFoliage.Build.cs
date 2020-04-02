@@ -23,7 +23,8 @@ public class GeoTempFoliage : ModuleRules
 			"Core",
 			"GeoTempCore",
 			"RenderCore",
-			"RHI", 
+			"RHI",
+			"PolygonMasksGenerator",
 		});
 			
 		

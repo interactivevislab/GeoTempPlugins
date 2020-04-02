@@ -16,6 +16,8 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "FoliageInfo.h"
 #include "Basics.h"
+#include "MasksLoader.h"
+#include "BasePolygonPreparer.h"
 #include "CustomFoliageInstancer.generated.h"
 
 
@@ -35,8 +37,12 @@ public:
 	ACustomFoliageInstancer();
 
 private:
-	TArray<float> MaskBuffer;
-	TArray<FColor> ColorBuffer;
+	TArray<float> maskBuffer;
+	TArray<FColor> colorBuffer;
+
+	bool updateSecondRenderTarget;
+	int currentMaskIndex;
+	TArray<int> polygonDates;
 
 protected:
 	virtual void BeginPlay() override;
@@ -76,13 +82,13 @@ public:
 	UTexture2D* BlankMask;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
-	UTexture* StartTarget;
+	UTextureRenderTarget2D* StartTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
-	UTexture* EndTarget;
+	UTextureRenderTarget2D* EndTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
-	UTexture* TypesTarget;
+	UTextureRenderTarget2D* TypesTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
 	UTextureRenderTarget2D* InitialTarget;
@@ -92,6 +98,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FoliageSettings")
 	TMap<UStaticMesh*, UHierarchicalInstancedStaticMeshComponent*> FoliageInstancers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FoliageSettings")
+	TArray<FPosgisContourData> InputPolygons;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigurationSettings")
 	ProjectionType Projection;
@@ -111,6 +120,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (UIMin = "0.0", UIMax = "1.0"))
 	float CurrentInterpolation;
 
+	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
+	UMaskLoader* MaskLoaderInitial;
+
+	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
+	UMaskLoader* MaskLoaderFirst;
+
+	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
+	UMaskLoader* MaskLoaderSecond;
+
+	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
+	UMaskLoader* MaskLoaderTypes;
+
+	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
+	UBasePolygonPreparer* PolygonPreparer;
+
 	UFUNCTION(BlueprintCallable)
 	void FillFoliage_BP(
 		FVector4 componentRect, 
@@ -126,15 +150,30 @@ public:
 		bool updateMaskBuffer = false
 	);
 	
-	UFUNCTION(CallInEditor, Category = "Foliage")
+	UFUNCTION(CallInEditor, Category = "Default")
 	void BufferMask(UTexture2D* inInitialMask);
 	
 	UFUNCTION()
 	void InterpolateFoliageWithMaterial(FFoliageMeshInfo Fol);
 	
-	UFUNCTION(BlueprintCallable, Category = "HeightMap|Update")
+	UFUNCTION(BlueprintCallable, Category = "Default")
 	void UpdateBuffer();
 	
-	UFUNCTION(BlueprintCallable, Category = "HeightMap|Texture Helper")
+	UFUNCTION(BlueprintCallable, Category = "Default")
 	FColor GetRenderTargetValue(float x, float y);
+
+	UFUNCTION(BlueprintCallable, Category = "Default")
+	void UpdateFoliageMasks(FDateTime currentTime);
+
+	UFUNCTION(BlueprintCallable, Category = "Default")
+	void GetDatesNearCurrent(FDateTime currentTime);
+
+	UFUNCTION(BlueprintCallable, Category = "Default")
+	void ParseDates();
+
+	UFUNCTION(BlueprintCallable, Category = "Default")
+	void ParseTimeTags(FPosgisContourData contour, TSet<int>& outDates);
+
+	UFUNCTION(BlueprintCallable, Category = "Default")
+	void SortDatesByAscend(TSet<int> dates);
 };
