@@ -27,8 +27,9 @@ public:
 
 private:
 
-	FPsConstParamsBlur		constParams;
-	FPsVarParamsBlur		varParams;
+	FPixelShaderConstantParametersBlur	constParams;
+	FPixelShaderVariableParametersBlur	varParams;
+
 	ERHIFeatureLevel::Type	featureLevel;
 	FVertexBufferRHIRef		vertBuf;
 	FTexture2DRHIRef		currentTex; //Main texture

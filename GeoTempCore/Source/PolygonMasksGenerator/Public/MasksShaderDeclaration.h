@@ -6,19 +6,19 @@
 
 
 //This buffer should contain variables that never, or rarely change
-BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPsConstParams, )
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderConstantParameters, )
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 
 //This buffer is for variables that change very often (each frame for example)
-BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPsVarParams, )
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderVariableParameters, )
 SHADER_PARAMETER(FVector4, Rect) //left, right, top, bottom
 SHADER_PARAMETER(float, Year) //year, dummy3
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 
-typedef TUniformBufferRef<FPsConstParams>	FPsConstParamsRef;
-typedef TUniformBufferRef<FPsVarParams>		FPsVarParamsRef;
+typedef TUniformBufferRef<FPixelShaderConstantParameters> FPsConstParamsRef;
+typedef TUniformBufferRef<FPixelShaderVariableParameters> FPsVarParamsRef;
 
 
 /************************************************************************/
@@ -68,7 +68,8 @@ public:
 	FVertexShaderExample();
 	FVertexShaderExample(const ShaderMetaType::CompiledShaderInitializerType& inInitializer);
 
-	void SetUniformBuffers(FRHICommandList& outRhiCmdList, FPsConstParams& outConstParams, FPsVarParams& outVarParams);
+	void SetUniformBuffers(FRHICommandList& outRhiCmdList, 
+		FPixelShaderConstantParameters& outConstParams, FPixelShaderVariableParameters& outVarParams);
 };
 
 
@@ -89,7 +90,8 @@ public:
 	//This function is required to let us bind our runtime surface to the shader using an SRV.
 	void SetOutputTexture(FRHICommandList& outRhiCmdList, FShaderResourceViewRHIRef inTexParamSrv);
 	//This function is required to bind our constant / uniform buffers to the shader.
-	void SetUniformBuffers(FRHICommandList& outRhiCmdList, FPsConstParams& outConstParams, FPsVarParams& outVarParams);
+	void SetUniformBuffers(FRHICommandList& outRhiCmdList, 
+		FPixelShaderConstantParameters& outConstParams, FPixelShaderVariableParameters& outVarParams);
 	//This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed.
 	void UnbindBuffers(FRHICommandList& outRhiCmdList);
 

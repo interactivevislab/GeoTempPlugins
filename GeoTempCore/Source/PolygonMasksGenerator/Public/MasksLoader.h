@@ -54,8 +54,8 @@ public:
 
 protected:
 
-	FPsConstParams ConstantParameters;
-	FPsVarParams VariableParameters;
+	FPixelShaderConstantParameters ConstantParameters;
+	FPixelShaderVariableParameters VariableParameters;
 	ERHIFeatureLevel::Type FeatureLevel;
 
 	/** Main texture */

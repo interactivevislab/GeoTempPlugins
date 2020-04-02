@@ -2,8 +2,8 @@
 #include "ShaderParameterUtils.h"
 #include "RHIStaticStates.h"
 
-IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPsConstParams, "PSConstant");
-IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPsVarParams, "PSVariable");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderConstantParameters, "PSConstant");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderVariableParameters, "PSVariable");
 
 
 void FVertexDeclarationExample::InitRHI()
@@ -24,7 +24,7 @@ void FVertexDeclarationExample::ReleaseRHI()
 
 
 void FVertexShaderExample::SetUniformBuffers(FRHICommandList& outRhiCmdList, 
-	FPsConstParams& outConstParams, FPsVarParams& outVarParams)
+	FPixelShaderConstantParameters& outConstParams, FPixelShaderVariableParameters& outVarParams)
 {
 	FPsConstParamsRef constParamsBuffer;
 	FPsVarParamsRef varParamsBuffer;
@@ -32,8 +32,10 @@ void FVertexShaderExample::SetUniformBuffers(FRHICommandList& outRhiCmdList,
 	constParamsBuffer	= FPsConstParamsRef	::CreateUniformBufferImmediate(outConstParams,	UniformBuffer_SingleDraw);
 	varParamsBuffer		= FPsVarParamsRef	::CreateUniformBufferImmediate(outVarParams,	UniformBuffer_SingleDraw);
 
-	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(), GetUniformBufferParameter<FPsConstParams>(),	constParamsBuffer);
-	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(), GetUniformBufferParameter<FPsVarParams>(),		varParamsBuffer);
+	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(),
+		GetUniformBufferParameter<FPixelShaderConstantParameters>(), constParamsBuffer);
+	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(),
+		GetUniformBufferParameter<FPixelShaderVariableParameters>(), varParamsBuffer);
 }
 
 
@@ -82,7 +84,7 @@ bool FPixelShaderExample::Serialize(FArchive& inArchive)
 
 
 void FPixelShaderExample::SetUniformBuffers(FRHICommandList& outRhiCmdList, 
-	FPsConstParams& outConstParams, FPsVarParams& outVarParams)
+	FPixelShaderConstantParameters& outConstParams, FPixelShaderVariableParameters& outVarParams)
 {
 	FPsConstParamsRef constParamsBuffer;
 	FPsVarParamsRef varParamsBuffer;
@@ -90,8 +92,10 @@ void FPixelShaderExample::SetUniformBuffers(FRHICommandList& outRhiCmdList,
 	constParamsBuffer	= FPsConstParamsRef	::CreateUniformBufferImmediate(outConstParams,	UniformBuffer_SingleDraw);
 	varParamsBuffer		= FPsVarParamsRef	::CreateUniformBufferImmediate(outVarParams,	UniformBuffer_SingleDraw);
 	
-	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(), GetUniformBufferParameter<FPsConstParams>(), constParamsBuffer);
-	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(), GetUniformBufferParameter<FPsVarParams>(),	varParamsBuffer);
+	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(), 
+		GetUniformBufferParameter<FPixelShaderConstantParameters>(), constParamsBuffer);
+	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(), 
+		GetUniformBufferParameter<FPixelShaderVariableParameters>(), varParamsBuffer);
 }
 
 

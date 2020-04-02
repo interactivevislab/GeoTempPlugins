@@ -20,8 +20,8 @@ UMaskLoader::UMaskLoader()
 {
 	FeatureLevel = ERHIFeatureLevel::SM5;
 
-	ConstantParameters = FPsConstParams();
-	VariableParameters = FPsVarParams();
+	ConstantParameters = FPixelShaderConstantParameters();
+	VariableParameters = FPixelShaderVariableParameters();
 
 	MustRegenerateSRV		= false;
 	IsPixelShaderExecuting	= false;

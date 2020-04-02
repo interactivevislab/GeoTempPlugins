@@ -6,12 +6,12 @@
 
 
 //This buffer should contain variables that never, or rarely change
-BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPsConstParamsBlur, )
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderConstantParametersBlur, )
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 
 //This buffer is for variables that change very often (each frame for example)
-BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPsVarParamsBlur, )
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderVariableParametersBlur, )
 SHADER_PARAMETER(int, Steps)
 SHADER_PARAMETER(float, Sigma) 
 SHADER_PARAMETER(float, Distance) 
@@ -19,8 +19,8 @@ SHADER_PARAMETER(FVector2D, Direction)
 END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 
-typedef TUniformBufferRef<FPsConstParamsBlur>	FPsConstParamsBlurRef;
-typedef TUniformBufferRef<FPsVarParamsBlur>		FPsVarParamsBlurRef;
+typedef TUniformBufferRef<FPixelShaderConstantParametersBlur> FPsConstParamsBlurRef;
+typedef TUniformBufferRef<FPixelShaderVariableParametersBlur> FPsVarParamsBlurRef;
 
 
 /************************************************************************/
@@ -67,7 +67,8 @@ public:
 	FVertexShaderBlur();
 	FVertexShaderBlur(const ShaderMetaType::CompiledShaderInitializerType& inInitializer);
 
-	void SetUniformBuffers(FRHICommandList& outRhiCmdList, FPsConstParamsBlur& outConstParams, FPsVarParamsBlur& outVarParams);
+	void SetUniformBuffers(FRHICommandList& outRhiCmdList, 
+		FPixelShaderConstantParametersBlur& outConstParams, FPixelShaderVariableParametersBlur& outVarParams);
 
 	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& inParams);
 };
@@ -90,8 +91,8 @@ public:
 	//This function is required to let us bind our runtime surface to the shader using an SRV.
 	void SetInputTexture(FRHICommandList& outRhiCmdList, FShaderResourceViewRHIRef inTexParamSrv);
 	//This function is required to bind our constant / uniform buffers to the shader.
-	void SetUniformBuffers(FRHICommandList& outRhiCmdList, FPsConstParamsBlur& outConstParams,
-		FPsVarParamsBlur& outVarParams);
+	void SetUniformBuffers(FRHICommandList& outRhiCmdList,
+		FPixelShaderConstantParametersBlur& outConstParams, FPixelShaderVariableParametersBlur& outVarParams);
 	//This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed.
 	void UnbindBuffers(FRHICommandList& outRhiCmdList);
 

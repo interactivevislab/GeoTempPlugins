@@ -20,8 +20,8 @@ UMaskBlurer::UMaskBlurer()
 {
 	featureLevel = ERHIFeatureLevel::SM5;
 
-	constParams = FPsConstParamsBlur();
-	varParams	= FPsVarParamsBlur();
+	constParams = FPixelShaderConstantParametersBlur();
+	varParams	= FPixelShaderVariableParametersBlur();
 
 	mustRegenerateSRV		= false;
 	isPixelShaderExecuting	= false;

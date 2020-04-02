@@ -4,8 +4,8 @@
 #include "RHIResources.h"
 
 
-IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPsConstParamsBlur, "PSConstantB");
-IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPsVarParamsBlur, "PSVariableB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderConstantParametersBlur, "PSConstantB");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderVariableParametersBlur, "PSVariableB");
 
 
 void FVertexDeclarationBlur::InitRHI()
@@ -41,8 +41,8 @@ FVertexShaderBlur::FVertexShaderBlur(const ShaderMetaType::CompiledShaderInitial
 }
 
 
-void FVertexShaderBlur::SetUniformBuffers(FRHICommandList& outRhiCmdList, FPsConstParamsBlur& outConstParams,
-	FPsVarParamsBlur& outVarParams)
+void FVertexShaderBlur::SetUniformBuffers(FRHICommandList& outRhiCmdList,
+	FPixelShaderConstantParametersBlur& outConstParams, FPixelShaderVariableParametersBlur& outVarParams)
 {
 	FPsConstParamsBlurRef constParamsBuffer;
 	FPsVarParamsBlurRef varParamsBuffer;
@@ -50,8 +50,10 @@ void FVertexShaderBlur::SetUniformBuffers(FRHICommandList& outRhiCmdList, FPsCon
 	constParamsBuffer	= FPsConstParamsBlurRef	::CreateUniformBufferImmediate(outConstParams,	UniformBuffer_SingleDraw);
 	varParamsBuffer		= FPsVarParamsBlurRef	::CreateUniformBufferImmediate(outVarParams,	UniformBuffer_SingleDraw);
 
-	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(), GetUniformBufferParameter<FPsConstParamsBlur>(),	constParamsBuffer);
-	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(), GetUniformBufferParameter<FPsVarParamsBlur>(),		varParamsBuffer);
+	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(),
+		GetUniformBufferParameter<FPixelShaderConstantParametersBlur>(), constParamsBuffer);
+	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(),
+		GetUniformBufferParameter<FPixelShaderVariableParametersBlur>(), varParamsBuffer);
 }
 
 
@@ -83,8 +85,8 @@ FPixelShaderBlur::FPixelShaderBlur(const ShaderMetaType::CompiledShaderInitializ
 
 
 void FPixelShaderBlur::SetUniformBuffers(FRHICommandList& outRhiCmdList,
-	FPsConstParamsBlur& outConstParams,
-	FPsVarParamsBlur& outVarParams)
+	FPixelShaderConstantParametersBlur& outConstParams,
+	FPixelShaderVariableParametersBlur& outVarParams)
 {
 	FPsConstParamsBlurRef constParamsBuffer;
 	FPsVarParamsBlurRef varParamsBuffer;
@@ -92,8 +94,10 @@ void FPixelShaderBlur::SetUniformBuffers(FRHICommandList& outRhiCmdList,
 	constParamsBuffer	= FPsConstParamsBlurRef	::CreateUniformBufferImmediate(outConstParams,	UniformBuffer_SingleDraw);
 	varParamsBuffer		= FPsVarParamsBlurRef	::CreateUniformBufferImmediate(outVarParams,	UniformBuffer_SingleDraw);
 	
-	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(), GetUniformBufferParameter<FPsConstParamsBlur>(), constParamsBuffer);
-	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(), GetUniformBufferParameter<FPsVarParamsBlur>(),	varParamsBuffer);
+	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(),
+		GetUniformBufferParameter<FPixelShaderConstantParametersBlur>(), constParamsBuffer);
+	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(),
+		GetUniformBufferParameter<FPixelShaderVariableParametersBlur>(), varParamsBuffer);
 }
 
 
