@@ -6,10 +6,11 @@
 #define FOUR_TIMES(something) something; something; something; something;
 
 
+
 FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial,
 	UMaterialInterface* roofMaterial)
 {
-		std::vector<FVector> nodes;
+	std::vector<FVector> nodes;
 	std::vector<int> triangles;
 	int contInd;
 
@@ -17,19 +18,22 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart bui
 
 	for (auto& cont : buildingPart.OuterConts)
 	{
-
 		cont.FixClockwise();
+		
 		if (cont.Points[0] == cont.Points[cont.Points.Num() - 1])
 		{
 			cont.Points.RemoveAt(0);
 		}
-		auto cont1 = cont;
+
 		auto& contour = cont.Points;
+		
+		auto cont1 = cont;
 		for (int i = 0; i < contour.Num(); i++)
 		{
-			int iprev = (i + contour.Num() - 1) % contour.Num();
-			int inext = (i + 1) % contour.Num();
-			auto delta1 = ((contour[iprev] - contour[i]).GetSafeNormal2D() + (contour[inext] - contour[i]).GetSafeNormal2D()).GetSafeNormal2D() * FMath::Sign(FVector::CrossProduct(contour[i] - contour[iprev], contour[inext] - contour[i]).Z);
+			auto dirs = MeshHelpers::GetNeighbourDirections(contour, i);
+			
+			auto direction = FMath::Sign(FVector::CrossProduct(dirs.Key, dirs.Value).Z);
+			auto delta1	= (-dirs.Key.GetSafeNormal2D() + dirs.Value.GetSafeNormal2D()).GetSafeNormal2D() * direction;
 			cont1.Points[i] -= delta1 * 60;
 		}
 		cont1 = cont1.RemoveCollinear(0.01f);
@@ -49,9 +53,9 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart bui
 
 		for (int i = 0; i < contour.Num(); i++)
 		{
-			int iprev = (i + contour.Num() - 1) % contour.Num();
-			int inext = (i + 1) % contour.Num();
-			auto delta1 = ((contour[iprev] - contour[i]).GetSafeNormal2D() + (contour[inext] - contour[i]).GetSafeNormal2D()).GetSafeNormal2D() * FMath::Sign(FVector::CrossProduct(contour[i] - contour[iprev], contour[inext] - contour[i]).Z);
+			auto dirs = MeshHelpers::GetNeighbourDirections(contour, i);
+			auto direction = FMath::Sign(FVector::CrossProduct(dirs.Key, dirs.Value).Z);
+			auto delta1 = (-dirs.Key.GetSafeNormal2D() + dirs.Value.GetSafeNormal2D()).GetSafeNormal2D() * direction;
 			cont1.Points[i] -= delta1 * 60;
 		}
 		cont1 = cont1.RemoveCollinear(0.01f);
@@ -74,7 +78,8 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart bui
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			if (triangles[i + j] < contInd || triangles[i + j] >= contId2) {
+			if (triangles[i + j] < contInd || triangles[i + j] >= contId2) 
+			{
 				auto v = nodes[triangles[i + j]] + FVector::UpVector * (buildingPart.Height);
 				Vertices.Add(v);
 				UV.Add(FVector2D(0, 0));

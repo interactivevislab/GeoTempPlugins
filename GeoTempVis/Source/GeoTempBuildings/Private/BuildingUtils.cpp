@@ -5,15 +5,6 @@
 
 #define FOUR_TIMES(something) something; something; something; something;
 
-
-//FBuildingMeshData IRoofMaker::GenerateRoof_Implementation(FBuildingPart buildingPart, int firstSectionIndex,
-//                                                          UMaterialInterface* wallMaterial,
-//                                                          UMaterialInterface* roofMaterial)
-//{
-//	return FBuildingMeshData();
-//}
-
-
 TMap<FString, TScriptInterface<IRoofMaker>> MeshHelpers::RoofMakers = TMap<FString, TScriptInterface<IRoofMaker>>();
 
 
@@ -28,19 +19,19 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 
 	if (!buildingPart->OverrideHeight && buildingPart->Height == 0)
 	{
-		buildingPart->Height = buildingPart->Floors * 350.0f + 50;
-		buildingPart->MinHeight = buildingPart->MinFloors * 350.0f - 50;
+		buildingPart->Height	= buildingPart->Floors * 350.0f + 50;
+		buildingPart->MinHeight	= buildingPart->MinFloors * 350.0f - 50;
 		if (buildingPart->MinFloors == 0) buildingPart->MinHeight = -1500;
 	}		
 
 	Triangulate(buildingPart->OuterConts, buildingPart->InnerConts, nodes, triangles, std::string(TCHAR_TO_UTF8(*flags)));
 
-	TArray<FVector> Vertices;
-	TArray<int> Triangles;
-	TArray<FVector> Normals;
-	TArray<FVector2D> UV;
-	TArray<FVector2D> UV1;
-	TArray<FLinearColor> VertexColors;
+	TArray<FVector>			Vertices;
+	TArray<int>				Triangles;
+	TArray<FVector>			Normals;
+	TArray<FVector2D>		UV;
+	TArray<FVector2D>		UV1;
+	TArray<FLinearColor>	VertexColors;
 
 	bool isInner = false;
 	for (auto conts : { TArray<FContour>(buildingPart->OuterConts), TArray<FContour>(buildingPart->InnerConts) })
@@ -53,18 +44,19 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 			int z = Vertices.Num();
 			for (int i = 0; i < contour.Num(); i++)
 			{
-				int iminus = (i - 1 + contour.Num()) % contour.Num();
 				int iplus = (i + 1) % contour.Num();
-				int iplusplus = (i + 2) % contour.Num();
 				int inext = iplus;
+				
 				auto v1 = contour[i];
 				auto v2 = contour[i];
 				auto v3 = contour[inext];
 				auto v4 = contour[inext];
+				
 				v1.Z = buildingPart->MinHeight;
 				v2.Z = buildingPart->Height;
 				v3.Z = buildingPart->MinHeight;
 				v4.Z = buildingPart->Height;
+				
 				if ((v1.GetAbsMax() > 10000000) || (v3.GetAbsMax() > 10000000))
 				{
 					continue;
@@ -75,13 +67,14 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 				Vertices.Add(v3);
 				Vertices.Add(v4);
 
-				auto delta = (v1 - v3).Size2D() / 300;
-				auto deltaN = FMath::FloorToFloat(delta);
-				auto offset = (delta - deltaN) / 2;
-				UV.Add(FVector2D(-offset, (buildingPart->Height - buildingPart->MinHeight) / buildingPart->FloorHeight));
-				UV.Add(FVector2D(-offset, 0));
-				UV.Add(FVector2D(-offset + delta, (buildingPart->Height - buildingPart->MinHeight) / buildingPart->FloorHeight));
-				UV.Add(FVector2D(-offset + delta, 0));
+				auto delta	= (v1 - v3).Size2D() / 300;
+				auto deltaN	= FMath::FloorToFloat(delta);
+				auto offset	= (delta - deltaN) / 2;
+				auto height = (buildingPart->Height - buildingPart->MinHeight) ;
+				UV.Add(FVector2D(-offset,			height / buildingPart->FloorHeight));
+				UV.Add(FVector2D(-offset,			0));
+				UV.Add(FVector2D(-offset + delta,	height / buildingPart->FloorHeight));
+				UV.Add(FVector2D(-offset + delta,	0));
 
 				FOUR_TIMES(UV1.Add(FVector2D(offset, deltaN)));
 				FOUR_TIMES(VertexColors.Add(FLinearColor::Gray));
@@ -117,37 +110,38 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 
 	meshData.LastFreeIndex++;
 
-	Vertices.Empty();
-	Triangles.Empty();
-	Normals.Empty();
-	UV.Empty();
-	VertexColors.Empty();
+	Vertices.		Empty();
+	Triangles.		Empty();
+	Normals.		Empty();
+	UV.				Empty();
+	VertexColors.	Empty();
 
 	int z = Vertices.Num();
 	for (auto& node : nodes)
 	{
 		auto v = node;
 		v.Z = buildingPart->MinHeight;
-		Vertices.Add(v);
-		Normals.Add(FVector::DownVector);
-		UV.Add(FVector2D::ZeroVector);
-		VertexColors.Add(FLinearColor::Gray);
+		
+		Vertices.		Add(v							);
+		Normals.		Add(FVector::DownVector		);
+		UV.				Add(FVector2D::ZeroVector	);
+		VertexColors.	Add(FLinearColor::Gray		);
 	}
 	for (int i = 0; i < triangles.size(); i += 3)
 	{
-		Triangles.Add(z + triangles[i]);
-		Triangles.Add(z + triangles[i + 2]);
-		Triangles.Add(z + triangles[i + 1]);
+		Triangles.Add(z + triangles[i]		);
+		Triangles.Add(z + triangles[i + 2]	);
+		Triangles.Add(z + triangles[i + 1])	;
 	}
 	z = Vertices.Num();
 	for (auto& node : nodes)
 	{
 		auto v = node;
 		v.Z = buildingPart->Height;
-		Vertices.Add(v);
-		Normals.Add(FVector::UpVector);
-		UV.Add(FVector2D(v.X / 100, v.Y / 100));
-		VertexColors.Add(FLinearColor::Gray);
+		Vertices.		Add(v);
+		Normals.		Add(FVector::UpVector);
+		UV.				Add(FVector2D(v.X / 100, v.Y / 100));
+		VertexColors.	Add(FLinearColor::Gray);
 	}
 
 	for (auto ind : triangles)
@@ -172,12 +166,12 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, in
 
 	if (RoofMakers.Contains(buildingPart->Owner->RoofType))
 	{
-		//auto val = RoofMakers.FindRef(buildingPart->Owner->RoofType);
-		//val->GenerateRoof(*buildingPart, meshData.LastFreeIndex, wallMaterial, roofMaterial);
+		auto val = RoofMakers.FindRef(buildingPart->Owner->RoofType);
+		val->GenerateRoof(*buildingPart, meshData.LastFreeIndex, wallMaterial, roofMaterial);
 	} else if (RoofMakers.Contains("Default"))
 	{
-		//auto val = RoofMakers.Find("Default");
-		//(*val)->GenerateRoof(*buildingPart, meshData.LastFreeIndex, wallMaterial, roofMaterial);	
+		auto val = RoofMakers.FindRef("Default");
+		val->GenerateRoof(*buildingPart, meshData.LastFreeIndex, wallMaterial, roofMaterial);	
 	}
 	
 	return meshData;

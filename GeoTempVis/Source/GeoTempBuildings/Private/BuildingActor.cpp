@@ -49,7 +49,7 @@ void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 		{
 			FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
 			part->WallMaterial = WallMaterial;
-			part->RoofMaterial = RoofMaterial;			
+			part->RoofMaterial = RoofMaterial;
 			part->Init(Building->MainPart, Building->Tags);
 			if (initPartsImmideately) part->ReInit();
 			part->StylePalette = Building->MainPart->StylePalette;

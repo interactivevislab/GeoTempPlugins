@@ -62,6 +62,17 @@ class MeshHelpers {
 	
 public:
 
+	inline static TTuple<FVector, FVector> GetNeighbourDirections(TArray<FVector> contour, int index)
+	{
+		int iprev = (index + contour.Num() - 1)	% contour.Num();
+		int inext = (index + 1)					% contour.Num();
+		
+		auto toPrev = contour[index] - contour[iprev];
+		auto toNext = contour[inext] - contour[index];
+
+		return MakeTuple(toPrev, toNext);
+	}
+	
 	inline static void AddRoofMaker(FString type, TScriptInterface<IRoofMaker> maker)
 	{
 		RoofMakers.Add(type, maker);
