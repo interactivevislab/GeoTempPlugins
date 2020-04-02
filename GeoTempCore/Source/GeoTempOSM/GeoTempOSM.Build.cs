@@ -38,7 +38,8 @@ public class GeoTempOSM : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"GeoTempCore"
+				"GeoTempCore",
+				"Http"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
