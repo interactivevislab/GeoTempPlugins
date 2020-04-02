@@ -5,6 +5,7 @@
 
 #define FOUR_TIMES(something) something; something; something; something;
 
+
 FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial,
 	UMaterialInterface* roofMaterial)
 {

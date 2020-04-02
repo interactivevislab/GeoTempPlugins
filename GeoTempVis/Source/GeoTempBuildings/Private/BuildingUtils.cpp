@@ -13,6 +13,10 @@
 //	return FBuildingMeshData();
 //}
 
+
+TMap<FString, TScriptInterface<IRoofMaker>> MeshHelpers::RoofMakers = TMap<FString, TScriptInterface<IRoofMaker>>();
+
+
 FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* buildingPart, int firstSectionIndex,
                                                  UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial, FString flags)
 {

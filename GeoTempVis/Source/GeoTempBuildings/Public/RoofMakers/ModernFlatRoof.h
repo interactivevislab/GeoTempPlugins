@@ -9,8 +9,8 @@ class UModernFlatRoofMaker : public UObject, public IRoofMaker
 public:
 	GENERATED_BODY()
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Default")
-	FBuildingMeshData GenerateRoof(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial);
+	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Default")
+	//FBuildingMeshData GenerateRoof(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial);
 	
 	virtual FBuildingMeshData GenerateRoof_Implementation(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial) override;
 };

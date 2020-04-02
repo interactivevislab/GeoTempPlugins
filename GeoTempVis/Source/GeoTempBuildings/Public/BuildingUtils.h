@@ -40,14 +40,14 @@ struct FBuildingMeshData
 	}
 };
 
-UINTERFACE(MinimalAPI, Blueprintable)
+UINTERFACE(MinimalAPI)
 class URoofMaker : public UInterface
 {
 public:
 	GENERATED_BODY()
 };
 
-class IRoofMaker
+class GEOTEMPBUILDINGS_API IRoofMaker
 {
 public:
 	GENERATED_BODY()
@@ -58,11 +58,11 @@ public:
 
 class MeshHelpers {
 
-	static TMap<FString, TScriptInterface<IRoofMaker>*> RoofMakers;
+	static TMap<FString, TScriptInterface<IRoofMaker>> RoofMakers;
 	
 public:
 
-	inline static void AddRoofMaker(FString type, TScriptInterface<IRoofMaker>* maker)
+	inline static void AddRoofMaker(FString type, TScriptInterface<IRoofMaker> maker)
 	{
 		RoofMakers.Add(type, maker);
 	}
@@ -72,7 +72,7 @@ public:
 		return RoofMakers.Contains(type);
 	}
 
-	inline static void SetRoofMakers(TMap<FString, TScriptInterface<IRoofMaker>*> roofMakers)
+	inline static void SetRoofMakers(TMap<FString, TScriptInterface<IRoofMaker>> roofMakers)
 	{
 		RoofMakers = roofMakers;
 	}
