@@ -25,20 +25,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	FGeoCoords GeoCoords;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
-	TArray<FBuilding> Buildings;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
-	TArray<FBuildingPart> Parts;
-
 	tinyxml2::XMLDocument XmlDocument;
 
 	std::unordered_map<long, OsmNode*> Nodes;
 	std::unordered_map<long, OsmWay*> Ways;
 	std::unordered_map<long, OsmRelation*> Relations;
-	
-	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
-	void ParseBuildings();
+
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
 	void InitWithXML(FString inXmlString);
@@ -48,7 +40,5 @@ public:
 
 	void ReadData();
 
-	static void InitBuildingPart(const OsmWay* inWay, FBuildingPart* inPart);
 
-	static void InitBuildingPart(const OsmRelation* inRelation, FBuildingPart* inPart);
 };
