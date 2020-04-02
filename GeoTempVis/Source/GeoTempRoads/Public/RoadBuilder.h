@@ -3,15 +3,13 @@
 #include "CoreMinimal.h"
 #include "RoadsData.h"
 #include "PostgisLoader.h"
-#include "Road.h"
 #include "RuntimeMeshComponent.h"
 #include "RoadBuilder.generated.h"
 
 
-
 struct FRoadSegment;
-enum class RoadType : unsigned char;
-enum class ProjectionType : unsigned char;
+enum class RoadType : uint8;
+enum class ProjectionType : uint8;
 struct FRuntimeMeshTangent;
 class UMaterialInterface;
 //class UMaterialInstanceDynamic;
@@ -33,14 +31,8 @@ class GEOTEMPROADS_API	URoadBuilder : public URuntimeMeshComponent
 
 public:
 
-	
-
-	///TODO: detach it from postgis data
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	static FApiRoadNetwork ReadRoadNetworkFromPostgisBinary(TArray<FPostGisBinaryEntity> inRoadData, ProjectionType inProjection, float inOriginLon, float inOriginLat);	
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	static FRoadNetwork ProcessRoadNetwork(FApiRoadNetwork inApiRoadNetwork);
+	static FRoadNetwork ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwork);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	static FRoadNetwork GetRoadNetworkForYear(FRoadNetwork inFullRoadNetwork, int inYear);

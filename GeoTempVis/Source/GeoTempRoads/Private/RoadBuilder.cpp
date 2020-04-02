@@ -8,67 +8,8 @@
 #define LIST_8_TIMES(something) LIST_4_TIMES(something), LIST_4_TIMES(something)
 #define LIST_12_TIMES(something) LIST_3_TIMES(LIST_4_TIMES(something))
 
-FApiRoadNetwork URoadBuilder::ReadRoadNetworkFromPostgisBinary(TArray<FPostGisBinaryEntity> inRoadData,
-	ProjectionType inProjection, float inOriginLon, float inOriginLat)
-{
-	FApiRoadNetwork roadNetwork;
-	int segmentId = 0;
-	for (auto segmentData : inRoadData)
-	{
-		int offset = 4;
-		auto data = segmentData.Geometry.GetData();
-		uint32 primitiveCount = *((uint32*)(data + offset * sizeof(char)));
-		offset += 4;
-		
-		for (uint32 primitiveIndex = 0; primitiveIndex < primitiveCount; primitiveIndex++)
-		{
-			auto presenceTag = segmentData.Tags.Find("Presence");
-			if ((presenceTag != nullptr) && (!presenceTag->IsEmpty()) && (FCString::Atoi(**presenceTag) == 0)) continue;	//ignoring roads with Presence = 0
 
-			auto points = FPosgisContourData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, FGeoCoords{inProjection, inOriginLon, inOriginLat}, true, 0);
-			FApiRoadSegment segment;
-
-			segment.Line = {
-				points[0],
-				points[points.Num() - 1],
-				points
-			};
-
-			auto typeTag		= segmentData.Tags.Find("Type");
-			auto lanesTag		= segmentData.Tags.Find("Lanes");
-			auto widthTag		= segmentData.Tags.Find("LaneWidth");
-			auto startTag		= segmentData.Tags.Find("DatAppear");
-			auto endTag		= segmentData.Tags.Find("DatDemol");
-			auto changeTag	= segmentData.Tags.Find("Change");
-			
-			
-			auto type	= typeTag	? *typeTag						: TEXT("Auto");
-			auto lanes	= lanesTag	? FCString::Atoi(**lanesTag)	: 0;
-			auto width	= widthTag	? FCString::Atof(**widthTag)	: 0.0f;
-			auto start	= startTag	? FCString::Atoi(**startTag)	: 0;
-			auto end	= startTag	? FCString::Atoi(**endTag)		: 0;
-
-			if (lanes == 0) lanes = type.Equals(TEXT("Auto")) ? 2		: 1;
-			if (width <= 0) width = type.Equals(TEXT("Auto")) ? 3.5f	: 1.5f;
-			
-			auto change = changeTag ? *changeTag : "";
-
-			segment.Highway		= type.Equals(TEXT("Auto")) ? EHighwayType::Auto : EHighwayType::Rail;
-			segment.Lanes		= lanes;
-			segment.LaneWidth	= width;
-			segment.YearStart	= start;
-			segment.YearEnd		= end;
-			segment.Change		= change;
-
-			roadNetwork.Segments.Add(segmentId++, segment);
-		}
-		
-	}
-	return roadNetwork;
-}
-
-
-FRoadNetwork URoadBuilder::ProcessRoadNetwork(FApiRoadNetwork inApiRoadNetwork)
+FRoadNetwork URoadBuilder::ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwork)
 {
 	TMap<int, FRoadSegment> segments;
 	TMap<int, FCrossroad>	crossroads;
