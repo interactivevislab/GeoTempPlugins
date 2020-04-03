@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "UObject/NoExportTypes.h"
 
 #include "MasksLoader.h"
@@ -14,5 +15,6 @@ class POLYGONMASKSGENERATOR_API UBasePolygonPreparer : public UObject
 	GENERATED_BODY()
 	
 	UFUNCTION(BlueprintCallable)
-	virtual void PrepareMaskLoader(UMaskLoader* target, TArray<FPosgisContourData> polygonData, TMap<FString, FString> tags);
+	virtual void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPosgisContourData> inPolygonData,
+		TMap<FString, FString> inTags);
 };

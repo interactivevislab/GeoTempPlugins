@@ -7,7 +7,7 @@
 #include "OSMBuildingLoader.generated.h"
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class UOSMBuildingLoader : public UActorComponent
+class UOSMBuildingLoader : public UObject
 {
 	GENERATED_BODY()
 private:
