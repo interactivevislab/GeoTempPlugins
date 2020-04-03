@@ -13,7 +13,7 @@ struct MeshSectionData
 {
 	TArray<FVector>				Vertices;
 	TArray<int>					Indices;
-	TArray<FVector>				Normales;
+	TArray<FVector>				Normals;
 	TArray<FVector2D>			Uv0;
 	TArray<FVector2D>			Uv1;
 	TArray<FColor>				VertexColors;
