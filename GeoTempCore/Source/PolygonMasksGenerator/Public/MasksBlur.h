@@ -1,46 +1,60 @@
 #pragma once
+
 #include "CoreMinimal.h"
 
 #include "BlurShaderDeclaration.h"
 #include "Components/ActorComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
-#include "MasksBlur.generated.h"
 
+#include "MasksBlur.generated.h"
 
 
 UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
 class POLYGONMASKSGENERATOR_API UMaskBlurer : public UActorComponent
 {
 	GENERATED_BODY()
+
 public:
+
 	UMaskBlurer();
 	~UMaskBlurer();
+
+	UFUNCTION(BlueprintCallable)
+	void BlurMask(UTextureRenderTarget2D* inTexTarget, UTextureRenderTarget2D* inTempTarget, 
+		UTextureRenderTarget2D* inInputTexture, float inDistance, int inSteps);
 	
 #pragma region Render Data
+
 private:
-	FPixelShaderConstantParametersBlur ConstantParameters;
-	FPixelShaderVariableParametersBlur VariableParameters;
-	ERHIFeatureLevel::Type FeatureLevel;
-	FVertexBufferRHIRef vertBuf;
-	/** Main texture */
-	FTexture2DRHIRef CurrentTexture;
-	FTexture2DRHIRef TextureParameter;
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* CurrentRenderTarget = nullptr;	
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* InnerRenderTarget = nullptr;	
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* InputTarget = nullptr;	
-	
+
+	FPixelShaderConstantParametersBlur	constParams;
+	FPixelShaderVariableParametersBlur	varParams;
+
+	ERHIFeatureLevel::Type	featureLevel;
+	FVertexBufferRHIRef		vertBuf;
+	FTexture2DRHIRef		currentTex; //Main texture
+	FTexture2DRHIRef		texParam;
+
+	UPROPERTY()
+	UTextureRenderTarget2D* currentRenderTarget = nullptr;
+
+	UPROPERTY()
+	UTextureRenderTarget2D* innerRenderTarget = nullptr;
+
+	UPROPERTY()
+	UTextureRenderTarget2D* inputTarget = nullptr;
 
 	/** Since we are only reading from the resource, we do not need a UAV; an SRV is sufficient */
-	FShaderResourceViewRHIRef TextureParameterSRV;
+	FShaderResourceViewRHIRef texParamSrv;
 	
 	FIndexBufferRHIRef indBuf1;
 	FIndexBufferRHIRef indBuf2;
 	
-	bool bIsPixelShaderExecuting;
-	bool bMustRegenerateSRV;
-	bool bIsUnloading;
+	bool isPixelShaderExecuting;
+	bool mustRegenerateSRV;
+	bool isUnloading;
 	
-	/********************************************************************************************************/
+/********************************************************************************************************/
 /* Let the user change rendertarget during runtime if they want to :D                                   */
 /* @param RenderTarget - This is the output rendertarget!                                               */
 /* @param InputTexture - This is a rendertarget that's used as a texture parameter to the shader :)     */
@@ -50,23 +64,18 @@ private:
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-		UTextureRenderTarget2D* BlurTarget;
+	UTextureRenderTarget2D* BlurTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-		float BlurDistance;
+	float BlurDistance;
 
 	UFUNCTION(BlueprintCallable, Category = "Render Data")
-		void ExecutePixelShader(UTextureRenderTarget2D* target, UTextureRenderTarget2D* texture);
+	void ExecutePixelShader(UTextureRenderTarget2D* inTarget, UTextureRenderTarget2D* inTexture);
 
 	/************************************************************************/
 	/* Only execute this from the render thread!!!                          */
 	/************************************************************************/
-	void ExecutePixelShaderInternal(FRHICommandListImmediate& RHICmdList);
+	void ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmdList);
 
-#pragma endregion 	
-	/*UFUNCTION()
-		void SaveMasksState();*/
-
-	UFUNCTION(BlueprintCallable)
-		void BlurMask(UTextureRenderTarget2D* texTarget, UTextureRenderTarget2D* tempTarget, UTextureRenderTarget2D* InputTexture, float distance, int steps);
+#pragma endregion 
 };

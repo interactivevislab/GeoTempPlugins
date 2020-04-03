@@ -2,7 +2,12 @@
 #include <algorithm>
 
 
-void UOSMReader::ParseBuildings()
+UOsmReader::UOsmReader() : UActorComponent()
+{
+}
+
+
+void UOsmReader::ParseBuildings()
 {
 	//ways that are parts of buildings
 	std::unordered_map<long, FBuildingPart*> buildingWayParts;
@@ -21,34 +26,38 @@ void UOSMReader::ParseBuildings()
 
 	std::unordered_map<long, FBuildingPart*> wayParts;
 	std::unordered_map<long, FBuildingPart*> relParts;
-	buildings.Empty();
+	Buildings.Empty();
+
 	//find all building and building parts through ways
 	for (auto wayP : Ways)
 	{
 		auto way = wayP.second;
 		auto buildIter = way->Tags.Find("building");
 		auto partIter = way->Tags.Find("building:part");
+
 		FBuildingPart* part;
 		//if this is building or part
-		if (buildIter || partIter) {
+		if (buildIter || partIter)
+		{
 			//create and init building part data
-			part = new FBuildingPart(way->id);
+			part = new FBuildingPart(way->Id);
 
 			//parse heights and floor counts
-			initBuildingPart(way, part);
+			InitBuildingPart(way, part);
 
-			parts.Add(part);
+			Parts.Add(part);
 			//if this is building also create building data
 			if (buildIter) {
-				auto building = new FBuilding(way->id);
+				auto building = new FBuilding(way->Id);
 				building->Type = TCHAR_TO_UTF8(**buildIter);
 
 				part->Owner = building;
 				building->MainPart = part;
 				//building->Parts.push_back(part);
-				buildings.Add(building);
+				Buildings.Add(building);
 			}
-			else {
+			else
+			{
 				//add this part to list				
 				wayParts.insert_or_assign(part->Id, part);
 			}
@@ -56,19 +65,21 @@ void UOSMReader::ParseBuildings()
 			////get all points of this way and add necessary bindings
 			std::vector<FVector> points;
 
-			for (auto node : way->Nodes) {
+			for (auto node : way->Nodes)
+			{
 				points.push_back(node->Point);
-				pointsWayParts[node->id].push_back(way->id);
-				wayPartPoints[way->id].push_back(node->id);
-				
+				pointsWayParts[node->Id].push_back(way->Id);
+				wayPartPoints[way->Id].push_back(node->Id);
 			}
+
 			auto cont = FContour(points);
 			part->OuterConts.Add(cont);
 
 			//add part to list
-			buildingWayParts.insert_or_assign(way->id, part);
+			buildingWayParts.insert_or_assign(way->Id, part);
 		}
 	}
+
 	for (auto relationP : Relations)
 	{
 		auto relation = relationP.second;
@@ -80,14 +91,14 @@ void UOSMReader::ParseBuildings()
 		if (buildIter)
 		{
 			//create building entry
-			auto building = new FBuilding(relation->id);
+			auto building = new FBuilding(relation->Id);
 			building->Parts.clear();
 			building->Type = TCHAR_TO_UTF8(**buildIter);
-			buildings.Add(building);
+			Buildings.Add(building);
 
 			//create building part data from relation (it will be the footprint)
-			part = new FBuildingPart(relation->id);
-			initBuildingPart(relation, part);
+			part = new FBuildingPart(relation->Id);
+			InitBuildingPart(relation, part);
 			building->MainPart = part;
 
 			part->Owner = building;
@@ -96,15 +107,20 @@ void UOSMReader::ParseBuildings()
 			for (auto element : relation->WayRoles)
 			{
 				auto way = relation->Ways[element.first];
-				if (!way) continue;
+				if (!way)
+				{ 
+					continue;
+				}
+
 				auto& currentPart = part;
 				auto c = new FContour();
 				for (auto node : way->Nodes)
 				{
 					c->Points.Add(node->Point);
-					pointsRelParts[node->id].push_back(relation->id);
-					relPartPoints[relation->id].push_back(node->id);
+					pointsRelParts[node->Id].push_back(relation->Id);
+					relPartPoints[relation->Id].push_back(node->Id);
 				}
+
 				if (element.second == "outer")
 				{
 					c->FixClockwise();
@@ -121,22 +137,28 @@ void UOSMReader::ParseBuildings()
 			{
 				auto rel = relation->Relations[element.first];
 				auto& currentPart = part;
-				if (rel->Tags.Find("building:part")) {
-					building->Parts.push_back(parts[element.first]);
+				if (rel->Tags.Find("building:part"))
+				{
+					building->Parts.push_back(Parts[element.first]);
 				}
 			}
 
 		}
+
 		//if this relation is building part
-		else if (partIter) {
-			part = new FBuildingPart(relation->id);
-			initBuildingPart(relation, part);
-			parts.Add(part);
+		else if (partIter)
+		{
+			part = new FBuildingPart(relation->Id);
+			InitBuildingPart(relation, part);
+			Parts.Add(part);
 			relParts.insert_or_assign(part->Id, part);
 			for (auto element : relation->WayRoles)
 			{
 				auto way = relation->Ways[element.first];
-				if (!way) continue;
+				if (!way)
+				{ 
+					continue;
+				}
 				auto& currentPart = part;
 				//if this way is building part, just add it to parts list (we probably have created it already
 				if (!way->Tags.Find("building:part"))
@@ -145,9 +167,10 @@ void UOSMReader::ParseBuildings()
 					for (auto node : way->Nodes)
 					{
 						c->Points.Add(node->Point);
-						pointsRelParts[node->id].push_back(relation->id);
-						relPartPoints[relation->id].push_back(node->id);
+						pointsRelParts[node->Id].push_back(relation->Id);
+						relPartPoints[relation->Id].push_back(node->Id);
 					}
+
 					if (element.second == "outer")
 					{
 						c->FixClockwise();
@@ -164,25 +187,27 @@ void UOSMReader::ParseBuildings()
 	}
 }
 
-void UOSMReader::InitWithXML(FString xmlString)
-{
-	XMLDocument.Parse(TCHAR_TO_UTF8(*xmlString));
-	ReadData();
-}
 
-void UOSMReader::InitWithFile(FString filename)
+void UOsmReader::InitWithXML(FString inXmlString)
 {
-	XMLDocument.LoadFile(TCHAR_TO_UTF8(*filename));
+	XmlDocument.Parse(TCHAR_TO_UTF8(*inXmlString));
 	ReadData();
 }
 
 
-void UOSMReader::ReadData()
+void UOsmReader::InitWithFile(FString inFilename)
+{
+	XmlDocument.LoadFile(TCHAR_TO_UTF8(*inFilename));
+	ReadData();
+}
+
+
+void UOsmReader::ReadData()
 {
 #pragma region Parse Nodes
 	std::vector<tinyxml2::XMLElement*> nodes;
 
-	tinyxml2::XMLNode* root = XMLDocument.FirstChild()->NextSibling();
+	tinyxml2::XMLNode* root = XmlDocument.FirstChild()->NextSibling();
 
 	tinyxml2::XMLElement* bounds = root->FirstChildElement("bounds");
 
@@ -230,19 +255,21 @@ void UOSMReader::ReadData()
 		double lat = node->DoubleAttribute("lat");
 		auto tag = node->FirstChildElement("tag");
 		auto id = node->Int64Attribute("id");
+
 		if (tag == nullptr)
 		{
-			auto nodeObj = new OSMNode(id, lon, lat, OriginLon, OriginLat);
+			auto nodeObj = new OsmNode(id, lon, lat, GeoCoords);
 			Nodes.insert_or_assign(id, nodeObj);
 		}
 		else
 		{
-			auto nodeObj = new OSMNode(id, lon, lat, OriginLon, OriginLat);
-			for (; tag != nullptr; tag = tag->NextSiblingElement("tag"))
+			auto nodeObj = new OsmNode(id, lon, lat, GeoCoords);
+			while (tag != nullptr)
 			{
 				auto key = std::string(tag->Attribute("k"));
 				std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 				nodeObj->Tags.Add(key.c_str(), tag->Attribute("v"));
+				tag = tag->NextSiblingElement("tag");
 			}
 			Nodes.insert_or_assign(id, nodeObj);
 		}
@@ -252,26 +279,30 @@ void UOSMReader::ReadData()
 	for (auto currentWay : ways)
 	{
 		auto node = currentWay->FirstChildElement("nd");
-		if (!node) continue;
-		auto id = currentWay->Int64Attribute("id");
-		auto wayObj = new OSMWay(id);
-		auto tag = currentWay->FirstChildElement("tag");
-		if (tag != nullptr)
+		if (!node)
 		{
-			bool isArea = false;
-			for (; tag != nullptr; tag = tag->NextSiblingElement("tag"))
-			{
-				auto key = std::string(tag->Attribute("k"));
-				auto value = std::string(tag->Attribute("v"));
-				std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-				wayObj->Tags.Add(key.c_str(), tag->Attribute("v"));
-			}
+			continue;
 		}
+
+		auto id = currentWay->Int64Attribute("id");
+		auto wayObj = new OsmWay(id);
+		auto tag = currentWay->FirstChildElement("tag");
+
+		while (tag != nullptr)
+		{
+			auto key = std::string(tag->Attribute("k"));
+			auto value = std::string(tag->Attribute("v"));
+			std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+			wayObj->Tags.Add(key.c_str(), tag->Attribute("v"));
+			tag = tag->NextSiblingElement("tag");
+		}
+
 		Ways.insert_or_assign(id, wayObj);
-		std::vector<OSMNode*> wayNodes;
-		for (; node != nullptr; node = node->NextSiblingElement("nd"))
+
+		while (node != nullptr)
 		{
 			wayObj->Nodes.push_back(Nodes[node->Int64Attribute("ref")]);
+			node = node->NextSiblingElement("nd");
 		}
 	}
 
@@ -280,16 +311,26 @@ void UOSMReader::ReadData()
 	{
 		auto id = current_relation->Int64Attribute("id");
 		auto node = current_relation->FirstChildElement("member");
-		if (!node) continue;
-		auto relObj = new OSMRelation(current_relation->Int64Attribute("id"));
+		if (!node)
+		{
+			continue;
+		}
+
+		auto relObj = new OsmRelation(current_relation->Int64Attribute("id"));
 		std::vector<std::string> roles;
-		bool isArea = false;
-		for (; node != nullptr; node = node->NextSiblingElement("member"))
+
+		while (node != nullptr)
 		{
 			const char* type;
 			const char* role;
-			if (!node->QueryStringAttribute("type", &type) == tinyxml2::XML_SUCCESS) continue;
-			if (!node->QueryStringAttribute("role", &role) == tinyxml2::XML_SUCCESS) role = "";
+			if (node->QueryStringAttribute("type", &type) != tinyxml2::XML_SUCCESS)
+			{
+				continue;
+			}
+			if (node->QueryStringAttribute("role", &role) != tinyxml2::XML_SUCCESS)
+			{
+				role = "";
+			}
 
 			auto memberId = node->Int64Attribute("ref");
 
@@ -305,18 +346,19 @@ void UOSMReader::ReadData()
 			{
 				relObj->RelRoles[memberId] = role;
 			}
+
+			node = node->NextSiblingElement("member");
 		}
 
 		auto tag = current_relation->FirstChildElement("tag");
-		if (tag != nullptr)
+		while (tag != nullptr)
 		{
-			for (; tag != nullptr; tag = tag->NextSiblingElement("tag"))
-			{
-				auto key = std::string(tag->Attribute("k"));
-				std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-				relObj->Tags.Add(key.c_str(), tag->Attribute("v"));
-			}
+			auto key = std::string(tag->Attribute("k"));
+			std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+			relObj->Tags.Add(key.c_str(), tag->Attribute("v"));
+			tag = tag->NextSiblingElement("tag");
 		}
+
 		Relations.insert_or_assign(id, relObj);
 	}
 
@@ -327,65 +369,89 @@ void UOSMReader::ReadData()
 		for (auto memberNode : relObj->NodeRoles)
 		{
 			auto iter = Nodes.find(memberNode.first);
-			if (iter != Nodes.end()) {
+			if (iter != Nodes.end())
+			{
 				relObj->Nodes.insert_or_assign(memberNode.first, (*iter).second);
 			}
 		}
+
 		for (auto memberWay : relObj->WayRoles)
 		{
 			auto iter = Ways.find(memberWay.first);
-			if (iter != Ways.end()) {
+			if (iter != Ways.end())
+			{
 				relObj->Ways.insert_or_assign(memberWay.first, (*iter).second);
 			}
 		}
+
 		for (auto memberRelation : relObj->RelRoles)
 		{
 			auto iter = Relations.find(memberRelation.first);
-			if (iter != Relations.end()) {
+			if (iter != Relations.end())
+			{
 				relObj->Relations.insert_or_assign(memberRelation.first, (*iter).second);
 			}
 		}
 	}
 }
 
-void UOSMReader::initBuildingPart(const OSMWay* way, FBuildingPart* part)
+
+inline const FString* FindBuildingTag(TMap<FString, FString> inTags, FString inTag, FString inTagPrefix = "building:")
 {
-	auto floorsIt = way->Tags.Find("building:levels");
-	if (!floorsIt) floorsIt = way->Tags.Find("levels");
-	part->Floors = floorsIt ? FCString::Atoi(**floorsIt) : 1;
-
-	auto heightIt = way->Tags.Find("building:height");
-	if (!heightIt) heightIt = way->Tags.Find("height");
-	part->Height = heightIt ? FCString::Atoi(**heightIt) * UGeoHelpers::SCALE_MULT : part->Floors * part->FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
-
-	auto mfloorsIt = way->Tags.Find("building:min_levels");
-	if (!mfloorsIt) mfloorsIt = way->Tags.Find("min_levels");
-	part->MinFloors = mfloorsIt ? FCString::Atoi(**mfloorsIt) : 0;
-
-	auto mheightIt = way->Tags.Find("building:min_height");
-	if (!mheightIt) mheightIt = way->Tags.Find("min_height");
-	part->MinHeight = mheightIt ? FCString::Atoi(**mheightIt) * UGeoHelpers::SCALE_MULT : part->MinFloors * part->FloorHeight;
-
-	if (heightIt || mheightIt) part->OverrideHeight = true;
+	auto tag = inTags.Find(inTagPrefix + inTag);
+	if (!tag)
+	{
+		tag = inTags.Find(inTag);
+	}
+	return tag;
 }
 
-void UOSMReader::initBuildingPart(const OSMRelation* relation, FBuildingPart* part)
+
+void UOsmReader::InitBuildingPart(const OsmWay* inWay, FBuildingPart* inPart)
 {
-	auto floorsIt = relation->Tags.Find("building:levels");
-	if (!floorsIt) floorsIt = relation->Tags.Find("levels");
-	part->Floors = floorsIt ? FCString::Atoi(**floorsIt) : 1;
+	auto floorsTag = FindBuildingTag(inWay->Tags, "levels");
+	inPart->Floors = floorsTag ? FCString::Atoi(**floorsTag) : 1;
 
-	auto heightIt = relation->Tags.Find("building:height");
-	if (!heightIt) heightIt = relation->Tags.Find("height");
-	part->Height = heightIt ? FCString::Atoi(**heightIt) * UGeoHelpers::SCALE_MULT : part->Floors * part->FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
+	auto heightTag = FindBuildingTag(inWay->Tags, "height");
+	inPart->Height = heightTag
+		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
+		: inPart->Floors * inPart->FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
 
-	auto mfloorsIt = relation->Tags.Find("building:min_levels");
-	if (!mfloorsIt) mfloorsIt = relation->Tags.Find("min_levels");
-	part->MinFloors = mfloorsIt ? FCString::Atoi(**mfloorsIt) : 0;
+	auto minFloorsTag = FindBuildingTag(inWay->Tags, "min_levels");
+	inPart->MinFloors = minFloorsTag ? FCString::Atoi(**minFloorsTag) : 0;
 
-	auto mheightIt = relation->Tags.Find("building:min_height");
-	if (!mheightIt) mheightIt = relation->Tags.Find("min_height");
-	part->MinHeight = mheightIt ? FCString::Atoi(**mheightIt) * UGeoHelpers::SCALE_MULT : part->MinFloors * part->FloorHeight;
+	auto minHeightTag = FindBuildingTag(inWay->Tags, "min_height");
+	inPart->MinHeight = minHeightTag
+		? FCString::Atoi(**minHeightTag) * UGeoHelpers::SCALE_MULT
+		: inPart->MinFloors * inPart->FloorHeight;
 
-	if (heightIt || mheightIt) part->OverrideHeight = true;
+	if (heightTag || minHeightTag)
+	{
+		inPart->OverrideHeight = true;
+	}
+}
+
+
+void UOsmReader::InitBuildingPart(const OsmRelation* inRelation, FBuildingPart* inPart)
+{
+	auto floorsTag = FindBuildingTag(inRelation->Tags, "levels");
+	inPart->Floors = floorsTag ? FCString::Atoi(**floorsTag) : 1;
+
+	auto heightTag = FindBuildingTag(inRelation->Tags, "height");
+	inPart->Height = heightTag
+		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
+		: inPart->Floors * inPart->FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
+
+	auto minFloorsTag = FindBuildingTag(inRelation->Tags, "min_levels");
+	inPart->MinFloors = minFloorsTag ? FCString::Atoi(**minFloorsTag) : 0;
+
+	auto minHeightTag = FindBuildingTag(inRelation->Tags, "min_height");
+	inPart->MinHeight = minHeightTag
+		? FCString::Atoi(**minHeightTag) * UGeoHelpers::SCALE_MULT
+		: inPart->MinFloors * inPart->FloorHeight;
+
+	if (heightTag || minHeightTag)
+	{
+		inPart->OverrideHeight = true;
+	}
 }
