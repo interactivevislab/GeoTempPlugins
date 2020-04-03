@@ -45,7 +45,7 @@ struct GEOTEMPCORE_API FBuildingPart
 	FString StylePalette;
 
 	FBuilding* Owner;
-	std::vector<FBuilding*> possibleOwners;
+	TArray<FBuilding*> possibleOwners;
 
 	FBuildingDates BuildingDates;
 

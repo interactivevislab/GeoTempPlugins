@@ -14,5 +14,5 @@ public:
 	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Default")
 	//FBuildingMeshData GenerateRoof(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial) ;
 
-	virtual FBuildingMeshData GenerateRoof_Implementation(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial) override;
+	virtual FBuildingMeshData GenerateRoof_Implementation(FBuildingPart inBuildingPart, int inFirstSectionIndex, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial) override;
 };

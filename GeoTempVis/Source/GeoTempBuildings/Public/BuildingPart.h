@@ -18,7 +18,7 @@ public:
 	void Actualize();
 	
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Default")
-	URuntimeMeshComponent* mesh;
+	URuntimeMeshComponent* Mesh;
 
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Default")
 	bool UseLod;
@@ -75,7 +75,9 @@ public:
 	TMap<FString, FString> Tags;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Default")
-	FLinearColor Color;		
+	FLinearColor Color;
+
+	FBuildingPart* PartData;
 
 private:
 	bool _isInit = false;
@@ -88,24 +90,24 @@ public:
 
 	//UBuildingsLoaderBase2 * Owner;
 
-	void Init(FBuildingPart* part, TMap<FString, FString> tags/*,UBuildingsLoaderBase2 * owner = nullptr*/);
+	void Init(FBuildingPart* inPart, TMap<FString, FString> inTags/*,UBuildingsLoaderBase2 * owner = nullptr*/);
 
 	void ReInit();
 
-	FBuildingPart* partData;
+
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
-	static void SetLodDistance(float dist = 250000) { SimplifyDistance = dist; }
+	static void SetLodDistance(float inDist = 250000) { SimplifyDistance = inDist; }
 	
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Default")
-	virtual void CreateSimpleStructure(float zeroH = 0);
+	virtual void CreateSimpleStructure(float inZeroHeight = 0);
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
-	void SetHeightAlpha(float HeightAlpha);
+	void SetHeightAlpha(float inHeightAlpha);
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
-	void ApplyCurrentTime(FDateTime CurrentTime, bool MustHide = false);
+	void ApplyCurrentTime(FDateTime inCurrentTime, bool inMustHide = false);
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
-	static void SetAllColors(TArray<FLinearColor>& colors);
+	static void SetAllColors(TArray<FLinearColor>& inColors);
 };

@@ -40,9 +40,10 @@ void UBuildingSpawner::CleanBuildings() {
 	
 	for (auto child : owner->Children)
 	{
-		if (dynamic_cast<ABuildingActor*>(child))
+		auto castChild = Cast<ABuildingActor>(child);
+		if (castChild)
 		{
-			toDestroy.Add(dynamic_cast<ABuildingActor*>(child));
+			toDestroy.Add(castChild);
 		}
 	}
 	for (auto child : toDestroy)

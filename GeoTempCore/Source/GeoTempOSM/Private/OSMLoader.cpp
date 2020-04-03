@@ -45,7 +45,7 @@ void UOsmReader::ParseBuildings()
 			//parse heights and floor counts
 			InitBuildingPart(way, part);
 
-			Parts.Add(*part);
+			
 			//if this is building also create building data
 			if (buildIter) {
 				auto building = new FBuilding(way->Id);
@@ -77,6 +77,7 @@ void UOsmReader::ParseBuildings()
 
 			//add part to list
 			buildingWayParts.insert_or_assign(way->Id, part);
+			Parts.Add(*part);
 		}
 	}
 
