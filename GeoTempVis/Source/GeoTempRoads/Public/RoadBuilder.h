@@ -11,13 +11,13 @@
 
 struct MeshSectionData
 {
-	TArray<FVector>				vertices;
-	TArray<int>					indices;
-	TArray<FVector>				normales;
-	TArray<FVector2D>			uv0;
-	TArray<FVector2D>			uv1;
-	TArray<FColor>				vertexColors;
-	TArray<FRuntimeMeshTangent>	tangents;
+	TArray<FVector>				Vertices;
+	TArray<int>					Indices;
+	TArray<FVector>				Normales;
+	TArray<FVector2D>			Uv0;
+	TArray<FVector2D>			Uv1;
+	TArray<FColor>				VertexColors;
+	TArray<FRuntimeMeshTangent>	Tangents;
 };
 
 
@@ -66,7 +66,7 @@ public:
 
 private:
 
-	inline void ConstructRoadMeshSection(TArray<FRoadSegment> inSegments, int inSectionIndex,
+	void ConstructRoadMeshSection(TArray<FRoadSegment> inSegments, int inSectionIndex,
 		UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
 
 	UPROPERTY()

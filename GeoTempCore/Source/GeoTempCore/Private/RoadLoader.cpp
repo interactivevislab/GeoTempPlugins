@@ -1,7 +1,7 @@
-#include "RoadHelper.h"
+#include "RoadLoader.h"
 
 
-FRoadNetwork URoadHelper::ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwork)
+FRoadNetwork URoadLoader::ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwork)
 {
 	TMap<int, FRoadSegment> segments;
 	TMap<int, FCrossroad>	crossroads;
@@ -66,7 +66,7 @@ FRoadNetwork URoadHelper::ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwor
 }
 
 
-FRoadNetwork URoadHelper::GetRoadNetworkForYear(FRoadNetwork inFullRoadNetwork, int inYear)
+FRoadNetwork URoadLoader::GetRoadNetworkForYear(FRoadNetwork inFullRoadNetwork, int inYear)
 {
 	TMap<int, FRoadSegment>	segments;
 	TMap<int, FCrossroad>	crossroads;

@@ -148,7 +148,7 @@ struct GEOTEMPCORE_API FCrossroad
 	FVector Location;
 
 	UPROPERTY(BlueprintReadOnly)
-	TMap<int, int> Roads;	//<RoadSegmentId, OtherÑrossroadId>
+	TMap<int, int> Roads;	//<RoadSegmentId, OtherCrossroadId>
 };
 
 

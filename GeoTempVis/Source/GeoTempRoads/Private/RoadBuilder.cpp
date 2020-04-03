@@ -36,15 +36,15 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 			auto point2 = endPoint		+ pointDelta;
 			auto point3 = endPoint		- pointDelta;
 
-			auto indicesDelta = sectionData.vertices.Num();
-			sectionData.vertices.Append({
+			auto indicesDelta = sectionData.Vertices.Num();
+			sectionData.Vertices.Append({
 				point0,
 				point1,
 				point2,
 				point3,
 			});
 
-			sectionData.indices.Append({
+			sectionData.Indices.Append({
 				0 + indicesDelta,
 				2 + indicesDelta,
 				1 + indicesDelta,
@@ -53,8 +53,8 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 				2 + indicesDelta,
 			});
 
-			indicesDelta = outCurtainsMeshData.vertices.Num();
-			outCurtainsMeshData.vertices.Append({
+			indicesDelta = outCurtainsMeshData.Vertices.Num();
+			outCurtainsMeshData.Vertices.Append({
 				point0 + curtainsDelta1,
 				point0,
 				point2 + curtainsDelta1,
@@ -66,7 +66,7 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 				point3 + curtainsDelta2
 			});
 
-			outCurtainsMeshData.indices.Append({
+			outCurtainsMeshData.Indices.Append({
 				0 + indicesDelta,
 				2 + indicesDelta,
 				1 + indicesDelta,
@@ -75,7 +75,7 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 				2 + indicesDelta,
 			});
 			indicesDelta += 4;
-			outCurtainsMeshData.indices.Append({
+			outCurtainsMeshData.Indices.Append({
 				0 + indicesDelta,
 				2 + indicesDelta,
 				1 + indicesDelta,
@@ -97,17 +97,17 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 			auto uv03	= FVector2D(segment.Lanes, lenght);
 			auto uv03c	= FVector2D(			1, lenght);
 
-			sectionData.uv0					.Append({ uv00, uv01, uv02, uv03 });			
-			sectionData.uv1					.Append({ LIST_4_TIMES(uv1Data) });
-			sectionData.normales			.Append({ LIST_4_TIMES(FVector::UpVector) });
-			sectionData.vertexColors		.Append({ LIST_4_TIMES(FColor(1, 1, 1, 1)) });
-			sectionData.tangents			.Append({ LIST_4_TIMES(FRuntimeMeshTangent()) });
+			sectionData.Uv0					.Append({ uv00, uv01, uv02, uv03 });			
+			sectionData.Uv1					.Append({ LIST_4_TIMES(uv1Data) });
+			sectionData.Normales			.Append({ LIST_4_TIMES(FVector::UpVector) });
+			sectionData.VertexColors		.Append({ LIST_4_TIMES(FColor(1, 1, 1, 1)) });
+			sectionData.Tangents			.Append({ LIST_4_TIMES(FRuntimeMeshTangent()) });
 			
-			outCurtainsMeshData.uv0			.Append({ uv00, uv01c, uv02, uv03c, uv00, uv01c, uv02, uv03c });
-			outCurtainsMeshData.uv1			.Append({ LIST_8_TIMES(uv1Data) });			
-			outCurtainsMeshData.normales	.Append({ LIST_4_TIMES(curtainsNormal1), LIST_4_TIMES(curtainsNormal2) });			
-			outCurtainsMeshData.vertexColors.Append({ LIST_8_TIMES(FColor(1, 1, 1, 1)) });			
-			outCurtainsMeshData.tangents	.Append({ LIST_8_TIMES(FRuntimeMeshTangent()) });
+			outCurtainsMeshData.Uv0			.Append({ uv00, uv01c, uv02, uv03c, uv00, uv01c, uv02, uv03c });
+			outCurtainsMeshData.Uv1			.Append({ LIST_8_TIMES(uv1Data) });			
+			outCurtainsMeshData.Normales	.Append({ LIST_4_TIMES(curtainsNormal1), LIST_4_TIMES(curtainsNormal2) });			
+			outCurtainsMeshData.VertexColors.Append({ LIST_8_TIMES(FColor(1, 1, 1, 1)) });			
+			outCurtainsMeshData.Tangents	.Append({ LIST_8_TIMES(FRuntimeMeshTangent()) });
 
 			for (auto point : { startPoint, endPoint })
 			{
@@ -116,15 +116,15 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 				auto yDelta = FVector::CrossProduct(pointDelta, FVector::UpVector);
 				point -= FVector(0, 0, 2);
 				
-				indicesDelta				= sectionData.vertices.Num();
-				auto indicesDelta_curtains	= outCurtainsMeshData.vertices.Num();
+				indicesDelta				= sectionData.Vertices.Num();
+				auto indicesDelta_curtains	= outCurtainsMeshData.Vertices.Num();
 				
-				sectionData.vertices	.Add(point);
-				sectionData.uv0			.Add(FVector2D(0.5 * segment.Lanes, 0.5));
-				sectionData.uv1			.Add(uv1Data);
-				sectionData.normales	.Add(FVector::UpVector);
-				sectionData.vertexColors.Add(FColor::White);
-				sectionData.tangents	.Add(FRuntimeMeshTangent());
+				sectionData.Vertices	.Add(point);
+				sectionData.Uv0			.Add(FVector2D(0.5 * segment.Lanes, 0.5));
+				sectionData.Uv1			.Add(uv1Data);
+				sectionData.Normales	.Add(FVector::UpVector);
+				sectionData.VertexColors.Add(FColor::White);
+				sectionData.Tangents	.Add(FRuntimeMeshTangent());
 
 				FVector radiusDeltas	[capDensity + 1];
 				FVector2D uvs			[capDensity + 1];
@@ -152,32 +152,32 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 						(-curtainsDelta).GetSafeNormal());
 					
 					
-					sectionData.vertices	.Add(point + radiusDelta);
-					sectionData.uv0			.Add(uvs[j]);
-					sectionData.uv1			.Add(uv1Data);
-					sectionData.normales	.Add(FVector::UpVector);
-					sectionData.vertexColors.Add(FColor::White);
-					sectionData.tangents	.Add(FRuntimeMeshTangent());
+					sectionData.Vertices	.Add(point + radiusDelta);
+					sectionData.Uv0			.Add(uvs[j]);
+					sectionData.Uv1			.Add(uv1Data);
+					sectionData.Normales	.Add(FVector::UpVector);
+					sectionData.VertexColors.Add(FColor::White);
+					sectionData.Tangents	.Add(FRuntimeMeshTangent());
 
-					outCurtainsMeshData.vertices	.Add(point + radiusDelta);
-					outCurtainsMeshData.uv0			.Add(uvs_curtains[j]);
-					outCurtainsMeshData.uv1			.Add(uv1Data);
-					outCurtainsMeshData.normales	.Add(curtainNormal);
-					outCurtainsMeshData.vertexColors.Add(FColor::White);
-					outCurtainsMeshData.tangents	.Add(FRuntimeMeshTangent());
+					outCurtainsMeshData.Vertices	.Add(point + radiusDelta);
+					outCurtainsMeshData.Uv0			.Add(uvs_curtains[j]);
+					outCurtainsMeshData.Uv1			.Add(uv1Data);
+					outCurtainsMeshData.Normales	.Add(curtainNormal);
+					outCurtainsMeshData.VertexColors.Add(FColor::White);
+					outCurtainsMeshData.Tangents	.Add(FRuntimeMeshTangent());
 
-					outCurtainsMeshData.vertices	.Add(point + radiusDelta + curtainsDelta);
-					outCurtainsMeshData.uv0			.Add(2 * uvs_curtains[j]);
-					outCurtainsMeshData.uv1			.Add(uv1Data);
-					outCurtainsMeshData.normales	.Add(curtainNormal);
-					outCurtainsMeshData.vertexColors.Add(FColor::White);
-					outCurtainsMeshData.tangents	.Add(FRuntimeMeshTangent());
+					outCurtainsMeshData.Vertices	.Add(point + radiusDelta + curtainsDelta);
+					outCurtainsMeshData.Uv0			.Add(2 * uvs_curtains[j]);
+					outCurtainsMeshData.Uv1			.Add(uv1Data);
+					outCurtainsMeshData.Normales	.Add(curtainNormal);
+					outCurtainsMeshData.VertexColors.Add(FColor::White);
+					outCurtainsMeshData.Tangents	.Add(FRuntimeMeshTangent());
 
 					if (j > 0)
 					{
-						sectionData.indices.Append({ indicesDelta, indicesDelta + j, indicesDelta + j + 1 });
+						sectionData.Indices.Append({ indicesDelta, indicesDelta + j, indicesDelta + j + 1 });
 						auto baseIndex = indicesDelta_curtains + 2 * j;
-						outCurtainsMeshData.indices.Append({
+						outCurtainsMeshData.Indices.Append({
 							baseIndex - 2,
 							baseIndex - 1,
 							baseIndex,
@@ -195,14 +195,14 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 }
 
 
-inline void URoadBuilder::ConstructRoadMeshSection(TArray<FRoadSegment> inSegments, int inSectionIndex, 
+void URoadBuilder::ConstructRoadMeshSection(TArray<FRoadSegment> inSegments, int inSectionIndex, 
 	UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData)
 {
 	auto sectionData = CalculateMeshDataForRoad(inSegments, outCurtainsMeshData, 
 		AutoRoadZ, RailRoadZ, RoadHeight, CurtainsWidth, Stretch);
 
-	CreateMeshSection(inSectionIndex, sectionData.vertices, sectionData.indices, sectionData.normales,
-		sectionData.uv0, sectionData.uv1, sectionData.vertexColors, sectionData.tangents, false);
+	CreateMeshSection(inSectionIndex, sectionData.Vertices, sectionData.Indices, sectionData.Normales,
+		sectionData.Uv0, sectionData.Uv1, sectionData.VertexColors, sectionData.Tangents, false);
 	SetMaterial(inSectionIndex, inMaterial);
 }
 
@@ -220,7 +220,9 @@ void URoadBuilder::AddRoadNetworkToMesh(FRoadNetwork inRoadNetwork)
 	{
 		roadMaterials.Add(i, UMaterialInstanceDynamic::Create(RoadMaterial, this));
 		coatingChangeDatas.Add({
-			i, RoadType::Asphalt, CoatingChangeYearStart + i - startIndex
+			i,
+			RoadType::Asphalt,
+			CoatingChangeYearStart + i - startIndex
 		});
 	}
 
@@ -234,12 +236,16 @@ void URoadBuilder::AddRoadNetworkToMesh(FRoadNetwork inRoadNetwork)
 		switch (segment.Type)
 		{
 			case EHighwayType::Auto:
+			{
 				((segment.Change == "") ? roadSegments : specialSegments).Add(segment);
-				break;
+			}
+			break;
 
 			case EHighwayType::Rail:
+			{
 				railSegments.Add(segment);
-				break;
+			}
+			break;
 		}
 	}
 
@@ -284,8 +290,8 @@ void URoadBuilder::AddRoadNetworkToMesh(FRoadNetwork inRoadNetwork)
 		ConstructRoadMeshSection(TArray<FRoadSegment>{ segment }, specialIndex, roadMaterials[specialIndex], curtainsMeshData);
 	}
 
-	CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.vertices, curtainsMeshData.indices, curtainsMeshData.normales, 
-		curtainsMeshData.uv0, curtainsMeshData.uv1, curtainsMeshData.vertexColors, curtainsMeshData.tangents, false);
+	CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normales, 
+		curtainsMeshData.Uv0, curtainsMeshData.Uv1, curtainsMeshData.VertexColors, curtainsMeshData.Tangents, false);
 	SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
 }
 

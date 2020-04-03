@@ -4,11 +4,11 @@
 
 #include "RoadsData.h"
 
-#include "RoadHelper.generated.h"
+#include "RoadLoader.generated.h"
 
 
 UCLASS(BlueprintType, Meta = (BlueprintSpawnableComponent))
-class GEOTEMPROADS_API URoadHelper : public UObject
+class GEOTEMPCORE_API URoadLoader : public UObject
 {
 	GENERATED_BODY()
 
