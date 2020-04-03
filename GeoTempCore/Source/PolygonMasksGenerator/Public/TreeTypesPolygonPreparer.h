@@ -1,7 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "BasePolygonPreparer.h"
+
 #include "TreeTypesPolygonPreparer.generated.h"
 
 
@@ -10,5 +12,6 @@ class POLYGONMASKSGENERATOR_API UTreeTypesPolygonPreparer : public UBasePolygonP
 {
 	GENERATED_BODY()
 	
-	void PrepareMaskLoader(UMaskLoader* target, TArray<FPosgisContourData> polygonData, TMap<FString, FString> tags) override;
+	void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPosgisContourData> inPolygonData, 
+		TMap<FString, FString> inTags) override;
 };
