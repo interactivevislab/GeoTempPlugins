@@ -7,9 +7,10 @@
 #include "OSMBuildingLoader.generated.h"
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class UOSMBuildingLoader : public UObject
+class UOsmBuildingLoader : public UObject
 {
 	GENERATED_BODY()
+	
 private:
 	static void InitBuildingPart(const OsmWay* inWay, FBuildingPart* inPart);
 

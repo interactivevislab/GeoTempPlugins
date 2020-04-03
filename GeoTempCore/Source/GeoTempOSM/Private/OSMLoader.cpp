@@ -2,7 +2,7 @@
 #include <algorithm>
 
 
-UOsmReader::UOsmReader() : UActorComponent()
+UOsmReader::UOsmReader() : UObject()
 {
 }
 

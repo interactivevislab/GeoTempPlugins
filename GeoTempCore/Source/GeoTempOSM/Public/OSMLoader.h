@@ -14,7 +14,7 @@
 
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class GEOTEMPOSM_API UOsmReader : public UActorComponent
+class GEOTEMPOSM_API UOsmReader : public UObject
 {
 	GENERATED_BODY()
 

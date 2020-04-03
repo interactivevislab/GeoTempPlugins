@@ -1,6 +1,6 @@
 #include "OSM/OSMBuildingLoader.h"
 
-TArray<FBuilding> UOSMBuildingLoader::GetBuildings(UOsmReader* source)
+TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* source)
 {
 	TArray<FBuilding> buildings;
 	TArray<FBuildingPart> Parts;
@@ -160,7 +160,7 @@ TArray<FBuilding> UOSMBuildingLoader::GetBuildings(UOsmReader* source)
 	return buildings;
 }
 
-inline const FString* FindBuildingTag(TMap<FString, FString> inTags, FString inTag, FString inTagPrefix = "building:")
+inline const FString* FindBuildingTag(const TMap<FString, FString>& inTags, FString inTag, FString inTagPrefix = "building:")
 {
 	auto tag = inTags.Find(inTagPrefix + inTag);
 	if (!tag)
@@ -171,7 +171,7 @@ inline const FString* FindBuildingTag(TMap<FString, FString> inTags, FString inT
 }
 
 
-void UOSMBuildingLoader::InitBuildingPart(const OsmWay* inWay, FBuildingPart* inPart)
+void UOsmBuildingLoader::InitBuildingPart(const OsmWay* inWay, FBuildingPart* inPart)
 {
 	auto floorsTag = FindBuildingTag(inWay->Tags, "levels");
 	inPart->Floors = floorsTag ? FCString::Atoi(**floorsTag) : 1;
@@ -196,7 +196,7 @@ void UOSMBuildingLoader::InitBuildingPart(const OsmWay* inWay, FBuildingPart* in
 }
 
 
-void UOSMBuildingLoader::InitBuildingPart(const OsmRelation* inRelation, FBuildingPart* inPart)
+void UOsmBuildingLoader::InitBuildingPart(const OsmRelation* inRelation, FBuildingPart* inPart)
 {
 	auto floorsTag		= FindBuildingTag(inRelation->Tags, "levels");
 	auto heightTag		= FindBuildingTag(inRelation->Tags, "height");
