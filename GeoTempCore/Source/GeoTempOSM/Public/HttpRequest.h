@@ -4,9 +4,10 @@
 
 #include "Runtime/Online/HTTP/Public/Http.h"
 
-#include "OsmManager.h"
-
 #include "HttpRequest.generated.h"
+
+
+class UOsmManager;
 
 
 UCLASS(BlueprintType)
@@ -17,7 +18,7 @@ class GEOTEMPOSM_API UHttpRequest : public UObject
 public:
 
 	TSharedPtr<IHttpRequest> request;
-	UOsmManager * Manager;
+	UOsmManager* Manager;
 	int Id;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRequestComleted, FString, inResponseString);

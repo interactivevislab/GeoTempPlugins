@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 
-#include "Runtime/Online/HTTP/Public/Http.h"
+#include "Http.h"
 
 #include "HttpClient.generated.h"
 

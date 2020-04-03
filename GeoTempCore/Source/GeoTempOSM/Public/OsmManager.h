@@ -34,7 +34,7 @@ public:
 protected:
 
 	UPROPERTY()
-	UHttpClient * client;
+	UHttpClient* client;
 
 private:
 
@@ -78,8 +78,6 @@ private:
 	bool IsTickableInEditor() const override;
 	bool IsTickableWhenPaused() const override;
 	TStatId GetStatId() const override;
-
-	UWorld* GetWorld() const override;
 
 #pragma endregion
 

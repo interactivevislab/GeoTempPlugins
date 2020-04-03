@@ -93,11 +93,6 @@ TStatId UOsmManager::GetStatId() const
 }
 
 
-UWorld* UOsmManager::GetWorld() const
-{
-	return GetOuter()->GetWorld();
-}
-
 #pragma endregion
 
 
@@ -111,6 +106,9 @@ void UOsmManager::DeleteFinishedRequests()
 {
 	for (auto id : finishedRequestsIds)
 	{
+		auto request = *(currentRequests.Find(id));
+		request->request->OnProcessRequestComplete().Unbind();
+		request->OnReadyToDelete.RemoveAll(this);
 		currentRequests.Remove(id);
 	}
 	finishedRequestsIds.Empty();
