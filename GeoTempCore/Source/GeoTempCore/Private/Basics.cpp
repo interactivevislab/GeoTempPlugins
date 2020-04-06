@@ -31,8 +31,8 @@ namespace std
 }
 
 
-void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::vector<FVector>& outPoints,
-	std::vector<int>& outTriangles, std::string inFlags, TArray<FContour> inOtherLines, int& outContourPointsNum)
+void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<FVector>& outPoints,
+	TArray<int>& outTriangles, std::string inFlags, TArray<FContour> inOtherLines, int& outContourPointsNum)
 {
 	Eigen::MatrixXd V;
 	Eigen::MatrixXi E;
@@ -44,8 +44,8 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 	std::vector<float> inPoints;
 	std::vector<int> inEdges;
 	std::vector<float> holes;
-	outPoints.clear();
-	outTriangles.clear();
+	outPoints.Empty();
+	outTriangles.Empty();
 	int c_nodes = 0;
 	std::unordered_set<Edge> addEdges;
 	TMap<FVector, int> nodeIds;
@@ -60,7 +60,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 
 			if (!nodeIds.Contains(node))
 			{
-				outPoints.push_back(node);
+				outPoints.Add(node);
 				nodeIds.Add(node, nodeId++);
 				inPoints.push_back(node.X);
 				inPoints.push_back(node.Y);
@@ -85,7 +85,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 			addEdges.insert(Edge{ prevId, firstId });
 		}
 
-		c_nodes = outPoints.size();
+		c_nodes = outPoints.Num();
 	}
 
 	for (auto& way : outInner)
@@ -96,7 +96,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 			auto node = way.Points[i];
 			if (i == 0 || !(node - way.Points[0]).IsNearlyZero())
 			{
-				outPoints.push_back(node);
+				outPoints.Add(node);
 
 				if (!nodeIds.Contains(node))
 				{
@@ -141,7 +141,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 		auto p = way.Points[ind] + delta;
 		holes.push_back(p.X);
 		holes.push_back(p.Y);
-		c_nodes = outPoints.size();
+		c_nodes = outPoints.Num();
 	}
 	outContourPointsNum = c_nodes;
 	for (auto& way : inOtherLines)
@@ -153,7 +153,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 
 			if (!nodeIds.Contains(node))
 			{
-				outPoints.push_back(node);
+				outPoints.Add(node);
 				nodeIds.Add(node, nodeId++);
 				inPoints.push_back(node.X);
 				inPoints.push_back(node.Y);
@@ -173,7 +173,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 			}
 			prevId = id;
 		}
-		c_nodes = outPoints.size();
+		c_nodes = outPoints.Num();
 	}
 
 	if (inPoints.size() == 0) return;
@@ -202,23 +202,23 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::ve
 
 	igl::triangle::triangulate(V, E, H, inFlags, V2, F2);
 
-	outPoints.clear();
+	outPoints.Empty();
 
 	for (int i = 0; i < V2.rows(); i++)
 	{
-		outPoints.push_back(FVector(V2(i, 0), V2(i, 1), 0));
+		outPoints.Add(FVector(V2(i, 0), V2(i, 1), 0));
 	}
 
 	for (int i = 0; i < F2.rows(); i++)
 	{
-		outTriangles.push_back(F2(i, 0));
-		outTriangles.push_back(F2(i, 2));
-		outTriangles.push_back(F2(i, 1));
+		outTriangles.Add(F2(i, 0));
+		outTriangles.Add(F2(i, 2));
+		outTriangles.Add(F2(i, 1));
 	}
 }
 
-void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, std::vector<FVector>& outPoints,
-	std::vector<int>& outTriangles, std::string inFlags)
+void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<FVector>& outPoints,
+	TArray<int>& outTriangles, std::string inFlags)
 {
 	int t;
 	return Triangulate(outOuter, outInner, outPoints, outTriangles, inFlags, TArray<FContour>(), t);

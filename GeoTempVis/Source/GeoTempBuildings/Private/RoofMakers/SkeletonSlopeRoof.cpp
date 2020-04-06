@@ -7,22 +7,22 @@
 
 
 
-FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial,
-	UMaterialInterface* roofMaterial)
+FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart inBuildingPart, int inFirstSectionIndex, UMaterialInterface* inWallMaterial,
+	UMaterialInterface* inRoofMaterial)
 {
-	std::vector<FVector> nodes;
-	std::vector<int> triangles;
+	TArray<FVector> nodes;
+	TArray<int> triangles;
 	int contInd;
 
 	TArray<FContour> outer, inner;
 
-	for (auto& cont : buildingPart.OuterConts)
+	for (auto& cont : inBuildingPart.OuterConts)
 	{
 		cont.FixClockwise();
 		
 		if (cont.Points[0] == cont.Points[cont.Points.Num() - 1])
 		{
-			cont.Points.RemoveAt(0);
+			cont.Points.RemoveAt(cont.Points.Num() - 1);
 		}
 
 		auto& contour = cont.Points;
@@ -40,7 +40,7 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart bui
 		outer.Add(cont1);
 	}
 
-	for (auto& cont : buildingPart.InnerConts)
+	for (auto& cont : inBuildingPart.InnerConts)
 	{
 
 		cont.FixClockwise(true);
@@ -62,9 +62,9 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart bui
 		inner.Add(cont1);
 	}
 
-	Triangulate(outer, inner, nodes, triangles, "YYS0", buildingPart.RoofData, contInd);
+	Triangulate(outer, inner, nodes, triangles, "YYS0", inBuildingPart.RoofData, contInd);
 	int contId2 = contInd;
-	for (auto d : buildingPart.RoofData)
+	for (auto d : inBuildingPart.RoofData)
 	{
 		contId2 += d.Points.Num();
 	}
@@ -74,20 +74,20 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart bui
 	TArray<FVector> Normals;
 	TArray<FVector2D> UV;
 
-	for (int i = 0; i < triangles.size(); i += 3)
+	for (int i = 0; i < triangles.Num(); i += 3)
 	{
 		for (int j = 0; j < 3; j++)
 		{
 			if (triangles[i + j] < contInd || triangles[i + j] >= contId2) 
 			{
-				auto v = nodes[triangles[i + j]] + FVector::UpVector * (buildingPart.Height);
+				auto v = nodes[triangles[i + j]] + FVector::UpVector * (inBuildingPart.Height);
 				Vertices.Add(v);
 				UV.Add(FVector2D(0, 0));
 				Triangles.Add(i + j);
 			}
 			else
 			{
-				auto v = nodes[triangles[i + j]] + FVector::UpVector * (buildingPart.Height + RoofHeight);
+				auto v = nodes[triangles[i + j]] + FVector::UpVector * (inBuildingPart.Height + RoofHeight);
 				Vertices.Add(v);
 				UV.Add(FVector2D(0, 1));
 				Triangles.Add(i + j);
@@ -102,7 +102,7 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart bui
 
 	//Generating geometry
 	FBuildingMeshData meshData;
-	meshData.LastFreeIndex = firstSectionIndex;
+	meshData.LastFreeIndex = inFirstSectionIndex;
 
 	meshData.Segments.Add(FMeshSegmentData{
 		meshData.LastFreeIndex,
@@ -114,7 +114,7 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart bui
 		TArray<FVector2D>(),
 		TArray<FVector2D>(),
 		TArray<FLinearColor>(),
-		roofMaterial
+		inRoofMaterial
 		});
 
 	return meshData;

@@ -46,14 +46,12 @@ void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 	{
 		auto name = FName(*(FString::FromInt(Building->Id) + "_" + FString::FromInt(Building->MainPart->Id)));
 		UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
+		if (part) {
+			part->OnComponentCreated();
+			part->SetupAttachment(RootComponent);
+			part->RegisterComponent();
+			this->AddInstanceComponent(part);
 		
-		part->OnComponentCreated();		
-		part->SetupAttachment(RootComponent);
-		part->RegisterComponent();
-		this->AddInstanceComponent(part);
-
-		if (part)
-		{
 			FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
 			part->WallMaterial = WallMaterial;
 			part->RoofMaterial = RoofMaterial;
@@ -69,11 +67,12 @@ void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 		{
 			auto name = FName(*(FString::FromInt(Building->Id) + "_" + FString::FromInt(partData->Id)));
 			UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
-			part->RegisterComponent();
-			part->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-			
+
 			if (part)
 			{
+				part->RegisterComponent();
+				part->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+				
 				FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
 				part->WallMaterial = WallMaterial;
 				part->RoofMaterial = RoofMaterial;
@@ -87,4 +86,7 @@ void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 	}
 }
 
-void ABuildingActor::ReInitialize() { Initialize(this->Building); }
+void ABuildingActor::ReInitialize()
+{
+	Initialize(this->Building);
+}

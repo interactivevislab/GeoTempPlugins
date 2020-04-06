@@ -6,6 +6,7 @@ UOsmReader::UOsmReader() : UActorComponent()
 {
 }
 
+
 void UOsmReader::InitWithXML(FString inXmlString)
 {
 	XmlDocument.Parse(TCHAR_TO_UTF8(*inXmlString));

@@ -26,8 +26,8 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPosg
 
 	for (auto polygon : inPolygonData)
 	{
-		std::vector<FVector> points;
-		std::vector<int> triangles;
+		TArray<FVector> points;
+		TArray<int> triangles;
 		Triangulate(polygon.Outer, polygon.Holes, points, triangles);
 
 		auto excludeValue		= polygon.Tags.Find(excludeTag);
@@ -57,7 +57,7 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPosg
 
 		int zeroInd = inTarget->Vertices.Num();
 
-		for (int i = 0; i < points.size(); i++)
+		for (int i = 0; i < points.Num(); i++)
 		{
 			minX = FMath::Min(minX, points[i].X);
 			maxX = FMath::Max(maxX, points[i].X);
@@ -80,7 +80,7 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPosg
 			inTarget->Vertices.Add(vert);
 		}
 
-		for (int i = 0; i < triangles.size(); i++)
+		for (int i = 0; i < triangles.Num(); i++)
 		{
 			inTarget->Triangles.Add(triangles[i] + zeroInd);
 		}
