@@ -25,6 +25,11 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		},
+		{
+			"Name": "GeoTempBuildings",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
 	],
 	"Plugins": [
 		{

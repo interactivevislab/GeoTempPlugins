@@ -25,8 +25,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	FGeoCoords GeoCoords;
 
-	TArray<FBuilding*> Buildings;
-	TArray<FBuildingPart*> Parts;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	TArray<FBuilding> Buildings;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	TArray<FBuildingPart> Parts;
 
 	tinyxml2::XMLDocument XmlDocument;
 

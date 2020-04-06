@@ -27,8 +27,11 @@ struct GEOTEMPCORE_API FBuildingDates
 struct FBuilding;
 struct FContour;
 
+USTRUCT(BlueprintType)
 struct GEOTEMPCORE_API FBuildingPart
 {
+
+	GENERATED_BODY()
 	long Id;
 
 	int Floors;
@@ -36,12 +39,13 @@ struct GEOTEMPCORE_API FBuildingPart
 	float FloorHeight = 375.0f;
 	float Height;
 	float MinHeight;
+	
 	bool OverrideHeight;
 	
 	FString StylePalette;
 
 	FBuilding* Owner;
-	std::vector<FBuilding*> possibleOwners;
+	TArray<FBuilding*> possibleOwners;
 
 	FBuildingDates BuildingDates;
 
@@ -49,6 +53,8 @@ struct GEOTEMPCORE_API FBuildingPart
 	TArray<FContour> InnerConts;
 	TArray<FContour> RoofData;
 
+	FBuildingPart();
+	
 	FBuildingPart(const long id);
 };
 
@@ -59,10 +65,16 @@ struct GEOTEMPCORE_API FBuilding
 	GENERATED_BODY()
 
 	long Id = 0;
+	
 	std::string Type;
+	
 	TMap<FString, FString> Tags;
+	
 	FBuildingPart* MainPart;
+	
 	std::vector<FBuildingPart*> Parts;
+
+	FString RoofType;
 
 	FBuilding();
 	FBuilding(const long id);
