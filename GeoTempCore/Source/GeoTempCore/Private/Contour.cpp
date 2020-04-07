@@ -88,6 +88,24 @@ int FContour::BottommostIndex() const
 
 bool FContour::FixClockwise(bool inReverse)
 {
+	bool needReverse = IsNotClockwise(inReverse);
+	if (needReverse)
+	{
+		Algo::Reverse(Points);
+	}
+	return needReverse;
+}
+
+void FContour::FixLoop()
+{
+	if (Points[0] == Points.Last())
+	{
+		Points.RemoveAt(Points.Num() - 1);
+	}
+}
+
+bool FContour::IsNotClockwise(bool inReverse)
+{
 	if ((Points.Last() - Points[0]).Size2D() > 1)
 	{
 		auto v = Points[0];
@@ -108,10 +126,7 @@ bool FContour::FixClockwise(bool inReverse)
 	}
 
 	bool needReverse = FVector::CrossProduct(Points[i] - Points[i0], Points[i1] - Points[i]).Z * (inReverse ? -1 : 1) < 0;
-	if (needReverse)
-	{
-		Algo::Reverse(Points);
-	}
+	
 	return needReverse;
 }
 

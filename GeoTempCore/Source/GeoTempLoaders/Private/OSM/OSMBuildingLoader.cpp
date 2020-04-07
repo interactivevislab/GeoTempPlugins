@@ -1,28 +1,22 @@
 #include "OSM/OSMBuildingLoader.h"
 
-inline void FixPartContours(FBuildingPart& part)
+inline void FixPartContours(FBuildingPart& outPart)
 {	
-	for (auto& cont : part.OuterConts)
+	for (auto& cont : outPart.OuterConts)
 	{
-		if (cont.Points[0] == cont.Points[cont.Points.Num() - 1])
-		{
-			cont.Points.RemoveAt(cont.Points.Num() - 1);
-		}
+		cont.FixLoop();
 		cont.FixClockwise();
 	}
 
-	for (auto& cont : part.InnerConts)
+	for (auto& cont : outPart.InnerConts)
 	{
-		if (cont.Points[0] == cont.Points[cont.Points.Num() - 1])
-		{
-			cont.Points.RemoveAt(cont.Points.Num() - 1);
-		}
+		cont.FixLoop();
 		cont.FixClockwise(true);
 	}
 
-	if (part.Floors == 0 && part.Height == 0)
+	if (outPart.Floors == 0 && outPart.Height == 0)
 	{
-		part.MinFloors = -1;
+		outPart.MinFloors = -1;
 	}
 }
 

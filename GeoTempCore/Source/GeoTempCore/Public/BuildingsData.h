@@ -27,6 +27,7 @@ struct GEOTEMPCORE_API FBuildingDates
 struct FBuilding;
 struct FContour;
 
+
 USTRUCT(BlueprintType)
 struct GEOTEMPCORE_API FBuildingPart
 {
@@ -52,7 +53,7 @@ struct GEOTEMPCORE_API FBuildingPart
 
 	FBuildingPart();
 	
-	FBuildingPart(const long id);
+	FBuildingPart(const long inId);
 };
 
 
@@ -74,5 +75,5 @@ struct GEOTEMPCORE_API FBuilding
 	FString RoofType;
 
 	FBuilding();
-	FBuilding(const long id);
+	FBuilding(const long inId);
 };

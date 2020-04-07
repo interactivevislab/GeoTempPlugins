@@ -26,4 +26,3 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	TArray<FBuilding> GetBuildings(UOsmReader* inSource);
 };
-

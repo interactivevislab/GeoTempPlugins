@@ -31,24 +31,19 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 	conts.Append(inBuildingPart.InnerConts);
 	
 	for (auto& cont : conts)
-	{
-		auto& contour = cont.Points;
-		if (contour[0] == contour[contour.Num() - 1])
-		{
-			contour.RemoveAt(contour.Num() - 1);
-		}
+	{		
 		float uvx = 0;
 		
 		vertCount = Vertices.Num();
 		
-		for (int i = 0; i < contour.Num(); i++)
+		for (int i = 0; i < cont.Points.Num(); i++)
 		{
-			int iPrev = (i + contour.Num() - 1)	% contour.Num();
-			int iNext = (i + 1)					% contour.Num();
-			int iPlus = (i + 2)					% contour.Num();
+			int iPrev = (i + cont.Points.Num() - 1)	% cont.Points.Num();
+			int iNext = (i + 1)					% cont.Points.Num();
+			int iPlus = (i + 2)					% cont.Points.Num();
 
-			auto dirs		= MeshHelpers::GetNeighbourDirections(contour, i);
-			auto dirsNext	= MeshHelpers::GetNeighbourDirections(contour, iNext);
+			auto dirs		= MeshHelpers::GetNeighbourDirections(cont.Points, i);
+			auto dirsNext	= MeshHelpers::GetNeighbourDirections(cont.Points, iNext);
 
 			
 			auto direction = FMath::Sign(FVector::CrossProduct(dirs.Key, dirs.Value).Z);
@@ -59,10 +54,10 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 			auto deltaNext	= (-dirsNext.Key.GetSafeNormal2D() + dirsNext.Value.GetSafeNormal2D()).GetSafeNormal2D() 
 								* directionNext;
 
-			auto v1 = contour[i];
-			auto v2 = contour[i];
-			auto v3 = contour[iNext];
-			auto v4 = contour[iNext];
+			auto v1 = cont.Points[i];
+			auto v2 = cont.Points[i];
+			auto v3 = cont.Points[iNext];
+			auto v4 = cont.Points[iNext];
 
 			auto v_1 = v1 + delta * BarrierWidth;
 			auto v_2 = v2 + delta * BarrierWidth;
