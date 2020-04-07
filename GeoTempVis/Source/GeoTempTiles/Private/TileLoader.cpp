@@ -6,10 +6,12 @@
 #include "Engine/Texture2DDynamic.h"
 
 // Sets default values for this component's properties
-UTilesController::UTilesController()
+UTilesController::UTilesController(const FObjectInitializer& ObjectInitializer) : URuntimeMeshComponent(ObjectInitializer)
 {	
 	PrimaryComponentTick.bCanEverTick = true;
-	mesh = CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("Tiles mesh"), true);
+	/*if (!mesh) {
+		root= CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("Tiles mesh"), true);
+	}*/
 }
 
 
@@ -145,7 +147,7 @@ void UTilesController::CreateMesh()
 
 void UTilesController::ClearMesh()
 {
-	mesh->ClearAllMeshSections();
+	ClearAllMeshSections();
 	TileIndecies.Empty();
 }
 
@@ -255,12 +257,12 @@ int UTilesController::CreateTileMesh(FTileTextureMeta meta)
 	}
 	else
 	{		
-		sectionIndex = mesh->GetNumSections();
+		sectionIndex = GetNumSections();
 	}	
-	mesh->CreateMeshSection(sectionIndex, vertices, triangles, normals, uvs, TArray<FColor>(),
+	CreateMeshSection(sectionIndex, vertices, triangles, normals, uvs, TArray<FColor>(),
 	                       TArray<FRuntimeMeshTangent>(), false);
 	auto tile = TileLoader->GetTileMaterial(x, y, z, TileMaterial, this->GetOwner());
-	mesh->SetMaterial(sectionIndex, tile->Material);	
+	SetMaterial(sectionIndex, tile->Material);	
 	TileLoader->CachedTiles[meta]->IsActive = true;	
 	TileIndecies.Add(meta, sectionIndex);
 	Tiles.Add(meta, tile);
@@ -271,7 +273,7 @@ void UTilesController::ClearTileMesh(FTileTextureMeta meta)
 {
 	//mesh->ClearMeshSection(index);
 	int index = TileIndecies[meta];
-	mesh->SetMeshSectionVisible(index, false);
+	SetMeshSectionVisible(index, false);
 	
 	if (TileLoader->CachedTiles.Contains(meta)) {
 		TileLoader->CachedTiles[meta]->IsActive = false;

@@ -63,13 +63,13 @@ namespace std
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class GEOTEMPTILES_API UTilesController : public UActorComponent
+class GEOTEMPTILES_API UTilesController : public URuntimeMeshComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UTilesController();
+	UTilesController(const FObjectInitializer& ObjectInitializer);
 
 protected:
 
@@ -95,8 +95,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
 		UMaterialInterface* TileMaterial;	
-	
-	URuntimeMeshComponent* mesh;
+		
 	UTileTextureContainer* TileLoader;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
