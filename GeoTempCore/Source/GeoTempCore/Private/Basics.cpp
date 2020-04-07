@@ -32,7 +32,7 @@ namespace std
 
 
 void Triangulate(const TArray<FContour>& inOuter, const TArray<FContour>& inInner, TArray<FVector>& outPoints,
-	TArray<int>& outTriangles, std::string inFlags, TArray<FContour> inOtherLines, int& outContourPointsNum)
+	TArray<int>& outTriangles, FString inFlags, const TArray<FContour>& inOtherLines, int& outContourPointsNum)
 {
 	Eigen::MatrixXd V;
 	Eigen::MatrixXi E;
@@ -200,7 +200,7 @@ void Triangulate(const TArray<FContour>& inOuter, const TArray<FContour>& inInne
 
 	if (inPoints.size() < 6) return;
 
-	igl::triangle::triangulate(V, E, H, inFlags, V2, F2);
+	igl::triangle::triangulate(V, E, H, std::string(TCHAR_TO_UTF8(*inFlags)), V2, F2);
 
 	outPoints.Empty();
 
@@ -218,10 +218,11 @@ void Triangulate(const TArray<FContour>& inOuter, const TArray<FContour>& inInne
 }
 
 void Triangulate(const TArray<FContour>& inOuter, const TArray<FContour>& inInner, TArray<FVector>& outPoints,
-	TArray<int>& outTriangles, std::string inFlags)
+	TArray<int>& outTriangles, FString inFlags)
 {
 	int t;
-	return Triangulate(inOuter, inInner, outPoints, outTriangles, inFlags, TArray<FContour>(), t);
+	TArray<FContour> lines;
+	return Triangulate(inOuter, inInner, outPoints, outTriangles, inFlags, lines, t);
 }
 
 

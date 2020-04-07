@@ -17,17 +17,7 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, co
 	TArray<FVector> nodes;
 	TArray<int> triangles;	
 
-	//if (!inBuildingPart.OverrideHeight && inBuildingPart.Height == 0)
-	//{
-	//	inBuildingPart.Height	= inBuildingPart.Floors		* FLOOR_HEIGHT;
-	//	inBuildingPart.MinHeight	= inBuildingPart.MinFloors	* FLOOR_HEIGHT;
-	//	if (inBuildingPart.MinFloors == 0) 
-	//	{
-	//		inBuildingPart.MinHeight = -1500;
-	//	}
-	//}
-
-	Triangulate(inBuildingPart.OuterConts, inBuildingPart.InnerConts, nodes, triangles, std::string(TCHAR_TO_UTF8(*inFlags)));
+	Triangulate(inBuildingPart.OuterConts, inBuildingPart.InnerConts, nodes, triangles, inFlags);
 
 	TArray<FVector>			Vertices;
 	TArray<int>				Triangles;

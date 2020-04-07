@@ -20,10 +20,11 @@ inline void FixPartContours(FBuildingPart& outPart)
 	}
 }
 
+
 TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* inSource)
 {
 	TArray<FBuilding> buildings;
-	TArray<FBuildingPart> Parts;
+	TArray<FBuildingPart> parts;
 
 	buildings.Empty();
 
@@ -55,7 +56,7 @@ TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* inSource)
 			auto cont = FContour(points);
 			part.OuterConts.Add(cont);
 
-			Parts.Add(part);
+			parts.Add(part);
 
 			//if this is building also create building data
 			if (buildIter)
@@ -123,7 +124,7 @@ TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* inSource)
 				auto rel = relation->Relations[element.first];
 				if (rel->Tags.Find("building:part"))
 				{
-					building.Parts.Add(Parts[element.first]);
+					building.Parts.Add(parts[element.first]);
 				}
 			}
 			buildings.Add(building);			
@@ -164,7 +165,7 @@ TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* inSource)
 					}
 				}
 			}
-			Parts.Add(part);
+			parts.Add(part);
 		}
 	}
 	for (auto& building : buildings)

@@ -90,7 +90,7 @@ public:
 
 	//UBuildingsLoaderBase2 * Owner;
 
-	void Init(const FBuildingPart& inPart, TMap<FString, FString> inTags/*,UBuildingsLoaderBase2 * owner = nullptr*/);
+	void Init(const FBuildingPart& inPart, const TMap<FString, FString>& inTags/*,UBuildingsLoaderBase2 * owner = nullptr*/);
 
 	void ReInit();
 

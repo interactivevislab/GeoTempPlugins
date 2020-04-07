@@ -12,19 +12,15 @@ void UBuildingPartComponent::Actualize()
 
 float UBuildingPartComponent::SimplifyDistance = 250000;
 
-inline void UBuildingPartComponent::Init(const FBuildingPart& inPart, TMap<FString, FString> inTags/*, UBuildingsLoaderBase2* owner*/) {
+void UBuildingPartComponent::Init(const FBuildingPart& inPart, const TMap<FString, FString>& inTags/*, UBuildingsLoaderBase2* owner*/) {
 
 
 	Parent = Cast<ABuildingActor>(GetOwner());
+	Outer.Empty();
+	Inner.Empty();
+	Outer.Append(inPart.OuterConts);
+	Inner.Append(inPart.InnerConts);
 	
-	for (auto& cont : inPart.OuterConts) 
-	{		
-		Outer.Add(cont);
-	}
-	for (auto& cont : inPart.InnerConts) 
-	{	
-		Inner.Add(cont);
-	}
 	Floors			= inPart.Floors;
 	Height			= inPart.Height;
 	MinFloors		= inPart.MinFloors;

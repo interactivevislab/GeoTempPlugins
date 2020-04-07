@@ -15,7 +15,7 @@ void ABuildingActor::OnConstruction(const FTransform& Transform)
 } 
 
 
-void ABuildingActor::Initialize(FBuilding inBuilding, bool inInitPartsImmideately)
+void ABuildingActor::Initialize(const FBuilding& inBuilding, bool inInitPartsImmideately)
 {
 	if (RootComponent == nullptr)
 	{

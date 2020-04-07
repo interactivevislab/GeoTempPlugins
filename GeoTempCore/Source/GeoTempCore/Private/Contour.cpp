@@ -96,6 +96,7 @@ bool FContour::FixClockwise(bool inReverse)
 	return needReverse;
 }
 
+
 void FContour::FixLoop()
 {
 	if (Points[0] == Points.Last())
@@ -103,6 +104,7 @@ void FContour::FixLoop()
 		Points.RemoveAt(Points.Num() - 1);
 	}
 }
+
 
 bool FContour::IsNotClockwise(bool inReverse)
 {

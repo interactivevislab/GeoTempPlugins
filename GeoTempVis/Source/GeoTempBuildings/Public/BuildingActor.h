@@ -45,7 +45,7 @@ public:
 	void OnConstruction(const FTransform& Transform) override;
 
 
-	virtual void Initialize(FBuilding inBuilding, bool inInitPartsImmideately = true);
+	virtual void Initialize(const FBuilding& inBuilding, bool inInitPartsImmideately = true);
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Default")
 	virtual void ReInitialize();

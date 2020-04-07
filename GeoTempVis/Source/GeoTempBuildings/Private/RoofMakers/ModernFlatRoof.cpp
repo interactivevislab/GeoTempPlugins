@@ -12,11 +12,11 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 	FBuildingMeshData meshData;
 	meshData.LastFreeIndex = inFirstSectionIndex;
 
-	TArray<FVector>			Vertices;
-	TArray<int>				Triangles;
-	TArray<FVector>			Normals;
+	TArray<FVector>			vertices;
+	TArray<int>				triangles;
+	TArray<FVector>			normals;
 	TArray<FVector2D>		UV;
-	TArray<FLinearColor>	VertexColors;
+	TArray<FLinearColor>	vertexColors;
 
 
 	/*for (auto& cont : inBuildingPart.OuterConts) {
@@ -26,7 +26,7 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 		cont.FixClockwise(true);
 	}*/
 	
-	int vertCount = Vertices.Num();
+	int vertCount = vertices.Num();
 	auto conts = TArray<FContour>(inBuildingPart.OuterConts);
 	conts.Append(inBuildingPart.InnerConts);
 	
@@ -34,13 +34,11 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 	{		
 		float uvx = 0;
 		
-		vertCount = Vertices.Num();
-		
-		for (int i = 0; i < cont.Points.Num(); i++)
-		{
-			int iPrev = (i + cont.Points.Num() - 1)	% cont.Points.Num();
-			int iNext = (i + 1)					% cont.Points.Num();
-			int iPlus = (i + 2)					% cont.Points.Num();
+		vertCount = vertices.Num();
+		int num = cont.Points.Num();
+		for (int i = 0; i < num; i++)
+		{			
+			int iNext = (i + 1)	% num;
 
 			auto dirs		= MeshHelpers::GetNeighbourDirections(cont.Points, i);
 			auto dirsNext	= MeshHelpers::GetNeighbourDirections(cont.Points, iNext);
@@ -74,20 +72,20 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 			v_3.Z = inBuildingPart.Height;
 			v_4.Z = inBuildingPart.Height + BarrierHeight;
 
-			Vertices.Add(v1);
-			Vertices.Add(v2);
-			Vertices.Add(v3);
-			Vertices.Add(v4);
+			vertices.Add(v1);
+			vertices.Add(v2);
+			vertices.Add(v3);
+			vertices.Add(v4);
 
-			Vertices.Add(v_1);
-			Vertices.Add(v_2);
-			Vertices.Add(v_3);
-			Vertices.Add(v_4);
+			vertices.Add(v_1);
+			vertices.Add(v_2);
+			vertices.Add(v_3);
+			vertices.Add(v_4);
 
-			Vertices.Add(v2);
-			Vertices.Add(v4);
-			Vertices.Add(v_2);
-			Vertices.Add(v_4);
+			vertices.Add(v2);
+			vertices.Add(v4);
+			vertices.Add(v_2);
+			vertices.Add(v_4);
 
 			FOUR_TIMES(
 				UV.Add(FVector2D(uvx, 0));
@@ -101,53 +99,53 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 			UV.Add(FVector2D(v_4.X	/ 100, v_4.Y	/ 100));
 
 
-			FOUR_TIMES(Normals.Add( FVector::CrossProduct(v3 - v1, FVector::UpVector).GetSafeNormal()));
-			FOUR_TIMES(Normals.Add(-FVector::CrossProduct(v3 - v1, FVector::UpVector).GetSafeNormal()));
-			FOUR_TIMES(Normals.Add(FVector::UpVector));
+			FOUR_TIMES(normals.Add( FVector::CrossProduct(v3 - v1, FVector::UpVector).GetSafeNormal()));
+			FOUR_TIMES(normals.Add(-FVector::CrossProduct(v3 - v1, FVector::UpVector).GetSafeNormal()));
+			FOUR_TIMES(normals.Add(FVector::UpVector));
 
-			FOUR_TIMES(VertexColors.Add(FLinearColor::Gray));
-			FOUR_TIMES(VertexColors.Add(FLinearColor::Gray));
-			FOUR_TIMES(VertexColors.Add(FLinearColor::Gray));
+			FOUR_TIMES(vertexColors.Add(FLinearColor::Gray));
+			FOUR_TIMES(vertexColors.Add(FLinearColor::Gray));
+			FOUR_TIMES(vertexColors.Add(FLinearColor::Gray));
 
 			auto	vertexIndex = vertCount + i * 12;
 
-			Triangles.Add(vertexIndex + 0);
-			Triangles.Add(vertexIndex + 1);
-			Triangles.Add(vertexIndex + 3);
-			Triangles.Add(vertexIndex + 0);
-			Triangles.Add(vertexIndex + 3);
-			Triangles.Add(vertexIndex + 2);
+			triangles.Add(vertexIndex + 0);
+			triangles.Add(vertexIndex + 1);
+			triangles.Add(vertexIndex + 3);
+			triangles.Add(vertexIndex + 0);
+			triangles.Add(vertexIndex + 3);
+			triangles.Add(vertexIndex + 2);
 
 					vertexIndex += 4;
 
-			Triangles.Add(vertexIndex + 0);
-			Triangles.Add(vertexIndex + 3);
-			Triangles.Add(vertexIndex + 1);
-			Triangles.Add(vertexIndex + 0);
-			Triangles.Add(vertexIndex + 2);
-			Triangles.Add(vertexIndex + 3);
+			triangles.Add(vertexIndex + 0);
+			triangles.Add(vertexIndex + 3);
+			triangles.Add(vertexIndex + 1);
+			triangles.Add(vertexIndex + 0);
+			triangles.Add(vertexIndex + 2);
+			triangles.Add(vertexIndex + 3);
 
 					vertexIndex += 4;
 
-			Triangles.Add(vertexIndex + 1);
-			Triangles.Add(vertexIndex + 0);
-			Triangles.Add(vertexIndex + 2);
-			Triangles.Add(vertexIndex + 1);
-			Triangles.Add(vertexIndex + 2);
-			Triangles.Add(vertexIndex + 3);
+			triangles.Add(vertexIndex + 1);
+			triangles.Add(vertexIndex + 0);
+			triangles.Add(vertexIndex + 2);
+			triangles.Add(vertexIndex + 1);
+			triangles.Add(vertexIndex + 2);
+			triangles.Add(vertexIndex + 3);
 		}
 	}
 
 	meshData.Segments.Add(FMeshSegmentData{
 		meshData.LastFreeIndex,
-		Vertices,
-		Triangles,
-		Normals,
+		vertices,
+		triangles,
+		normals,
 		UV,
 		TArray<FVector2D>(),
 		TArray<FVector2D>(),
 		TArray<FVector2D>(),
-		VertexColors,
+		vertexColors,
 		inWallMaterial
 	});
 
