@@ -1,4 +1,5 @@
 #include "BuildingPart.h"
+#include "BuildingActor.h"
 #include "BuildingUtils.h"
 
 UBuildingPartComponent::UBuildingPartComponent(const FObjectInitializer& ObjectInitializer) : URuntimeMeshComponent(ObjectInitializer)
@@ -11,30 +12,22 @@ void UBuildingPartComponent::Actualize()
 
 float UBuildingPartComponent::SimplifyDistance = 250000;
 
-void UBuildingPartComponent::Init(FBuildingPart* inPart, TMap<FString, FString> inTags/*, UBuildingsLoaderBase2* owner*/) {
-	for (auto& cont : inPart->OuterConts) 
-	{
-		cont.FixClockwise();
-		Outer.Add(cont);
-	}
-	for (auto& cont : inPart->InnerConts) 
-	{
-		cont.FixClockwise(false);
-		Inner.Add(cont);
-	}
-	Floors			= inPart->Floors;
-	Height			= inPart->Height;
-	MinFloors		= inPart->MinFloors;
-	MinHeight		= inPart->MinHeight;
-	BuildingDates	= inPart->BuildingDates;
-	
-	if (Floors == 0)
-	{
-		MinFloors = -1;
-		inPart->MinFloors = -1;
-	}
+void UBuildingPartComponent::Init(const FBuildingPart& inPart, const TMap<FString, FString>& inTags/*, UBuildingsLoaderBase2* owner*/) {
 
-	Id = inPart->Id;
+
+	Parent = Cast<ABuildingActor>(GetOwner());
+	Outer.Empty();
+	Inner.Empty();
+	Outer.Append(inPart.OuterConts);
+	Inner.Append(inPart.InnerConts);
+	
+	Floors			= inPart.Floors;
+	Height			= inPart.Height;
+	MinFloors		= inPart.MinFloors;
+	MinHeight		= inPart.MinHeight;
+	BuildingDates	= inPart.BuildingDates;
+	
+	Id = inPart.Id;
 	PartData = inPart;
 	Tags = inTags;
 }
@@ -65,15 +58,13 @@ void UBuildingPartComponent::Recalc() {
 
 void UBuildingPartComponent::CreateSimpleStructure(float inZeroHeight)
 {	
-	if (PartData)
-	{	
-		auto meshData = MeshHelpers::CalculateMeshData(PartData, 0, WallMaterial, RoofMaterial);
-		MeshHelpers::ConstructRuntimeMesh(this, meshData);
-		for (int i = 0; i < GetNumSections(); i++)
-		{
-			SetMeshSectionCollisionEnabled(i, true);
-		}
-	}
+
+	auto meshData = MeshHelpers::CalculateMeshData(Parent->Building, PartData, 0, WallMaterial, RoofMaterial);
+	MeshHelpers::ConstructRuntimeMesh(this, meshData);
+	for (int i = 0; i < GetNumSections(); i++)
+	{
+		SetMeshSectionCollisionEnabled(i, true);
+	}	
 }
 
 void UBuildingPartComponent::SetHeightAlpha(float inHeightAlpha)

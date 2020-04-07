@@ -27,6 +27,7 @@ struct GEOTEMPCORE_API FBuildingDates
 struct FBuilding;
 struct FContour;
 
+
 USTRUCT(BlueprintType)
 struct GEOTEMPCORE_API FBuildingPart
 {
@@ -44,9 +45,6 @@ struct GEOTEMPCORE_API FBuildingPart
 	
 	FString StylePalette;
 
-	FBuilding* Owner;
-	TArray<FBuilding*> possibleOwners;
-
 	FBuildingDates BuildingDates;
 
 	TArray<FContour> OuterConts;
@@ -55,7 +53,7 @@ struct GEOTEMPCORE_API FBuildingPart
 
 	FBuildingPart();
 	
-	FBuildingPart(const long id);
+	FBuildingPart(const long inId);
 };
 
 
@@ -70,12 +68,12 @@ struct GEOTEMPCORE_API FBuilding
 	
 	TMap<FString, FString> Tags;
 	
-	FBuildingPart* MainPart;
+	FBuildingPart MainPart;
 	
-	std::vector<FBuildingPart*> Parts;
+	TArray<FBuildingPart> Parts;
 
 	FString RoofType;
 
 	FBuilding();
-	FBuilding(const long id);
+	FBuilding(const long inId);
 };

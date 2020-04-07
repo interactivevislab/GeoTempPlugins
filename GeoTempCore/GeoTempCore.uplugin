@@ -39,6 +39,11 @@
 			"Name": "GeoTempPostgis",
 			"Type": "Runtime",
 			"LoadingPhase": "PostConfigInit"
+		},
+		{
+			"Name": "GeoTempLoaders",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
 		}
 	]
 }
