@@ -45,7 +45,7 @@ void UOsmReader::ParseBuildings()
 			//parse heights and floor counts
 			InitBuildingPart(way, part);
 
-			Parts.Add(part);
+			
 			//if this is building also create building data
 			if (buildIter) {
 				auto building = new FBuilding(way->Id);
@@ -54,7 +54,7 @@ void UOsmReader::ParseBuildings()
 				part->Owner = building;
 				building->MainPart = part;
 				//building->Parts.push_back(part);
-				Buildings.Add(building);
+				Buildings.Add(*building);
 			}
 			else
 			{
@@ -77,6 +77,7 @@ void UOsmReader::ParseBuildings()
 
 			//add part to list
 			buildingWayParts.insert_or_assign(way->Id, part);
+			Parts.Add(*part);
 		}
 	}
 
@@ -94,7 +95,7 @@ void UOsmReader::ParseBuildings()
 			auto building = new FBuilding(relation->Id);
 			building->Parts.clear();
 			building->Type = TCHAR_TO_UTF8(**buildIter);
-			Buildings.Add(building);
+
 
 			//create building part data from relation (it will be the footprint)
 			part = new FBuildingPart(relation->Id);
@@ -139,10 +140,10 @@ void UOsmReader::ParseBuildings()
 				auto& currentPart = part;
 				if (rel->Tags.Find("building:part"))
 				{
-					building->Parts.push_back(Parts[element.first]);
+					building->Parts.push_back(&Parts[element.first]);
 				}
 			}
-
+			Buildings.Add(*building);
 		}
 
 		//if this relation is building part
@@ -150,7 +151,7 @@ void UOsmReader::ParseBuildings()
 		{
 			part = new FBuildingPart(relation->Id);
 			InitBuildingPart(relation, part);
-			Parts.Add(part);
+			Parts.Add(*part);
 			relParts.insert_or_assign(part->Id, part);
 			for (auto element : relation->WayRoles)
 			{
