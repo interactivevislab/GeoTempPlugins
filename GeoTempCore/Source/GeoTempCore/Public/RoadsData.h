@@ -103,6 +103,33 @@ struct GEOTEMPCORE_API FPostGisRoadNetwork
 #pragma endregion
 
 
+#pragma region OsmRoadsData
+
+USTRUCT(BlueprintType)
+struct GEOTEMPCORE_API FOsmRoadSegment
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FVector> Points;
+
+	UPROPERTY(BlueprintReadOnly)
+	TMap<FString, FString> Tags;
+};
+
+
+USTRUCT(BlueprintType)
+struct GEOTEMPCORE_API FOsmRoadNetwork
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	TMap<int, FOsmRoadSegment> Segments;
+};
+
+#pragma endregion
+
+
 #pragma region ProcessedRoadsData
 
 USTRUCT(BlueprintType)
