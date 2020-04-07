@@ -1,13 +1,11 @@
 #pragma once
 #include "GameFramework/Actor.h"
 #include "CoreMinimal.h"
-
+#include "BuildingsData.h"
 #include "BuildingActor.generated.h"
 
 
 
-struct FContour;
-struct FBuilding;
 class UBuildingPartComponent;
 
 UCLASS()
@@ -42,12 +40,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Default")
 	TArray<UBuildingPartComponent*> Parts;
  
-	FBuilding* Building;
+	FBuilding Building;
 
 	void OnConstruction(const FTransform& Transform) override;
 
 
-	virtual void Initialize(FBuilding* building, bool initPartsImmideately = true);
+	virtual void Initialize(FBuilding inBuilding, bool inInitPartsImmideately = true);
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Default")
 	virtual void ReInitialize();

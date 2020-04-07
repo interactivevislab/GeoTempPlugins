@@ -27,8 +27,8 @@ void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPos
 
 	for (auto polygon : inPolygonData)
 	{
-		std::vector<FVector> points;
-		std::vector<int> triangles;
+		TArray<FVector> points;
+		TArray<int> triangles;
 		Triangulate(polygon.Outer, polygon.Holes, points, triangles);
 
 		auto CatValue = polygon.Tags.Find(categoryTag);
@@ -78,7 +78,7 @@ void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPos
 
 		int zeroInd = inTarget->Vertices.Num();
 
-		for (int i = 0; i < points.size(); i++)
+		for (int i = 0; i < points.Num(); i++)
 		{
 			minX = FMath::Min(minX, points[i].X);
 			maxX = FMath::Max(maxX, points[i].X);
@@ -92,7 +92,7 @@ void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPos
 			inTarget->Vertices.Add(vert);
 		}
 
-		for (int i = 0; i < triangles.size(); i++)
+		for (int i = 0; i < triangles.Num(); i++)
 		{
 			inTarget->Triangles.Add(triangles[i] + zeroInd);
 		}

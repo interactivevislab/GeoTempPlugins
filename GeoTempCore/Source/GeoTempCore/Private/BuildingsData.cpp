@@ -3,11 +3,11 @@
 #include "BuildingsData.h"
 
 
-FBuildingPart::FBuildingPart(const long id) : Id(id), Owner(nullptr)
+FBuildingPart::FBuildingPart(const long id) : Id(id)
 {
 }
 
-FBuildingPart::FBuildingPart() : Id(0), Owner(nullptr)
+FBuildingPart::FBuildingPart() : Id(0)
 {
 }
 

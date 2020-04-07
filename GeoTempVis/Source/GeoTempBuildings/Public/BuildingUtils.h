@@ -29,12 +29,12 @@ struct FBuildingMeshData
 		int LastFreeIndex = 0;
 	TArray<FMeshSegmentData> Segments;
 
-	void Append(FBuildingMeshData otherData) {
+	inline void Append(FBuildingMeshData otherData) {
 		LastFreeIndex = otherData.LastFreeIndex;
 		Segments.Append(otherData.Segments);
 	}
 
-	void Clear() {
+	inline void Clear() {
 		LastFreeIndex = 0;
 		Segments.Empty();
 	}
@@ -53,7 +53,7 @@ public:
 	GENERATED_BODY()
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Default")
-	FBuildingMeshData GenerateRoof(FBuildingPart buildingPart, int firstSectionIndex, UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial);
+	FBuildingMeshData GenerateRoof(const FBuildingPart& inBuildingPart, int inFirstSectionIndex, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial);
 };
 
 class MeshHelpers {
@@ -62,35 +62,35 @@ class MeshHelpers {
 	
 public:
 
-	inline static TTuple<FVector, FVector> GetNeighbourDirections(TArray<FVector> contour, int index)
+	inline static TTuple<FVector, FVector> GetNeighbourDirections(TArray<FVector> inContour, int inIndex)
 	{
-		int iprev = (index + contour.Num() - 1)	% contour.Num();
-		int inext = (index + 1)					% contour.Num();
+		int iprev = (inIndex + inContour.Num() - 1)	% inContour.Num();
+		int inext = (inIndex + 1)					% inContour.Num();
 		
-		auto toPrev = contour[index] - contour[iprev];
-		auto toNext = contour[inext] - contour[index];
+		auto toPrev = inContour[inIndex] - inContour[iprev];
+		auto toNext = inContour[inext] - inContour[inIndex];
 
 		return MakeTuple(toPrev, toNext);
 	}
 	
-	inline static void AddRoofMaker(FString type, TScriptInterface<IRoofMaker> maker)
+	inline static void AddRoofMaker(FString inType, TScriptInterface<IRoofMaker> inMaker)
 	{
-		RoofMakers.Add(type, maker);
+		RoofMakers.Add(inType, inMaker);
 	}
 
-	inline static bool CheckRoofMaker(FString type)
+	inline static bool CheckRoofMaker(FString inType)
 	{
-		return RoofMakers.Contains(type);
+		return RoofMakers.Contains(inType);
 	}
 
-	inline static void SetRoofMakers(TMap<FString, TScriptInterface<IRoofMaker>> roofMakers)
+	inline static void SetRoofMakers(TMap<FString, TScriptInterface<IRoofMaker>> inRoofMakers)
 	{
-		RoofMakers = roofMakers;
+		RoofMakers = inRoofMakers;
 	}
 	
-	static FBuildingMeshData CalculateMeshData(FBuildingPart* buildingPart, int firstSectionIndex, 
-		UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial, FString flags = "");
+	static FBuildingMeshData CalculateMeshData(const FBuilding& inBuilding, const FBuildingPart& inBuildingPart, int inFirstSectionIndex, 
+		UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, FString inFlags = "");
 
-	static void ConstructProceduralMesh(UProceduralMeshComponent* procMesh, FBuildingMeshData meshData);
-	static void ConstructRuntimeMesh(URuntimeMeshComponent* meshComp, FBuildingMeshData meshData);
+	static void ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, FBuildingMeshData inMeshData);
+	static void ConstructRuntimeMesh(URuntimeMeshComponent* inMeshComp, FBuildingMeshData inMeshData);
 };

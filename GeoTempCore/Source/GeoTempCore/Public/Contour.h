@@ -19,10 +19,10 @@ struct GEOTEMPCORE_API FContour
 	FContour(std::vector<FVector> initPoints);
 	FContour(TArray<FVector> initPoints);
 
-	int LeftmostIndex();
-	int RightmostIndex();
-	int TopmostIndex();
-	int BottommostIndex();
+	int LeftmostIndex()		const;
+	int RightmostIndex()	const;
+	int TopmostIndex()		const;
+	int BottommostIndex()	const;
 
 	//returns true if contour was reverted
 	bool FixClockwise(bool reverse = false);

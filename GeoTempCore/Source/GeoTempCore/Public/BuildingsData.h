@@ -44,9 +44,6 @@ struct GEOTEMPCORE_API FBuildingPart
 	
 	FString StylePalette;
 
-	FBuilding* Owner;
-	std::vector<FBuilding*> possibleOwners;
-
 	FBuildingDates BuildingDates;
 
 	TArray<FContour> OuterConts;
@@ -70,9 +67,9 @@ struct GEOTEMPCORE_API FBuilding
 	
 	TMap<FString, FString> Tags;
 	
-	FBuildingPart* MainPart;
+	FBuildingPart MainPart;
 	
-	std::vector<FBuildingPart*> Parts;
+	TArray<FBuildingPart> Parts;
 
 	FString RoofType;
 

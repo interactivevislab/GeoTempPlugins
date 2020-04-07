@@ -6,11 +6,11 @@
 #define FOUR_TIMES(something) something; something; something; something;
 
 
-FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(FBuildingPart buildingPart, int firstSectionIndex,
-                                                       UMaterialInterface* wallMaterial, UMaterialInterface* roofMaterial)
+FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, int inFirstSectionIndex,
+                                                       UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial)
 {
 	FBuildingMeshData meshData;
-	meshData.LastFreeIndex = firstSectionIndex;
+	meshData.LastFreeIndex = inFirstSectionIndex;
 
 	TArray<FVector>			Vertices;
 	TArray<int>				Triangles;
@@ -19,27 +19,27 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(FBuildingPar
 	TArray<FLinearColor>	VertexColors;
 
 
-	for (auto& cont : buildingPart.OuterConts) {
+	/*for (auto& cont : inBuildingPart.OuterConts) {
 		cont.FixClockwise();
 	}
-	for (auto& cont : buildingPart.InnerConts) {
+	for (auto& cont : inBuildingPart.InnerConts) {
 		cont.FixClockwise(true);
-	}
+	}*/
 	
-	int z = Vertices.Num();
-	auto conts = TArray<FContour>(buildingPart.OuterConts);
-	conts.Append(buildingPart.InnerConts);
+	int vertCount = Vertices.Num();
+	auto conts = TArray<FContour>(inBuildingPart.OuterConts);
+	conts.Append(inBuildingPart.InnerConts);
 	
 	for (auto& cont : conts)
 	{
 		auto& contour = cont.Points;
 		if (contour[0] == contour[contour.Num() - 1])
 		{
-			contour.RemoveAt(0);
+			contour.RemoveAt(contour.Num() - 1);
 		}
 		float uvx = 0;
 		
-		z = Vertices.Num();
+		vertCount = Vertices.Num();
 		
 		for (int i = 0; i < contour.Num(); i++)
 		{
@@ -69,15 +69,15 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(FBuildingPar
 			auto v_3 = v3 + deltaNext * BarrierWidth;
 			auto v_4 = v4 + deltaNext * BarrierWidth;
 			
-			v1.Z = buildingPart.Height;
-			v2.Z = buildingPart.Height + BarrierHeight;
-			v3.Z = buildingPart.Height;
-			v4.Z = buildingPart.Height + BarrierHeight;
+			v1.Z = inBuildingPart.Height;
+			v2.Z = inBuildingPart.Height + BarrierHeight;
+			v3.Z = inBuildingPart.Height;
+			v4.Z = inBuildingPart.Height + BarrierHeight;
 
-			v_1.Z = buildingPart.Height;
-			v_2.Z = buildingPart.Height + BarrierHeight;
-			v_3.Z = buildingPart.Height;
-			v_4.Z = buildingPart.Height + BarrierHeight;
+			v_1.Z = inBuildingPart.Height;
+			v_2.Z = inBuildingPart.Height + BarrierHeight;
+			v_3.Z = inBuildingPart.Height;
+			v_4.Z = inBuildingPart.Height + BarrierHeight;
 
 			Vertices.Add(v1);
 			Vertices.Add(v2);
@@ -96,7 +96,7 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(FBuildingPar
 
 			FOUR_TIMES(
 				UV.Add(FVector2D(uvx, 0));
-				UV.Add(FVector2D(uvx, buildingPart.Height / 3));
+				UV.Add(FVector2D(uvx, inBuildingPart.Height / 3));
 				uvx += (v1 - v3).Size2D() / 10000;
 			);
 
@@ -114,7 +114,7 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(FBuildingPar
 			FOUR_TIMES(VertexColors.Add(FLinearColor::Gray));
 			FOUR_TIMES(VertexColors.Add(FLinearColor::Gray));
 
-			auto	vertexIndex = z + i * 12;
+			auto	vertexIndex = vertCount + i * 12;
 
 			Triangles.Add(vertexIndex + 0);
 			Triangles.Add(vertexIndex + 1);
@@ -153,7 +153,7 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(FBuildingPar
 		TArray<FVector2D>(),
 		TArray<FVector2D>(),
 		VertexColors,
-		wallMaterial
+		inWallMaterial
 	});
 
 	meshData.LastFreeIndex++;

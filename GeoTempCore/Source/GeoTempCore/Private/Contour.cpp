@@ -22,7 +22,7 @@ FContour::FContour(TArray<FVector> initPoints)
 }
 
 
-int FContour::LeftmostIndex()
+int FContour::LeftmostIndex() const
 {
 	int minInd = 0;
 	float minX = Points[0].X;
@@ -38,7 +38,7 @@ int FContour::LeftmostIndex()
 }
 
 
-int FContour::RightmostIndex()
+int FContour::RightmostIndex() const
 {
 	int minInd = 0;
 	float maxX = Points[0].X;
@@ -54,7 +54,7 @@ int FContour::RightmostIndex()
 }
 
 
-int FContour::TopmostIndex()
+int FContour::TopmostIndex() const
 {
 	int minInd = 0;
 	float minY = Points[0].Y;
@@ -70,7 +70,7 @@ int FContour::TopmostIndex()
 }
 
 
-int FContour::BottommostIndex()
+int FContour::BottommostIndex() const
 {
 	int minInd = 0;
 	float maxY = Points[0].Y;
