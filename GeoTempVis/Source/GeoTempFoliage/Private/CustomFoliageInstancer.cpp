@@ -2,15 +2,11 @@
 
 #include "CustomFoliageInstancer.h"
 #include "CoreMinimal.h"
-#include "Engine/Private/InstancedStaticMesh.h"
-#include "Components/HierarchicalInstancedStaticMeshComponent.h"
-#pragma warning( disable : 4456)
-#pragma warning( disable : 4458)
+#include "Materials/MaterialInstanceDynamic.h"
 
-ACustomFoliageInstancer::ACustomFoliageInstancer()
+
+UCustomFoliageInstancer::UCustomFoliageInstancer()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 	Width				= 300;
 	Height				= 300;
 	CellSize.X			= 20;
@@ -22,27 +18,29 @@ ACustomFoliageInstancer::ACustomFoliageInstancer()
 
 	ObjectQuery.Add(EObjectTypeQuery::ObjectTypeQuery1);
 
-	Projection	= ProjectionType::WGS84;
-	OriginLat	= 60.009521f;
-	OriginLon	= 29.730619f;
-
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Roooot"));
-	SetRootComponent(Root);
-
-	MaskLoaderInitial	= NewObject<UMaskLoader>(this, TEXT("MaskLoaderInitial")	);
-	MaskLoaderFirst		= NewObject<UMaskLoader>(this, TEXT("MaskLoaderFirst")		);
-	MaskLoaderSecond	= NewObject<UMaskLoader>(this, TEXT("MaskLoaderSecond")		);
-	MaskLoaderTypes		= NewObject<UMaskLoader>(this, TEXT("MaskLoaderTypes")		);
-
-	PolygonPreparer = NewObject<UBasePolygonPreparer>(this, TEXT("PolygonPreparer"));
-
 	updateSecondRenderTarget	= false;
 	currentMaskIndex			= 0;
 	polygonDates				= TArray<int>();
+
+	DataBaseTags = 
+	{
+		{"AppearStart","AppearStart" },
+		{"AppearEnd","AppearEnd" },
+		{"DemolishStart","DemolStart" },
+		{"DemolishEnd","DemolEnd" },
+		{"Category","typeRole" },
+		{"CategoryForest","forest" },
+		{"CategoryPark","park" },
+		{"CategoryYard","yard" },
+		{"Alt","Aftergrow" },
+		{"AltValue","True" },
+		{"Exclude","Type" },
+		{"ExcludeValue","Exclude" }
+	};
 }
 
 
-void ACustomFoliageInstancer::BeginPlay()
+void UCustomFoliageInstancer::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -69,29 +67,18 @@ void ACustomFoliageInstancer::BeginPlay()
 
 			if (IsValid(TypesTarget))
 			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", TypesTarget);
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", TypesTarget		);
 			}
 			else
 			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", BlankMask);
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", BlankTypesMask	);
 			}
 		}
 	}
 }
 
 
-void ACustomFoliageInstancer::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	for (FFoliageMeshInfo Info : FoliageMeshes)
-	{
-		InterpolateFoliageWithMaterial(Info);
-	}
-}
-
-
-void ACustomFoliageInstancer::BufferMask(UTexture2D* inInitialMask)
+void UCustomFoliageInstancer::BufferMask(UTexture2D* inInitialMask)
 {
 	maskBuffer.Empty();
 	inInitialMask->UpdateResource();
@@ -99,9 +86,10 @@ void ACustomFoliageInstancer::BufferMask(UTexture2D* inInitialMask)
 
 	ENQUEUE_RENDER_COMMAND(FPixelShaderRunner)([&](FRHICommandListImmediate& RHICmdList)
 	{
-			auto texture	= ((FTexture2DResource*)inInitialMask->Resource)->GetTexture2DRHI();
-			auto rect		= FIntRect(0, 0, inInitialMask->Resource->GetSizeX(), inInitialMask->Resource->GetSizeY());
-			RHICmdList.ReadSurfaceData(texture, rect, OutData, FReadSurfaceDataFlags());
+		auto texture	= ((FTexture2DResource*)inInitialMask->Resource)->GetTexture2DRHI();
+		auto rect		= FIntRect(0, 0, inInitialMask->Resource->GetSizeX(), inInitialMask->Resource->GetSizeY());
+
+		RHICmdList.ReadSurfaceData(texture, rect, OutData, FReadSurfaceDataFlags());
 	});
 	FlushRenderingCommands();
 	auto maskSizeX = inInitialMask->PlatformData->Mips[0].SizeX;
@@ -117,25 +105,86 @@ void ACustomFoliageInstancer::BufferMask(UTexture2D* inInitialMask)
 }
 
 
-void ACustomFoliageInstancer::InterpolateFoliageWithMaterial(FFoliageMeshInfo Fol)
+void UCustomFoliageInstancer::InterpolateFoliageWithMaterial()
 {
-	auto meshPtr = FoliageInstancers.FindRef(Fol.Mesh);
-
-	if (!meshPtr || !IsValid(meshPtr)) 
+	for (FFoliageMeshInfo Info : FoliageMeshes)
 	{
-		return;
+		auto meshPtr = FoliageInstancers.FindRef(Info.Mesh);
+
+		if (!meshPtr || !IsValid(meshPtr))
+		{
+			return;
+		}
+		meshPtr->SetScalarParameterValueOnMaterials("Interpolation", CurrentInterpolation);
 	}
-	meshPtr->SetScalarParameterValueOnMaterials("Interpolation", CurrentInterpolation);
+}
+
+void UCustomFoliageInstancer::FillFoliage_BP_Test(float inComponentRect, UStaticMesh* inMesh, UHierarchicalInstancedStaticMeshComponent* outComponent)
+{
+	FVector2D rect = FVector2D(inComponentRect);
+
+	float cellX = 0;
+	float cellY = 0;
+	float X = 0;
+	float Y = 0;
+
+	auto meshPtr = FoliageInstancers.Find(inMesh);
+
+	if (!outComponent)
+	{
+		auto instancerName = FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
+		AActor* owner = this->GetOwner();
+
+		outComponent = NewObject<UHierarchicalInstancedStaticMeshComponent>(owner, instancerName);
+		owner->AddInstanceComponent(outComponent);
+		outComponent->RegisterComponent();
+
+	}
+	outComponent->SetStaticMesh(inMesh);
+	outComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	FoliageInstancers.Add(inMesh, outComponent);
+	
+	outComponent->SetCastShadow(true);
+
+	while (cellX < rect.X)
+	{
+		while (cellY < rect.Y)
+		{
+
+			float helperX = 0.0f;
+			float helperY = 0.0f;
+
+
+
+			helperX = FMath::FRandRange(0, FMath::Clamp(CellSize.X, 0.0f, (rect.X - cellX)));
+			helperY = FMath::FRandRange(0, FMath::Clamp(CellSize.Y, 0.0f, (rect.Y - cellY)));
+
+			X = FMath::Clamp(cellX + helperX, 0.0f, rect.X);
+			Y = FMath::Clamp(cellY + helperY, 0.0f, rect.Y);
+
+			FQuat rotation = FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 0));
+			outComponent->AddInstance(
+				FTransform(
+					rotation,
+					FVector(X, Y, 0.0f),
+					FVector(5.0f)
+				)
+			);
+			cellY += CellSize.Y;
+		}
+		cellX += CellSize.X; cellY = 0;
+	}
 }
 
 
-void ACustomFoliageInstancer::FillFoliage_BP(FVector4 componentRect, bool DebugDraw, bool updateMaskBuffer)
+void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUpdateMaskBuffer)
 {
-	Width = Height = componentRect.Y - componentRect.X;
+	Width = Height = inComponentRect.Y - inComponentRect.X;
 
 	const int StartCullDistance	= 2000000000;
 	const int EndCullDistance	= 2100000000;
-	FVector componentOffset		= FVector(componentRect.X, componentRect.Z, 0);
+	FVector componentOffset		= FVector(inComponentRect.X, inComponentRect.Z, 0);
 
 	TArray<FFoliageMeshInfo> ArrayOfMeshInfos;
 	TArray<UHierarchicalInstancedStaticMeshComponent*> ArrayOfInstancers;
@@ -167,11 +216,11 @@ void ACustomFoliageInstancer::FillFoliage_BP(FVector4 componentRect, bool DebugD
 
 			if (IsValid(TypesTarget))
 			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", TypesTarget);
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", TypesTarget		);
 			}
 			else
 			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", BlankMask);
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", BlankTypesMask	);
 			}
 		}
 		auto meshPtr = FoliageInstancers.Find(meshInfo.Mesh);
@@ -185,10 +234,12 @@ void ACustomFoliageInstancer::FillFoliage_BP(FVector4 componentRect, bool DebugD
 		else 
 		{
 			auto instancerName	= FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
-			InstancedMesh		= NewObject<UHierarchicalInstancedStaticMeshComponent>(this, instancerName);
+			AActor* owner = this->GetOwner();
 
-			InstancedMesh->RegisterComponent();
-			InstancedMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+			InstancedMesh	= NewObject<UHierarchicalInstancedStaticMeshComponent>(owner, instancerName);
+			owner			->AddInstanceComponent(InstancedMesh);
+			InstancedMesh	->RegisterComponent();
+
 			InstancedMesh->SetStaticMesh(meshInfo.Mesh);
 			InstancedMesh->SetWorldLocation(componentOffset);
 			InstancedMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -223,21 +274,24 @@ void ACustomFoliageInstancer::FillFoliage_BP(FVector4 componentRect, bool DebugD
 
 				infos		.Add(meshInfo); 
 				instancers	.Add(*FoliageInstancers.Find(meshInfo.Mesh));
-				this->FillFoliage(infos, instancers, DebugDraw, updateMaskBuffer);
+
+				this->FillFoliageWithMeshes(infos, instancers, inUpdateMaskBuffer);
 			}
 			break;
 		}
 		case ELayersOption::MonoLayered: 
 		{
-			this->FillFoliage(ArrayOfMeshInfos, ArrayOfInstancers, DebugDraw, updateMaskBuffer);
+			this->FillFoliageWithMeshes(ArrayOfMeshInfos, ArrayOfInstancers, inUpdateMaskBuffer);
 			break;
 		}
 	}
 }
 
 
-
-void ACustomFoliageInstancer::FillFoliage(TArray<FFoliageMeshInfo> Infos, TArray<UHierarchicalInstancedStaticMeshComponent*> Instancers, bool DebugDraw, bool updateMaskBuffer)
+void UCustomFoliageInstancer::FillFoliageWithMeshes(
+	TArray<FFoliageMeshInfo> inInfos, 
+	TArray<UHierarchicalInstancedStaticMeshComponent*> inInstancers, 
+	bool inUpdateMaskBuffer)
 {
 	float cellX				= 0;
 	float cellY				= 0;
@@ -256,24 +310,25 @@ void ACustomFoliageInstancer::FillFoliage(TArray<FFoliageMeshInfo> Infos, TArray
 	{
 		while (cellY < Height)
 		{
-			int index		= FMath::RandRange(0, Infos.Num() - 1);
-			meshInfo		= Infos[index];
-			instancedMesh	= Instancers[index];
+			int index		= FMath::RandRange(0, inInfos.Num() - 1);
+			meshInfo		= inInfos[index];
+			instancedMesh	= inInstancers[index];
 			density			= 0;
 			while (density <= meshInfo.Density)
 			{
 				float helperX = 0.0f;
 				float helperY = 0.0f;
 
-				helperX = 1.0f - FMath::Clamp((cellX + CellSize.X - Width) / CellSize.X, 0.0f, 1.0f);
-				helperY = 1.0f - FMath::Clamp((cellY + CellSize.Y - Height) / CellSize.Y, 0.0f, 1.0f);
-				density += FMath::Clamp(rs.FRandRange(0.5f, 1.5f) / (helperX*helperY), 0.0f, 1.0f);
+				helperX = 1.0f - FMath::Clamp((cellX + CellSize.X - Width)	/ CellSize.X, 0.0f, 1.0f);
+				helperY = 1.0f - FMath::Clamp((cellY + CellSize.Y - Height)	/ CellSize.Y, 0.0f, 1.0f);
+
+				density +=FMath::Clamp(rs.FRandRange(0.5f, 1.5f) / (helperX*helperY), 0.0f, 1.0f);
 
 				auto scatterX = (1 - meshInfo.Scatter)*CellSize.X / 2;
 				auto scatterY = (1 - meshInfo.Scatter)*CellSize.Y / 2;
 
 				helperX = rs.FRandRange(FMath::Clamp(scatterX, 0.0f, (Width - cellX)),	FMath::Clamp(CellSize.X - scatterX, 0.0f, (Width - cellX))	);
-				helperY = rs.FRandRange(FMath::Clamp(scatterY, 0.0f, (Height - cellY)), FMath::Clamp(CellSize.Y - scatterY, 0.0f, (Height - cellY))	);
+				helperY = rs.FRandRange(FMath::Clamp(scatterY, 0.0f, (Height - cellY)),	FMath::Clamp(CellSize.Y - scatterY, 0.0f, (Height - cellY))	);
 
 				X = FMath::Clamp(cellX + helperX + SpawnTranslate.X, 0.0f, Width);
 				Y = FMath::Clamp(cellY + helperY + SpawnTranslate.Y, 0.0f, Height);
@@ -288,39 +343,36 @@ void ACustomFoliageInstancer::FillFoliage(TArray<FFoliageMeshInfo> Infos, TArray
 					Y = FMath::Clamp(newY, 0.0f, Height	);
 				}
 
-				int px = X / Width * (InitialMask->GetSizeX()-1);
-				int py = Y / Height * (InitialMask->GetSizeY()-1);
+				int px = X / Width	* (InitialTarget->GetSurfaceWidth()	-1);
+				int py = Y / Height	* (InitialTarget->GetSurfaceHeight()-1);
 
-				if (colorBuffer[(int)(py * InitialMask->GetSizeX() + px)].R>0) 
+				if (colorBuffer[(int)(py * InitialTarget->GetSurfaceWidth() + px)].R>0)
 				{
 					totalAdded++;
 
-					if (!DebugDraw)
+					auto meshScale	= rs.FRandRange(meshInfo.MinScale, meshInfo.MaxScale);
+					float meshAngle	= SpawnAngle + meshInfo.RotationOrigin;
+					FQuat rotation;
+					if (meshInfo.UseRotationPresets && meshInfo.RotationPresets.Num() > 0)
 					{
-						auto meshScale	= rs.FRandRange(meshInfo.MinScale, meshInfo.MaxScale);
-						float meshAngle	= SpawnAngle + meshInfo.RotationOrigin;
-						FQuat rotation;
-						if (meshInfo.UseRotationPresets && meshInfo.RotationPresets.Num() > 0)
-						{
-							int presetIndex = rs.RandRange(0, meshInfo.RotationPresets.Num() - 1);
+						int presetIndex = rs.RandRange(0, meshInfo.RotationPresets.Num() - 1);
 
-							meshAngle	+= meshInfo.RotationPresets[presetIndex];
-							rotation	= FQuat::MakeFromEuler(FVector(0.0f, 0.0f, meshAngle));
-						}
-						else
-						{
-							meshAngle	+= rs.FRandRange(-meshInfo.MaxRotation, meshInfo.MaxRotation);
-							rotation	= FQuat::MakeFromEuler(FVector(0.0f, 0.0f, meshAngle));
-						}
-						instancedMesh->AddInstance(
-							FTransform(
-								rotation,
-								FVector(X, Y, meshInfo.Z_AxisCorrection),
-								FVector(meshScale)
-							)
-						);
-						density++;
+						meshAngle	+= meshInfo.RotationPresets[presetIndex];
+						rotation	= FQuat::MakeFromEuler(FVector(0.0f, 0.0f, meshAngle));
 					}
+					else
+					{
+						meshAngle	+= rs.FRandRange(-meshInfo.MaxRotation, meshInfo.MaxRotation);
+						rotation	= FQuat::MakeFromEuler(FVector(0.0f, 0.0f, meshAngle));
+					}
+					instancedMesh->AddInstance(
+						FTransform(
+							rotation,
+							FVector(X, Y, meshInfo.Z_AxisCorrection),
+							FVector(meshScale)
+						)
+					);
+					density++;
 				}
 			}
 			cellY += CellSize.Y;
@@ -330,38 +382,35 @@ void ACustomFoliageInstancer::FillFoliage(TArray<FFoliageMeshInfo> Infos, TArray
 }
 
 
-void ACustomFoliageInstancer::UpdateFoliageMasks(FDateTime currentTime) 
+void UCustomFoliageInstancer::UpdateFoliageMasksDates(FDateTime inCurrentTime, int& outRenderYearFirst, int& outRenderYearSecond, bool& outUpdateFirstTarget)
 {
+	if (polygonDates.Num()==0)
+	{
+		return;
+	}
 	int firstMaskYear	= FMath::Max(polygonDates[currentMaskIndex],	1);
 	int secondMaskYear	= FMath::Max(polygonDates[currentMaskIndex+1],	1);
 	FDateTime firstMaskDate		= FDateTime(firstMaskYear,	1, 1);
 	FDateTime secondMaskDate	= FDateTime(secondMaskYear,	1, 1);
 
-	if (updateSecondRenderTarget)
+	if (!updateSecondRenderTarget)
 	{
-		float secondsAfterFirstMask		= (currentTime		- firstMaskDate	).GetTotalSeconds();
+		float secondsAfterFirstMask		= (inCurrentTime	- firstMaskDate	).GetTotalSeconds();
 		float secondsBetweenMasks		= (secondMaskDate	- firstMaskDate	).GetTotalSeconds();
-		float secondsBeforeSecondMask	= (secondMaskDate	- currentTime	).GetTotalSeconds();
+		float secondsBeforeSecondMask	= (secondMaskDate	- inCurrentTime	).GetTotalSeconds();
 
 		CurrentInterpolation = FMath::Clamp(secondsAfterFirstMask / secondsBetweenMasks, 0.0f, 1.0f);
 
 		if (secondsAfterFirstMask < 0 || secondsBeforeSecondMask < 0)
 		{
-			GetDatesNearCurrent(currentTime);
+			GetDatesNearCurrent(inCurrentTime);
 		}
 	}
 
-	int renderYear		= polygonDates[currentMaskIndex];
-	if (CurrentInterpolation >= 1.0f)
-	{
-		MaskLoaderFirst	->RenderMaskForTime(renderYear, StartTarget, 0);
-	}
-	else
-	{
-		renderYear		= polygonDates[currentMaskIndex + 1];
-		MaskLoaderSecond->RenderMaskForTime(renderYear, EndTarget, 0);
-	}
-	MaskLoaderTypes->RenderMaskForTime(renderYear, TypesTarget, 0);
+	outRenderYearFirst		= polygonDates[currentMaskIndex		];
+	outRenderYearSecond		= polygonDates[currentMaskIndex + 1	];
+	outUpdateFirstTarget	= CurrentInterpolation >= 1.0f;
+
 	if (!updateSecondRenderTarget)
 	{
 		CurrentInterpolation = CurrentInterpolation >= 1.0f ? 0.0f : 1.0f;
@@ -370,14 +419,14 @@ void ACustomFoliageInstancer::UpdateFoliageMasks(FDateTime currentTime)
 }
 
 
-void ACustomFoliageInstancer::GetDatesNearCurrent(FDateTime currentTime)
+void UCustomFoliageInstancer::GetDatesNearCurrent(FDateTime inCurrentTime)
 {
 	int currentMaskIndexLocal = -1;
 
 	for (int i = 0; i < polygonDates.Num()-1; i++)
 	{
 		auto indexedMaskDate			= FDateTime(FMath::Max(polygonDates[i], 1),1,1);
-		auto secondsFromCurrentMaskDate	= (indexedMaskDate - currentTime).GetTotalSeconds();
+		auto secondsFromCurrentMaskDate	= (indexedMaskDate - inCurrentTime).GetTotalSeconds();
 		if (secondsFromCurrentMaskDate <= 0.0f)
 		{
 			currentMaskIndexLocal++;
@@ -392,31 +441,31 @@ void ACustomFoliageInstancer::GetDatesNearCurrent(FDateTime currentTime)
 }
 
 
-void ACustomFoliageInstancer::ParseDates()
+void UCustomFoliageInstancer::ParseDates(TArray<FPosgisContourData> inContours)
 {
 	TSet<int> maskDates = TSet<int>();
 
-	for (int i = 0; i < InputPolygons.Num()-1; i++)
+	for (int i = 0; i < inContours.Num()-1; i++)
 	{
-		ParseTimeTags(InputPolygons[i], maskDates);
+		ParseTimeTags(inContours[i], maskDates);
 	}
 	SortDatesByAscend(maskDates);
 }
 
 
-void ACustomFoliageInstancer::ParseTimeTags(FPosgisContourData contour, TSet<int>& outDates)
+void UCustomFoliageInstancer::ParseTimeTags(FPosgisContourData inContour, TSet<int>& outDates)
 {
-	int date	= FCString::Atoi(**contour.Tags.Find("AppearStart")		);
+	int date	= inContour.Tags.Find("AppearStart")	? FCString::Atoi(**inContour.Tags.Find("AppearStart")		):0;
 	outDates.Add(date);
-	date		= FCString::Atoi(**contour.Tags.Find("DemolishStart")	);
+	date		= inContour.Tags.Find("DemolishStart")	? FCString::Atoi(**inContour.Tags.Find("DemolishStart")		):1;
 	outDates.Add(date);
 }
 
 
-void ACustomFoliageInstancer::SortDatesByAscend(TSet<int> dates)
+void UCustomFoliageInstancer::SortDatesByAscend(TSet<int> inDates)
 {
 	int minDate = 0;
-	auto datesArray = dates.Array();
+	auto datesArray = inDates.Array();
 	while (datesArray.Num()>0)
 	{
 		minDate = datesArray[0];
@@ -433,7 +482,7 @@ void ACustomFoliageInstancer::SortDatesByAscend(TSet<int> dates)
 }
 
 
-void ACustomFoliageInstancer::UpdateBuffer()
+void UCustomFoliageInstancer::UpdateBuffer()
 {
 	colorBuffer.Reset();
 
@@ -447,7 +496,7 @@ void ACustomFoliageInstancer::UpdateBuffer()
 }
 
 
-FColor ACustomFoliageInstancer::GetRenderTargetValue(float x, float y)
+FColor UCustomFoliageInstancer::GetRenderTargetValue(float inX, float inY)
 {
 	float size = 10000;
 
@@ -460,8 +509,8 @@ FColor ACustomFoliageInstancer::GetRenderTargetValue(float x, float y)
 	float height	= InitialTarget->GetSurfaceHeight();
 
 	//Conver coordinates to texture space
-	float normalizedX = (x / size) + 0.5f;
-	float normalizedY = (y / size) + 0.5f;
+	float normalizedX = (inX / size) + 0.5f;
+	float normalizedY = (inY / size) + 0.5f;
 
 	int i = (int)(normalizedX * width);
 	int j = (int)(normalizedY * height);

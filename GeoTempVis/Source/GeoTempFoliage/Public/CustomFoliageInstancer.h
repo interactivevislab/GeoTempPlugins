@@ -3,21 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Components/ActorComponent.h"
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/StaticMesh.h"
-#include "Math/Vector.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Materials/MaterialInterface.h"
-#include "Components/PrimitiveComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
 #include "FoliageInfo.h"
-#include "Basics.h"
-#include "MasksLoader.h"
-#include "BasePolygonPreparer.h"
+#include "PosgisData.h"
 #include "CustomFoliageInstancer.generated.h"
 
 
@@ -28,13 +20,13 @@ enum class ELayersOption : uint8
 	PolyLayered		UMETA(DisplayName = "PolyLayered"),
 };
 
-UCLASS(BlueprintType)
-class GEOTEMPFOLIAGE_API ACustomFoliageInstancer : public AActor
+UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
+class GEOTEMPFOLIAGE_API UCustomFoliageInstancer : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	ACustomFoliageInstancer();
+	UCustomFoliageInstancer();
 
 private:
 	TArray<float> maskBuffer;
@@ -48,11 +40,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void Tick(float DeltaTime) override;
-
-
-	UPROPERTY()
-	USceneComponent* Root;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
 	float Width;
@@ -76,10 +63,7 @@ public:
 	ELayersOption MeshLayersOption;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
-	UTexture2D* InitialMask;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
-	UTexture2D* BlankMask;
+	UTexture2D* BlankTypesMask;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
 	UTextureRenderTarget2D* StartTarget;
@@ -96,20 +80,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FoliageSettings")
 	TArray<FFoliageMeshInfo> FoliageMeshes;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FoliageSettings")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "FoliageSettings")
 	TMap<UStaticMesh*, UHierarchicalInstancedStaticMeshComponent*> FoliageInstancers;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FoliageSettings")
-	TArray<FPosgisContourData> InputPolygons;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigurationSettings")
-	ProjectionType Projection;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigurationSettings")
-	float OriginLon;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigurationSettings")
-	float OriginLat;
+	TMap<FString, FString> DataBaseTags;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigurationSettings")
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectQuery;
@@ -120,60 +95,46 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (UIMin = "0.0", UIMax = "1.0"))
 	float CurrentInterpolation;
 
-	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
-	UMaskLoader* MaskLoaderInitial;
-
-	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
-	UMaskLoader* MaskLoaderFirst;
-
-	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
-	UMaskLoader* MaskLoaderSecond;
-
-	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
-	UMaskLoader* MaskLoaderTypes;
-
-	UPROPERTY(BlueprintReadWrite, Category = "ConfigurationSettings")
-	UBasePolygonPreparer* PolygonPreparer;
-
 	UFUNCTION(BlueprintCallable)
 	void FillFoliage_BP(
-		FVector4 componentRect, 
-		bool DebugDraw = false, 
-		bool updateMaskBuffer = false
+		FVector4 inComponentRect, 
+		bool inUpdateMaskBuffer = false
 	);
 
 	UFUNCTION()
-	void FillFoliage(
-		TArray<FFoliageMeshInfo> Infos, 
-		TArray<UHierarchicalInstancedStaticMeshComponent*> Instancers, 
-		bool DebugDraw = false, 
-		bool updateMaskBuffer = false
+	void FillFoliageWithMeshes(
+		TArray<FFoliageMeshInfo> inInfos, 
+		TArray<UHierarchicalInstancedStaticMeshComponent*> inInstancers, 
+		bool inUpdateMaskBuffer = false
 	);
 	
 	UFUNCTION(CallInEditor, Category = "Default")
 	void BufferMask(UTexture2D* inInitialMask);
 	
-	UFUNCTION()
-	void InterpolateFoliageWithMaterial(FFoliageMeshInfo Fol);
+	UFUNCTION(BlueprintCallable)
+	void InterpolateFoliageWithMaterial();
 	
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void UpdateBuffer();
 	
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	FColor GetRenderTargetValue(float x, float y);
+	FColor GetRenderTargetValue(float inX, float inY);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void UpdateFoliageMasks(FDateTime currentTime);
+	void UpdateFoliageMasksDates(FDateTime inCurrentTime, int& outRenderYearFirst, int& outRenderYearSecond, bool& outUpdateFirstTarget);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void GetDatesNearCurrent(FDateTime currentTime);
+	void GetDatesNearCurrent(FDateTime inCurrentTime);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseDates();
+	void ParseDates(TArray<FPosgisContourData> inContours);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseTimeTags(FPosgisContourData contour, TSet<int>& outDates);
+	void ParseTimeTags(FPosgisContourData inContour, TSet<int>& outDates);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void SortDatesByAscend(TSet<int> dates);
+	void SortDatesByAscend(TSet<int> inDates);
+
+	UFUNCTION(BlueprintCallable, Category = "Default")
+	void FillFoliage_BP_Test(float inComponentRect, UStaticMesh* inMesh, UHierarchicalInstancedStaticMeshComponent* outComponent);
 };
