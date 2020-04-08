@@ -9,7 +9,7 @@ void URoadsLoaderOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 }
 
 
-FOsmRoadNetwork URoadsLoaderOsm::GetRoadNetwork(FGeoCoords inGeoCoords)
+FOsmRoadNetwork URoadsLoaderOsm::GetRoadNetwork()
 {
 	TMap<int, FOsmRoadSegment> segments;
 	for (auto wayData : OsmReader->Ways)
@@ -33,4 +33,28 @@ FOsmRoadNetwork URoadsLoaderOsm::GetRoadNetwork(FGeoCoords inGeoCoords)
 	}
 
 	return FOsmRoadNetwork{ segments };
+}
+
+
+TArray<FRoadSegment> URoadsLoaderOsm::GetRoadSegments(FOsmRoadNetwork inRoadNetwork)
+{
+	TArray<FRoadSegment> segments;
+	for (auto osmSegmentPair : inRoadNetwork.Segments)
+	{
+		auto osmSegment = osmSegmentPair.Value;
+
+		//TODO: add tag processing for non-constannt values
+		FRoadSegment segment;
+		segment.Type		= EHighwayType::Auto;
+		segment.Width		= 7;
+		segment.Lanes		= 2;
+		segment.StartYear	= 0;
+		segment.EndYear		= 3000;
+		segment.Change		= "";
+		segment.AllPoints	= osmSegment.Points;
+
+		segments.Add(segment);
+	}
+
+	return segments;
 }

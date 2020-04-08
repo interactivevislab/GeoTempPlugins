@@ -24,6 +24,9 @@ public:
 	void SetOsmReader(UOsmReader* inOsmReader);
 	virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
 
-	UFUNCTION(BlueprintCallable, CallInEditor)
-	FOsmRoadNetwork GetRoadNetwork(FGeoCoords inGeoCoords);
+	UFUNCTION(BlueprintCallable)
+	FOsmRoadNetwork GetRoadNetwork();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	static TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork);
 };
