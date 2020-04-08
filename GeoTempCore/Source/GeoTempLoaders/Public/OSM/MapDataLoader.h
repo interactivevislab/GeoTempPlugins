@@ -11,7 +11,7 @@ class UMapDataLoader : public UActorComponent
 {
 	GENERATED_BODY()
 
-	const float AreaMaxSizeDegrees = 0.1f;
+	const float AreaMaxSizeDegrees = 0.5f;
 	
 public:
 

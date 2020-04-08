@@ -1,84 +1,96 @@
 #include "OSM/OSMBuildingLoader.h"
 
-TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* source)
+inline void FixPartContours(FBuildingPart& outPart)
+{	
+	for (auto& cont : outPart.OuterConts)
+	{
+		cont.FixLoop();
+		cont.FixClockwise();
+	}
+
+	for (auto& cont : outPart.InnerConts)
+	{
+		cont.FixLoop();
+		cont.FixClockwise(true);
+	}
+
+	if (outPart.Floors == 0 && outPart.Height == 0)
+	{
+		outPart.MinFloors = -1;
+	}
+}
+
+
+TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* inSource)
 {
 	TArray<FBuilding> buildings;
-	TArray<FBuildingPart> Parts;
-	
-	//ways that are parts of buildings
-	std::unordered_map<long, FBuildingPart*> buildingWayParts;
-	//relations that are parts of building
-	std::unordered_map<long, FBuildingPart*> buildingRelParts;
+	TArray<FBuildingPart> parts;
 
 	buildings.Empty();
 
 	//find all building and building parts through ways
-	for (auto wayP : source->Ways)
+	for (auto wayP : inSource->Ways)
 	{
 		auto way = wayP.second;
 		auto buildIter = way->Tags.Find("building");
 		auto partIter = way->Tags.Find("building:part");
 
-		FBuildingPart* part;
+		FBuildingPart part;
 		//if this is building or part
 		if (buildIter || partIter)
 		{
 			//create and init building part data
-			part = new FBuildingPart(way->Id);
+			part = FBuildingPart(way->Id);
 
 			//parse heights and floor counts
 			InitBuildingPart(way, part);
-
-			Parts.Add(*part);
-			//if this is building also create building data
-			if (buildIter)
-			{
-				auto building = new FBuilding(way->Id);
-				building->Type = TCHAR_TO_UTF8(**buildIter);
-
-				part->Owner = building;
-				building->MainPart = part;
-				buildings.Add(*building);
-			}
-
+		
 			////get all points of this way and add necessary bindings
-			std::vector<FVector> points;
-
+			TArray<FVector> points;
+			points.Reserve(way->Nodes.size());
 			for (auto node : way->Nodes)
 			{
-				points.push_back(node->Point);
+				points.Add(node->Point);
 			}
 
 			auto cont = FContour(points);
-			part->OuterConts.Add(cont);
+			part.OuterConts.Add(cont);
 
-			//add part to list
-			buildingWayParts.insert_or_assign(way->Id, part);
+			parts.Add(part);
+
+			//if this is building also create building data
+			if (buildIter)
+			{
+				auto building = FBuilding(way->Id);
+				building.Type = TCHAR_TO_UTF8(**buildIter);
+				
+				building.MainPart = part;
+				buildings.Add(building);
+			}
 		}
 	}
 
-	for (auto relationP : source->Relations)
+	for (auto relationP : inSource->Relations)
 	{
 		auto relation = relationP.second;
 		auto buildIter = relation->Tags.Find("building");
 		auto partIter = relation->Tags.Find("building:part");
-		FBuildingPart* part;
+		
 
 		//if this relation is building
 		if (buildIter)
 		{
 			//create building entry
-			auto building = new FBuilding(relation->Id);
-			building->Parts.clear();
-			building->Type = TCHAR_TO_UTF8(**buildIter);
+			auto building = FBuilding(relation->Id);
+			building.Parts.Empty();
+			building.Type = TCHAR_TO_UTF8(**buildIter);
 
 
 			//create building part data from relation (it will be the footprint)
-			part = new FBuildingPart(relation->Id);
+			FBuildingPart part = FBuildingPart(relation->Id);
 			InitBuildingPart(relation, part);
-			building->MainPart = part;
-
-			part->Owner = building;
+			
+			
 
 			//now iterate over the ways in this relation
 			for (auto element : relation->WayRoles)
@@ -88,79 +100,86 @@ TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* source)
 				{
 					continue;
 				}
-
-				auto& currentPart = part;
-				auto c = new FContour();
+				
+				auto contour = FContour();
 				for (auto node : way->Nodes)
 				{
-					c->Points.Add(node->Point);
+					contour.Points.Add(node->Point);
 				}
 
 				if (element.second == "outer")
 				{
-					c->FixClockwise();
-					currentPart->OuterConts.Add(*c);
+					contour.FixClockwise();
+					part.OuterConts.Add(contour);
 				}
 				else if (element.second == "inner")
 				{
-					c->FixClockwise(true);
-					currentPart->InnerConts.Add(*c);
+					contour.FixClockwise(true);
+					part.InnerConts.Add(contour);
 				}
 			}
 
 			for (auto element : relation->RelRoles)
 			{
 				auto rel = relation->Relations[element.first];
-				auto& currentPart = part;
 				if (rel->Tags.Find("building:part"))
 				{
-					building->Parts.push_back(&Parts[element.first]);
+					building.Parts.Add(parts[element.first]);
 				}
 			}
-			buildings.Add(*building);
+			buildings.Add(building);			
+			building.MainPart = part;
 		}
 
 			//if this relation is building part
 		else if (partIter)
 		{
-			part = new FBuildingPart(relation->Id);
+			FBuildingPart part = FBuildingPart(relation->Id);
 			InitBuildingPart(relation, part);
-			Parts.Add(*part);
+			
 			for (auto element : relation->WayRoles)
 			{
 				auto way = relation->Ways[element.first];
 				if (!way)
 				{
 					continue;
-				}
-				auto& currentPart = part;
+				}				
 				//if this way is building part, just add it to parts list (we probably have created it already
 				if (!way->Tags.Find("building:part"))
 				{
-					auto c = new FContour();
+					auto contour = FContour();
 					for (auto node : way->Nodes)
 					{
-						c->Points.Add(node->Point);
+						contour.Points.Add(node->Point);
 					}
 
 					if (element.second == "outer")
 					{
-						c->FixClockwise();
-						currentPart->OuterConts.Add(*c);
+						contour.FixClockwise();
+						part.OuterConts.Add(contour);
 					}
 					else if (element.second == "inner")
 					{
-						c->FixClockwise(false);
-						currentPart->InnerConts.Add(*c);
+						contour.FixClockwise(false);
+						part.InnerConts.Add(contour);
 					}
 				}
 			}
+			parts.Add(part);
+		}
+	}
+	for (auto& building : buildings)
+	{
+		FixPartContours(building.MainPart);
+		for (auto& part : building.Parts)
+		{
+			FixPartContours(part);
 		}
 	}
 	return buildings;
 }
 
-inline const FString* FindBuildingTag(const TMap<FString, FString>& inTags, FString inTag, FString inTagPrefix = "building:")
+inline const FString* FindBuildingTag(TMap<FString, FString> inTags, FString inTag, FString inTagPrefix = "building:")
 {
 	auto tag = inTags.Find(inTagPrefix + inTag);
 	if (!tag)
@@ -170,57 +189,68 @@ inline const FString* FindBuildingTag(const TMap<FString, FString>& inTags, FStr
 	return tag;
 }
 
+FString UOsmBuildingLoader::FLOORS_TAG_STRING		= "levels";
+FString UOsmBuildingLoader::HEIGHT_TAG_STRING		= "height";
+FString UOsmBuildingLoader::MIN_FLOORS_TAG_STRING	= "min_levels";
+FString UOsmBuildingLoader::MIN_HEIGHT_TAG_STRING	= "min_height";
 
-void UOsmBuildingLoader::InitBuildingPart(const OsmWay* inWay, FBuildingPart* inPart)
+
+void UOsmBuildingLoader::InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart)
 {
-	auto floorsTag = FindBuildingTag(inWay->Tags, "levels");
-	inPart->Floors = floorsTag ? FCString::Atoi(**floorsTag) : 1;
-
-	auto heightTag = FindBuildingTag(inWay->Tags, "height");
-	inPart->Height = heightTag
+	auto floorsTag		= FindBuildingTag(inWay->Tags, FLOORS_TAG_STRING);
+	auto heightTag		= FindBuildingTag(inWay->Tags, HEIGHT_TAG_STRING);
+	auto minFloorsTag	= FindBuildingTag(inWay->Tags, MIN_FLOORS_TAG_STRING);
+	auto minHeightTag	= FindBuildingTag(inWay->Tags, MIN_HEIGHT_TAG_STRING);
+	
+	outPart.Floors = floorsTag
+		? FCString::Atoi(**floorsTag)
+		: 1;
+	
+	outPart.Height = heightTag
 		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
-		: inPart->Floors * inPart->FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
+		: outPart.Floors * outPart.FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
 
-	auto minFloorsTag = FindBuildingTag(inWay->Tags, "min_levels");
-	inPart->MinFloors = minFloorsTag ? FCString::Atoi(**minFloorsTag) : 0;
+	outPart.MinFloors = minFloorsTag
+		? FCString::Atoi(**minFloorsTag)
+		: 0;
 
-	auto minHeightTag = FindBuildingTag(inWay->Tags, "min_height");
-	inPart->MinHeight = minHeightTag
+	
+	outPart.MinHeight = minHeightTag
 		? FCString::Atoi(**minHeightTag) * UGeoHelpers::SCALE_MULT
-		: inPart->MinFloors * inPart->FloorHeight;
+		: outPart.MinFloors * outPart.FloorHeight;
 
 	if (heightTag || minHeightTag)
 	{
-		inPart->OverrideHeight = true;
+		outPart.OverrideHeight = true;
 	}
 }
 
 
-void UOsmBuildingLoader::InitBuildingPart(const OsmRelation* inRelation, FBuildingPart* inPart)
+void UOsmBuildingLoader::InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart)
 {
-	auto floorsTag		= FindBuildingTag(inRelation->Tags, "levels");
-	auto heightTag		= FindBuildingTag(inRelation->Tags, "height");
-	auto minFloorsTag	= FindBuildingTag(inRelation->Tags, "min_levels");
-	auto minHeightTag	= FindBuildingTag(inRelation->Tags, "min_height");
+	auto floorsTag		= FindBuildingTag(inRelation->Tags, FLOORS_TAG_STRING);
+	auto heightTag		= FindBuildingTag(inRelation->Tags, HEIGHT_TAG_STRING);
+	auto minFloorsTag	= FindBuildingTag(inRelation->Tags, MIN_FLOORS_TAG_STRING);
+	auto minHeightTag	= FindBuildingTag(inRelation->Tags, MIN_HEIGHT_TAG_STRING);
 	
-	inPart->Floors = floorsTag
+	outPart.Floors = floorsTag
 		? FCString::Atoi(**floorsTag)
 		: 1;
 
-	inPart->MinFloors = minFloorsTag
+	outPart.MinFloors = minFloorsTag
 		? FCString::Atoi(**minFloorsTag)
 		: 0;
 	
-	inPart->Height = heightTag
+	outPart.Height = heightTag
 		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
-		: inPart->Floors * inPart->FloorHeight;
+		: outPart.Floors * outPart.FloorHeight;
 	
-	inPart->MinHeight = minHeightTag
+	outPart.MinHeight = minHeightTag
 		? FCString::Atoi(**minHeightTag) * UGeoHelpers::SCALE_MULT
-		: inPart->MinFloors * inPart->FloorHeight;
+		: outPart.MinFloors * outPart.FloorHeight;
 
 	if (heightTag || minHeightTag)
 	{
-		inPart->OverrideHeight = true;
+		outPart.OverrideHeight = true;
 	}
 }

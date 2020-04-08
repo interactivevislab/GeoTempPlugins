@@ -1,4 +1,5 @@
 #include "BuildingPart.h"
+#include "BuildingActor.h"
 #include "BuildingUtils.h"
 
 UBuildingPartComponent::UBuildingPartComponent(const FObjectInitializer& ObjectInitializer) : URuntimeMeshComponent(ObjectInitializer)
@@ -11,32 +12,24 @@ void UBuildingPartComponent::Actualize()
 
 float UBuildingPartComponent::SimplifyDistance = 250000;
 
-inline void UBuildingPartComponent::Init(FBuildingPart* part, TMap<FString, FString> tags/*, UBuildingsLoaderBase2* owner*/) {
-	for (auto& cont : part->OuterConts) 
-	{
-		cont.FixClockwise();
-		Outer.Add(cont);
-	}
-	for (auto& cont : part->InnerConts) 
-	{
-		cont.FixClockwise(false);
-		Inner.Add(cont);
-	}
-	Floors			= part->Floors;
-	Height			= part->Height;
-	MinFloors		= part->MinFloors;
-	MinHeight		= part->MinHeight;
-	BuildingDates	= part->BuildingDates;
-	
-	if (Floors == 0)
-	{
-		MinFloors = -1;
-		part->MinFloors = -1;
-	}
+void UBuildingPartComponent::Init(const FBuildingPart& inPart, const TMap<FString, FString>& inTags/*, UBuildingsLoaderBase2* owner*/) {
 
-	Id = part->Id;
-	partData = part;
-	Tags = tags;
+
+	Parent = Cast<ABuildingActor>(GetOwner());
+	Outer.Empty();
+	Inner.Empty();
+	Outer.Append(inPart.OuterConts);
+	Inner.Append(inPart.InnerConts);
+	
+	Floors			= inPart.Floors;
+	Height			= inPart.Height;
+	MinFloors		= inPart.MinFloors;
+	MinHeight		= inPart.MinHeight;
+	BuildingDates	= inPart.BuildingDates;
+	
+	Id = inPart.Id;
+	PartData = inPart;
+	Tags = inTags;
 }
 
 void UBuildingPartComponent::ReInit()
@@ -63,34 +56,32 @@ void UBuildingPartComponent::Recalc() {
 }
 
 
-void UBuildingPartComponent::CreateSimpleStructure(float zeroH)
+void UBuildingPartComponent::CreateSimpleStructure(float inZeroHeight)
 {	
-	if (partData)
-	{	
-		auto meshData = MeshHelpers::CalculateMeshData(partData, 0, WallMaterial, RoofMaterial);
-		MeshHelpers::ConstructRuntimeMesh(this, meshData);
-		for (int i = 0; i < GetNumSections(); i++)
-		{
-			SetMeshSectionCollisionEnabled(i, true);
-		}
-	}
+
+	auto meshData = MeshHelpers::CalculateMeshData(Parent->Building, PartData, 0, WallMaterial, RoofMaterial);
+	MeshHelpers::ConstructRuntimeMesh(this, meshData);
+	for (int i = 0; i < GetNumSections(); i++)
+	{
+		SetMeshSectionCollisionEnabled(i, true);
+	}	
 }
 
-void UBuildingPartComponent::SetHeightAlpha(float HeightAlpha)
+void UBuildingPartComponent::SetHeightAlpha(float inHeightAlpha)
 {
-	SetRelativeLocation(FVector(0, 0, (350 * Floors + 150) * (HeightAlpha - 1)));
+	SetRelativeLocation(FVector(0, 0, (350 * Floors + 150) * (inHeightAlpha - 1)));
 }
 
 
-void UBuildingPartComponent::ApplyCurrentTime(FDateTime CurrentTime, bool MustHide)
+void UBuildingPartComponent::ApplyCurrentTime(FDateTime inCurrentTime, bool inMustHide)
 {
-	bool isDemolished = (CurrentTime - BuildingDates.DemolishStart).GetTotalDays() > 0;
-	float daysFromBuildStart = (CurrentTime - BuildingDates.BuildStart).GetTotalDays();
-	float buildDuration = FMath::Max((BuildingDates.BuildEnd - BuildingDates.BuildStart).GetTotalDays(), 1.0);
+	bool isDemolished = (inCurrentTime - BuildingDates.DemolishStart).GetTotalDays() > 0;
+	float daysFromBuildStart	=				(inCurrentTime				- BuildingDates.BuildStart).GetTotalDays();
+	float buildDuration			= FMath::Max(	(BuildingDates.BuildEnd	- BuildingDates.BuildStart).GetTotalDays(), 1.0);
 
 	SetHeightAlpha(FMath::Clamp(daysFromBuildStart / buildDuration, -1.0f, 1.0f));
 
-	bool isVisible = !MustHide && !isDemolished && (daysFromBuildStart >= -100);
+	bool isVisible = !inMustHide && !isDemolished && (daysFromBuildStart >= -100);
 	SetVisibility(isVisible, true);
 	SetCollisionEnabled(isVisible ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }
@@ -98,7 +89,7 @@ void UBuildingPartComponent::ApplyCurrentTime(FDateTime CurrentTime, bool MustHi
 
 TArray<FLinearColor> UBuildingPartComponent::AllColors = TArray<FLinearColor>{};
 
-void UBuildingPartComponent::SetAllColors(TArray<FLinearColor>& colors)
+void UBuildingPartComponent::SetAllColors(TArray<FLinearColor>& inColors)
 {
-	AllColors = colors;
+	AllColors = inColors;
 }

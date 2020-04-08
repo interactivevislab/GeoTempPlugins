@@ -94,8 +94,10 @@ public:
 		void CreateMeshAroundPoint(int z, int x0, int y0);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
-		UMaterialInterface* TileMaterial;	
-		
+	UMaterialInterface* TileMaterial;	
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
 	UTileTextureContainer* TileLoader;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
@@ -114,7 +116,7 @@ public:
 
 	UPROPERTY()
 	TArray<int> freeIndices;
-	UPROPERTY()
+	UPROPERTY(NoClear)
 	TMap<FTileTextureMeta, int> TileIndecies;
 	
 

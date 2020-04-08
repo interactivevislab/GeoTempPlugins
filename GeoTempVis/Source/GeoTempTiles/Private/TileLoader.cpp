@@ -117,13 +117,17 @@ void UTilesController::TickComponent(float DeltaTime, enum ELevelTick TickType, 
 float UTilesController::GetPixelSize(FTileTextureMeta meta)
 {
 	auto pos = GetXYOffsetFromMercatorOffset(meta.Z, meta.X, meta.Y) + GetOwner()->GetActorLocation();
-	auto manager = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager;
-	float dist = (pos - manager->GetCameraLocation()).Size();
-	float tan = FMath::Tan(manager->GetCameraCachePOV().DesiredFOV * PI / 180 / 2);
-	float viewSize = 2 * dist * tan;
-	float tileSize = 360 * EarthOneDegreeLengthOnEquatorMeters * FMath::Cos(CenterLat * PI / 180) / (1 << meta.Z);
-	float tilePixelsSize = tileSize / viewSize * GEngine->GameViewport->Viewport->GetSizeXY().X;
-	return tilePixelsSize;
+	auto controller =  GEngine->GetFirstLocalPlayerController(GetWorld());
+	if (controller) {
+		auto manager = controller->PlayerCameraManager;
+		float dist = (pos - manager->GetCameraLocation()).Size();
+		float tan = FMath::Tan(manager->GetCameraCachePOV().DesiredFOV * PI / 180 / 2);
+		float viewSize = 2 * dist * tan;
+		float tileSize = 360 * EarthOneDegreeLengthOnEquatorMeters * FMath::Cos(CenterLat * PI / 180) / (1 << meta.Z);
+		float tilePixelsSize = tileSize / viewSize * GEngine->GameViewport->Viewport->GetSizeXY().X;
+		return tilePixelsSize;
+	}
+	return 220; //so we just wont update anything for this tile if cannot find player controller.
 }
 
 
@@ -392,7 +396,8 @@ UTileInfo* UTileTextureContainer::GetTileMaterial(FTileTextureMeta meta, UMateri
 			CachedTiles.Remove(tile);			 
 		}
 	}
-	if (!CachedTiles.Contains(meta))
+	auto cached = CachedTiles.Find(meta);
+	if (!cached || !*cached)
 	{
 		//if (loadingImages.Contains(meta)) return loadingImages[meta]->material;
 		UMaterialInstanceDynamic* matInstance = UMaterialInstanceDynamic::Create(mat, owner);		
@@ -413,7 +418,7 @@ UTileInfo* UTileTextureContainer::GetTileMaterial(FTileTextureMeta meta, UMateri
 	}	
 	else
 	{		
-		return CachedTiles[meta];
+		return *cached;
 	}
 }
 

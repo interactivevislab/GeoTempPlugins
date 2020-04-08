@@ -7,16 +7,20 @@ UOsmReader::UOsmReader() : UObject()
 }
 
 void UOsmReader::InitWithXML(FString inXmlString)
-{
+{	
 	XmlDocument.Parse(TCHAR_TO_UTF8(*inXmlString));
-	ReadData();
+	if (XmlDocument.FirstChild()) {
+		ReadData();
+	}
 }
 
 
 void UOsmReader::InitWithFile(FString inFilename)
 {
 	XmlDocument.LoadFile(TCHAR_TO_UTF8(*inFilename));
-	ReadData();
+	if (XmlDocument.FirstChild()) {
+		ReadData();
+	}
 }
 
 

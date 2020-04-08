@@ -10,14 +10,19 @@ UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
 class UOsmBuildingLoader : public UObject
 {
 	GENERATED_BODY()
+private:	
 	
-private:
-	static void InitBuildingPart(const OsmWay* inWay, FBuildingPart* inPart);
+	static void InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart);
 
-	static void InitBuildingPart(const OsmRelation* inRelation, FBuildingPart* inPart);
+	static void InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart);
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	TArray<FBuilding> GetBuildings(UOsmReader* source);
-};
 
+	static FString FLOORS_TAG_STRING;
+	static FString HEIGHT_TAG_STRING;
+	static FString MIN_FLOORS_TAG_STRING;
+	static FString MIN_HEIGHT_TAG_STRING;
+	
+	UFUNCTION(BlueprintCallable, Category = "Default")
+	TArray<FBuilding> GetBuildings(UOsmReader* inSource);
+};

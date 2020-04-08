@@ -47,7 +47,7 @@ void UMapDataLoader::LoadData(float inLeftDegrees, float inBottomDegrees, float 
 }
 
 void UMapDataLoader::OnOsmRequestCompleted(FString inXmlData)
-{
+{		
 	OsmReader->InitWithXML(inXmlData);
 
 	LoadedBuildings = BuildingsLoader->GetBuildings(OsmReader);
