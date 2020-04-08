@@ -16,5 +16,9 @@ class GEOTEMPPOSTGIS_API URoadsLoaderPostGis : public UObject
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FRoadNetwork GetRoadNetwork();
+
+private:
+
 	static TArray<FRoadSegment> GetRoadSegments(FPostGisRoadNetwork inRoadNetwork);
 };

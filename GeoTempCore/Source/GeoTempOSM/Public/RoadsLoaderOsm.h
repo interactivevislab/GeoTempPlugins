@@ -24,10 +24,11 @@ public:
 	void SetOsmReader(UOsmReader* inOsmReader);
 	virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
 
-	UFUNCTION(BlueprintCallable)
-	FOsmRoadNetwork GetRoadNetwork();
-
 	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FRoadNetwork GetRoadNetwork();
+
+private:
+
 	static TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork);
 
 	const static int DEFAULT_LANES;

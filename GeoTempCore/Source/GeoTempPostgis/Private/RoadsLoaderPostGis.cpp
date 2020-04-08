@@ -1,5 +1,14 @@
 #include "RoadsLoaderPostGis.h"
 
+#include "LoaderHelper.h"
+
+
+FRoadNetwork URoadsLoaderPostGis::GetRoadNetwork()
+{
+	FPostGisRoadNetwork stub;
+	return ULoaderHelper::ConstructRoadNetwork(GetRoadSegments(stub));
+}
+
 
 TArray<FRoadSegment> URoadsLoaderPostGis::GetRoadSegments(FPostGisRoadNetwork inRoadNetwork)
 {

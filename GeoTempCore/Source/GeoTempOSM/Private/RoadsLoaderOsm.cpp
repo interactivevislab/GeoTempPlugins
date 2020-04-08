@@ -1,6 +1,7 @@
 #include "RoadsLoaderOsm.h"
 
 #include "OsmData.h"
+#include "LoaderHelper.h"
 
 
 const int URoadsLoaderOsm::DEFAULT_LANES = 2;
@@ -13,7 +14,7 @@ void URoadsLoaderOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 }
 
 
-FOsmRoadNetwork URoadsLoaderOsm::GetRoadNetwork()
+FRoadNetwork URoadsLoaderOsm::GetRoadNetwork()
 {
 	TMap<int, FOsmRoadSegment> segments;
 	for (auto wayData : OsmReader->Ways)
@@ -36,7 +37,7 @@ FOsmRoadNetwork URoadsLoaderOsm::GetRoadNetwork()
 		}
 	}
 
-	return FOsmRoadNetwork{ segments };
+	return ULoaderHelper::ConstructRoadNetwork(GetRoadSegments(FOsmRoadNetwork{ segments }));
 }
 
 
