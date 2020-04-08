@@ -1,6 +1,10 @@
 #include "LoaderHelper.h"
 
 
+const int ULoaderHelper::DEFAULT_LANES = 2;
+const float ULoaderHelper::DEFAULT_LANE_WIDTH = 3.5f;
+
+
 FRoadNetwork ULoaderHelper::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments)
 {
 	TMap<int, FRoadSegment> segments;

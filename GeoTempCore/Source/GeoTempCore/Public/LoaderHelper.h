@@ -12,6 +12,9 @@ class GEOTEMPCORE_API ULoaderHelper : public UObject
 
 public:
 
+	const static int DEFAULT_LANES;
+	const static float DEFAULT_LANE_WIDTH;
+
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)

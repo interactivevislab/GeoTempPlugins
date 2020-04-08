@@ -4,10 +4,6 @@
 #include "LoaderHelper.h"
 
 
-const int URoadsLoaderOsm::DEFAULT_LANES = 2;
-const float URoadsLoaderOsm::DEFAULT_LANE_WIDTH = 3.5f;
-
-
 void URoadsLoaderOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 {
 	OsmReader = inOsmReader;
@@ -51,8 +47,8 @@ TArray<FRoadSegment> URoadsLoaderOsm::GetRoadSegments(FOsmRoadNetwork inRoadNetw
 
 		FRoadSegment segment;
 		segment.Type		= EHighwayType::Auto;
-		segment.Lanes		= ULoaderHelper::TryGetTag(tags, "lanes", DEFAULT_LANES);
-		segment.Width		= ULoaderHelper::TryGetTag(tags, "widht", segment.Lanes * DEFAULT_LANE_WIDTH);
+		segment.Lanes		= ULoaderHelper::TryGetTag(tags, "lanes", ULoaderHelper::DEFAULT_LANES);
+		segment.Width		= ULoaderHelper::TryGetTag(tags, "widht", segment.Lanes * ULoaderHelper::DEFAULT_LANE_WIDTH);
 		segment.AllPoints	= osmSegment.Points;
 
 		segments.Add(segment);

@@ -30,7 +30,4 @@ public:
 private:
 
 	static TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork);
-
-	const static int DEFAULT_LANES;
-	const static float DEFAULT_LANE_WIDTH;
 };
