@@ -43,38 +43,6 @@ UCustomFoliageInstancer::UCustomFoliageInstancer()
 void UCustomFoliageInstancer::BeginPlay()
 {
 	Super::BeginPlay();
-
-	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
-	{
-		for (int x = 0; x < meshInfo.Mesh->StaticMaterials.Num(); ++x)
-		{
-			UMaterialInterface* material = meshInfo.Mesh->GetMaterial(x);
-			if (material->IsA(UMaterialInstanceDynamic::StaticClass()))
-			{
-				meshInfo.MaterialInstances.Add(x, Cast<UMaterialInstanceDynamic>(material));
-			}
-			else
-			{
-				auto materialName		= FName(*(*TEXT("NewInstancedMaterial") + "_" + FString::FromInt(x)));
-				auto dynamicMaterial	= UMaterialInstanceDynamic::Create(material, meshInfo.Mesh, materialName);
-
-				meshInfo.MaterialInstances.Add(x, dynamicMaterial);
-			}
-			meshInfo.MaterialInstances[x]->SetScalarParameterValue	("InstancerWidth",	Width		);
-			meshInfo.MaterialInstances[x]->SetScalarParameterValue	("InstancerHeight",	Height		);
-			meshInfo.MaterialInstances[x]->SetTextureParameterValue	("Start",			StartTarget	);
-			meshInfo.MaterialInstances[x]->SetTextureParameterValue	("End",				EndTarget	);
-
-			if (IsValid(TypesTarget))
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", TypesTarget		);
-			}
-			else
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", BlankTypesMask	);
-			}
-		}
-	}
 }
 
 
@@ -211,8 +179,24 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 			}
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue	("InstancerWidth",	Width		);
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue	("InstancerHeight", Height		);
-			meshInfo.MaterialInstances[x]->SetTextureParameterValue	("Start",			StartTarget	);
-			meshInfo.MaterialInstances[x]->SetTextureParameterValue	("End",				EndTarget	);
+
+			if (IsValid(StartTarget))
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start", StartTarget	);
+			}
+			else
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start", InitialTarget	);
+			}
+
+			if (IsValid(EndTarget))
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", EndTarget		);
+			}
+			else
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", InitialTarget);
+			}
 
 			if (IsValid(TypesTarget))
 			{
@@ -220,7 +204,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 			}
 			else
 			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", BlankTypesMask	);
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", InitialTarget);
 			}
 		}
 		auto meshPtr = FoliageInstancers.Find(meshInfo.Mesh);
@@ -260,6 +244,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 		for (int x = 0; x < meshInfo.MaterialInstances.Num(); ++x)
 		{
 			meshInfo.MaterialInstances[x]->SetVectorParameterValue("MeshComponentPosition", InstancedMesh->GetComponentLocation());
+			meshInfo.MaterialInstances[x]->SetScalarParameterValue("Interpolation", 0.0f);
 		}
 	}
 

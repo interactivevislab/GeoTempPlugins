@@ -63,9 +63,6 @@ public:
 	ELayersOption MeshLayersOption;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
-	UTexture2D* BlankTypesMask;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
 	UTextureRenderTarget2D* StartTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InstancerSettings")
