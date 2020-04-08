@@ -9,13 +9,13 @@ TArray<FRoadSegment> URoadsLoaderPostGis::GetRoadSegments(FPostGisRoadNetwork in
 		auto postGisSegment = postGisSegmentPair.Value;
 
 		FRoadSegment segment;
-		segment.Type = postGisSegment.Highway;
-		segment.Width = postGisSegment.Lanes * postGisSegment.LaneWidth;
-		segment.Lanes = postGisSegment.Lanes;
-		segment.StartYear = postGisSegment.YearStart;
-		segment.EndYear = postGisSegment.YearEnd;
-		segment.Change = postGisSegment.Change;
-		segment.AllPoints = postGisSegment.Line.AllPoints;
+		segment.Type		= postGisSegment.Highway;
+		segment.Width		= postGisSegment.Lanes * postGisSegment.LaneWidth;
+		segment.Lanes		= postGisSegment.Lanes;
+		segment.StartYear	= postGisSegment.YearStart;
+		segment.EndYear		= postGisSegment.YearEnd;
+		segment.Change		= postGisSegment.Change;
+		segment.AllPoints	= postGisSegment.Line.AllPoints;
 
 		segments.Add(segment);
 	}

@@ -3,6 +3,10 @@
 #include "OsmData.h"
 
 
+const int URoadsLoaderOsm::DEFAULT_LANES = 2;
+const float URoadsLoaderOsm::DEFAULT_LANE_WIDTH = 3.5f;
+
+
 void URoadsLoaderOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 {
 	OsmReader = inOsmReader;
@@ -42,15 +46,12 @@ TArray<FRoadSegment> URoadsLoaderOsm::GetRoadSegments(FOsmRoadNetwork inRoadNetw
 	for (auto osmSegmentPair : inRoadNetwork.Segments)
 	{
 		auto osmSegment = osmSegmentPair.Value;
+		auto tags = osmSegment.Tags;
 
-		//TODO: add tag processing for non-constannt values
 		FRoadSegment segment;
 		segment.Type		= EHighwayType::Auto;
-		segment.Width		= 7;
-		segment.Lanes		= 2;
-		segment.StartYear	= 0;
-		segment.EndYear		= 3000;
-		segment.Change		= "";
+		segment.Lanes		= ULoaderHelper::TryGetTag(tags, "lanes", DEFAULT_LANES);
+		segment.Width		= ULoaderHelper::TryGetTag(tags, "widht", segment.Lanes * DEFAULT_LANE_WIDTH);
 		segment.AllPoints	= osmSegment.Points;
 
 		segments.Add(segment);

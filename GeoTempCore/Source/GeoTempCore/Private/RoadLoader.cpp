@@ -13,7 +13,7 @@ FRoadNetwork URoadLoader::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegmen
 	for (auto segment : inRoadSegments)
 	{
 		auto pointStart = segment.AllPoints[0];
-		auto pointEnd = segment.AllPoints[segment.AllPoints.Num() - 1];
+		auto pointEnd	= segment.AllPoints[segment.AllPoints.Num() - 1];
 
 		FCrossroad* crossroadStart;
 		FCrossroad* crossroadEnd;
@@ -44,8 +44,8 @@ FRoadNetwork URoadLoader::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegmen
 			crossroadEnd = crossroads.Find(*ptr);
 		}
 
-		crossroadStart->Roads.Add(nextSegmentId, segment.EndCrossroadId);
-		crossroadEnd->Roads.Add(nextSegmentId, segment.StartCrossroadId);
+		crossroadStart	->Roads.Add(nextSegmentId, segment.EndCrossroadId);
+		crossroadEnd	->Roads.Add(nextSegmentId, segment.StartCrossroadId);
 
 		segments.Add(nextSegmentId++, segment);
 	}
