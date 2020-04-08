@@ -40,7 +40,7 @@ void UMapDataLoader::LoadData(float inLeftDegrees, float inBottomDegrees, float 
 	{
 		return;
 	}
-
+	IsDataReady = false;
 	auto request = OsmManager->GetOsmDataForBoundingBox(inLeftDegrees, inBottomDegrees, inRightDegrees, inTopDegrees);	
 	request->OnCompleted.AddDynamic(this, &UMapDataLoader::OnOsmRequestCompleted);
 	request->StartRequest();

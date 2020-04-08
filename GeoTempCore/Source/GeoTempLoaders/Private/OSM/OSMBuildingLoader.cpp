@@ -222,7 +222,7 @@ void UOsmBuildingLoader::InitBuildingPart(const OsmWay* inWay, FBuildingPart& ou
 	if (heightTag || minHeightTag)
 	{
 		outPart.OverrideHeight = true;
-	}
+	}	
 }
 
 
