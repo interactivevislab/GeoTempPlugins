@@ -31,8 +31,8 @@ namespace std
 }
 
 
-void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<FVector>& outPoints,
-	TArray<int>& outTriangles, std::string inFlags, TArray<FContour> inOtherLines, int& outContourPointsNum)
+void Triangulate(const TArray<FContour>& inOuter, const TArray<FContour>& inInner, TArray<FVector>& outPoints,
+	TArray<int>& outTriangles, FString inFlags, const TArray<FContour>& inOtherLines, int& outContourPointsNum)
 {
 	Eigen::MatrixXd V;
 	Eigen::MatrixXi E;
@@ -51,7 +51,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<
 	TMap<FVector, int> nodeIds;
 	int nodeId = 0;
 	int prevId = -1;
-	for (auto& way : outOuter)
+	for (auto& way : inOuter)
 	{
 		int firstId = -1;
 		for (int i = 0; i < way.Points.Num(); i++)
@@ -88,7 +88,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<
 		c_nodes = outPoints.Num();
 	}
 
-	for (auto& way : outInner)
+	for (auto& way : inInner)
 	{
 		int firstId = -1;
 		for (int i = 0; i < way.Points.Num(); i++)
@@ -200,7 +200,7 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<
 
 	if (inPoints.size() < 6) return;
 
-	igl::triangle::triangulate(V, E, H, inFlags, V2, F2);
+	igl::triangle::triangulate(V, E, H, std::string(TCHAR_TO_UTF8(*inFlags)), V2, F2);
 
 	outPoints.Empty();
 
@@ -217,11 +217,12 @@ void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<
 	}
 }
 
-void Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<FVector>& outPoints,
-	TArray<int>& outTriangles, std::string inFlags)
+void Triangulate(const TArray<FContour>& inOuter, const TArray<FContour>& inInner, TArray<FVector>& outPoints,
+	TArray<int>& outTriangles, FString inFlags)
 {
 	int t;
-	return Triangulate(outOuter, outInner, outPoints, outTriangles, inFlags, TArray<FContour>(), t);
+	TArray<FContour> lines;
+	return Triangulate(inOuter, inInner, outPoints, outTriangles, inFlags, lines, t);
 }
 
 

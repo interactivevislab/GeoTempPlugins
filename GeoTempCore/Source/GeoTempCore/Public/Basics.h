@@ -15,10 +15,10 @@
 #endif
 
 
-void GEOTEMPCORE_API  Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<FVector>& outPoints,
-	TArray<int>& outTriangles, std::string inFlags, TArray<FContour> inOtherLines, int& outContourPointsNum);
-void GEOTEMPCORE_API  Triangulate(TArray<FContour>& outOuter, TArray<FContour>& outInner, TArray<FVector>& outPoints,
-	TArray<int>& outTriangles, std::string inFlags = "");
+void GEOTEMPCORE_API  Triangulate(const TArray<FContour>& inOuter, const TArray<FContour>& inInner, TArray<FVector>& outPoints,
+	TArray<int>& outTriangles, FString inFlags, const TArray<FContour>& inOtherLines, int& outContourPointsNum);
+void GEOTEMPCORE_API  Triangulate(const TArray<FContour>& inOuter, const TArray<FContour>& inInner, TArray<FVector>& outPoints,
+	TArray<int>& outTriangles, FString inFlags = "");
 
 
 UENUM(BlueprintType)

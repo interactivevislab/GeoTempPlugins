@@ -7,7 +7,7 @@
 
 
 
-FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart inBuildingPart, int inFirstSectionIndex, UMaterialInterface* inWallMaterial,
+FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, int inFirstSectionIndex, UMaterialInterface* inWallMaterial,
 	UMaterialInterface* inRoofMaterial)
 {
 	TArray<FVector> nodes;
@@ -16,50 +16,38 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(FBuildingPart inB
 
 	TArray<FContour> outer, inner;
 
+	//create new contour for roof cornice
+	
 	for (auto& cont : inBuildingPart.OuterConts)
 	{
-		cont.FixClockwise();
-		
-		if (cont.Points[0] == cont.Points[cont.Points.Num() - 1])
-		{
-			cont.Points.RemoveAt(cont.Points.Num() - 1);
-		}
-
 		auto& contour = cont.Points;
 		
-		auto cont1 = cont;
+		auto roofCont = cont;
 		for (int i = 0; i < contour.Num(); i++)
 		{
 			auto dirs = MeshHelpers::GetNeighbourDirections(contour, i);
 			
 			auto direction = FMath::Sign(FVector::CrossProduct(dirs.Key, dirs.Value).Z);
-			auto delta1	= (-dirs.Key.GetSafeNormal2D() + dirs.Value.GetSafeNormal2D()).GetSafeNormal2D() * direction;
-			cont1.Points[i] -= delta1 * 60;
+			auto delta	= (-dirs.Key.GetSafeNormal2D() + dirs.Value.GetSafeNormal2D()).GetSafeNormal2D() * direction;
+			roofCont.Points[i] -= delta * 60;
 		}
-		cont1 = cont1.RemoveCollinear(0.01f);
-		outer.Add(cont1);
+		roofCont = roofCont.RemoveCollinear(0.01f);
+		outer.Add(roofCont);
 	}
 
 	for (auto& cont : inBuildingPart.InnerConts)
 	{
-
-		cont.FixClockwise(true);
-		if (cont.Points[0] == cont.Points[cont.Points.Num() - 1])
-		{
-			cont.Points.RemoveAt(0);
-		}
-		auto cont1 = cont;
 		auto& contour = cont.Points;
-
+		auto roofCont = cont;
 		for (int i = 0; i < contour.Num(); i++)
 		{
 			auto dirs = MeshHelpers::GetNeighbourDirections(contour, i);
 			auto direction = FMath::Sign(FVector::CrossProduct(dirs.Key, dirs.Value).Z);
-			auto delta1 = (-dirs.Key.GetSafeNormal2D() + dirs.Value.GetSafeNormal2D()).GetSafeNormal2D() * direction;
-			cont1.Points[i] -= delta1 * 60;
+			auto delta = (-dirs.Key.GetSafeNormal2D() + dirs.Value.GetSafeNormal2D()).GetSafeNormal2D() * direction;
+			roofCont.Points[i] -= delta * 60;
 		}
-		cont1 = cont1.RemoveCollinear(0.01f);
-		inner.Add(cont1);
+		roofCont = roofCont.RemoveCollinear(0.01f);
+		inner.Add(roofCont);
 	}
 
 	Triangulate(outer, inner, nodes, triangles, "YYS0", inBuildingPart.RoofData, contInd);

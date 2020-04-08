@@ -4,6 +4,8 @@
 #include "RuntimeMeshComponent.h"
 #include "BuildingPart.generated.h"
 
+class ABuildingActor;
+
 UCLASS()
 class GEOTEMPBUILDINGS_API UBuildingPartComponent : public URuntimeMeshComponent
 {
@@ -75,9 +77,7 @@ public:
 	TMap<FString, FString> Tags;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Default")
-	FLinearColor Color;
-
-	FBuildingPart* PartData;
+	FLinearColor Color;	
 
 private:
 	bool _isInit = false;
@@ -90,10 +90,12 @@ public:
 
 	//UBuildingsLoaderBase2 * Owner;
 
-	void Init(FBuildingPart* inPart, TMap<FString, FString> inTags/*,UBuildingsLoaderBase2 * owner = nullptr*/);
+	void Init(const FBuildingPart& inPart, const TMap<FString, FString>& inTags/*,UBuildingsLoaderBase2 * owner = nullptr*/);
 
 	void ReInit();
 
+	FBuildingPart PartData;
+	ABuildingActor* Parent;
 
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
