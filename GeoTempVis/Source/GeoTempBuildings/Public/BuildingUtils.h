@@ -53,7 +53,7 @@ public:
 	GENERATED_BODY()
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Default")
-	FBuildingMeshData GenerateRoof(FBuildingPart inBuildingPart, int inFirstSectionIndex, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial);
+	FBuildingMeshData GenerateRoof(const FBuildingPart& inBuildingPart, int inFirstSectionIndex, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial);
 };
 
 class MeshHelpers {
@@ -88,7 +88,7 @@ public:
 		RoofMakers = inRoofMakers;
 	}
 	
-	static FBuildingMeshData CalculateMeshData(FBuildingPart* inBuildingPart, int inFirstSectionIndex, 
+	static FBuildingMeshData CalculateMeshData(const FBuilding& inBuilding, const FBuildingPart& inBuildingPart, int inFirstSectionIndex, 
 		UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, FString inFlags = "");
 
 	static void ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, FBuildingMeshData inMeshData);

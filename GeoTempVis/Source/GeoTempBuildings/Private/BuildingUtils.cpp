@@ -8,7 +8,7 @@
 TMap<FString, TScriptInterface<IRoofMaker>> MeshHelpers::RoofMakers = TMap<FString, TScriptInterface<IRoofMaker>>();
 
 const float FLOOR_HEIGHT = 350;
-FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* inBuildingPart, int inFirstSectionIndex,
+FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, const FBuildingPart& inBuildingPart,  int inFirstSectionIndex,
                                                  UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, FString inFlags)
 {
 	FBuildingMeshData meshData;
@@ -17,17 +17,7 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* inBuildingPart, 
 	TArray<FVector> nodes;
 	TArray<int> triangles;	
 
-	if (!inBuildingPart->OverrideHeight && inBuildingPart->Height == 0)
-	{
-		inBuildingPart->Height	= inBuildingPart->Floors		* FLOOR_HEIGHT;
-		inBuildingPart->MinHeight	= inBuildingPart->MinFloors	* FLOOR_HEIGHT;
-		if (inBuildingPart->MinFloors == 0) 
-		{
-			inBuildingPart->MinHeight = -1500;
-		}
-	}
-
-	Triangulate(inBuildingPart->OuterConts, inBuildingPart->InnerConts, nodes, triangles, std::string(TCHAR_TO_UTF8(*inFlags)));
+	Triangulate(inBuildingPart.OuterConts, inBuildingPart.InnerConts, nodes, triangles, inFlags);
 
 	TArray<FVector>			Vertices;
 	TArray<int>				Triangles;
@@ -37,7 +27,7 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* inBuildingPart, 
 	TArray<FLinearColor>	VertexColors;
 
 	bool isInner = false;
-	for (auto conts : { TArray<FContour>(inBuildingPart->OuterConts), TArray<FContour>(inBuildingPart->InnerConts) })
+	for (auto conts : { TArray<FContour>(inBuildingPart.OuterConts), TArray<FContour>(inBuildingPart.InnerConts) })
 	{
 		for (auto& cont : conts) 
 		{
@@ -60,10 +50,10 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* inBuildingPart, 
 				auto v3 = contour[inext];
 				auto v4 = contour[inext];
 				
-				v1.Z = inBuildingPart->MinHeight;
-				v2.Z = inBuildingPart->Height;
-				v3.Z = inBuildingPart->MinHeight;
-				v4.Z = inBuildingPart->Height;
+				v1.Z = inBuildingPart.MinHeight;
+				v2.Z = inBuildingPart.Height;
+				v3.Z = inBuildingPart.MinHeight;
+				v4.Z = inBuildingPart.Height;
 				
 				if ((v1.GetAbsMax() > 10000000) || (v3.GetAbsMax() > 10000000))
 				{
@@ -78,10 +68,10 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* inBuildingPart, 
 				auto delta	= (v1 - v3).Size2D() / 300;
 				auto deltaN	= FMath::FloorToFloat(delta);
 				auto offset	= (delta - deltaN) / 2;
-				auto height = (inBuildingPart->Height - inBuildingPart->MinHeight) ;
-				UV.Add(FVector2D(-offset,			height / inBuildingPart->FloorHeight));
+				auto height = (inBuildingPart.Height - inBuildingPart.MinHeight) ;
+				UV.Add(FVector2D(-offset,			height / inBuildingPart.FloorHeight));
 				UV.Add(FVector2D(-offset,			0));
-				UV.Add(FVector2D(-offset + delta,	height / inBuildingPart->FloorHeight));
+				UV.Add(FVector2D(-offset + delta,	height / inBuildingPart.FloorHeight));
 				UV.Add(FVector2D(-offset + delta,	0));
 
 				FOUR_TIMES(UV1.Add(FVector2D(offset, deltaN)));
@@ -128,7 +118,7 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* inBuildingPart, 
 	for (auto& node : nodes)
 	{
 		auto v = node;
-		v.Z = inBuildingPart->MinHeight;
+		v.Z = inBuildingPart.MinHeight;
 		
 		Vertices.		Add(v							);
 		Normals.		Add(FVector::DownVector		);
@@ -145,7 +135,7 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* inBuildingPart, 
 	for (auto& node : nodes)
 	{
 		auto v = node;
-		v.Z = inBuildingPart->Height;
+		v.Z = inBuildingPart.Height;
 		Vertices		.Add(v);
 		Normals			.Add(FVector::UpVector);
 		UV				.Add(FVector2D(v.X / 100, v.Y / 100));
@@ -172,15 +162,15 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(FBuildingPart* inBuildingPart, 
 
 	meshData.LastFreeIndex++;
 
-	if (RoofMakers.Contains(inBuildingPart->Owner->RoofType))
+	if (RoofMakers.Contains(inBuilding.RoofType))
 	{
-		auto val = RoofMakers.FindRef(inBuildingPart->Owner->RoofType);
-		val->GenerateRoof(*inBuildingPart, meshData.LastFreeIndex, inWallMaterial, inRoofMaterial);
+		auto val = RoofMakers.FindRef(inBuilding.RoofType);
+		val->GenerateRoof(inBuildingPart, meshData.LastFreeIndex, inWallMaterial, inRoofMaterial);
 	}
 	else if (RoofMakers.Contains("Default"))
 	{
 		auto val = RoofMakers.FindRef("Default");
-		val->GenerateRoof(*inBuildingPart, meshData.LastFreeIndex, inWallMaterial, inRoofMaterial);	
+		val->GenerateRoof(inBuildingPart, meshData.LastFreeIndex, inWallMaterial, inRoofMaterial);	
 	}
 	
 	return meshData;

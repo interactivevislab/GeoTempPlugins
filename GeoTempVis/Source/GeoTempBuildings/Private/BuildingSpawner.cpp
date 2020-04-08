@@ -19,7 +19,7 @@ void UBuildingSpawner::SpawnBuildingActors(const TArray<FBuilding>& inBuildingDa
 		buildingActor->WallMaterial = UMaterialInstanceDynamic::Create(inWallMaterial, buildingActor);
 		buildingActor->RoofMaterial = UMaterialInstanceDynamic::Create(inRoofMaterial, buildingActor);
 		buildingActor->RoofType = building.RoofType;
-		buildingActor->Initialize(&building);
+		buildingActor->Initialize(building);
 
 		Buildings.Add(buildingActor);
 	}

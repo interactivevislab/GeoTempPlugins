@@ -15,20 +15,20 @@ void ABuildingActor::OnConstruction(const FTransform& Transform)
 } 
 
 
-void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
+void ABuildingActor::Initialize(const FBuilding& inBuilding, bool inInitPartsImmideately)
 {
 	if (RootComponent == nullptr)
 	{
 		RootComponent = NewObject<USceneComponent>(this, TEXT("RootComponent"));
 		FinishAndRegisterComponent(RootComponent);
 	}
-	Building = building;
+	Building = inBuilding;
 
-	for (auto& cont : Building->MainPart->OuterConts)
+	for (auto& cont : Building.MainPart.OuterConts)
 	{
 		Outer.Add(cont);
 	}
-	for (auto& cont : Building->MainPart->InnerConts)
+	for (auto& cont : Building.MainPart.InnerConts)
 	{
 		Inner.Add(cont);
 	}
@@ -38,13 +38,13 @@ void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 		part->DestroyComponent();
 	}
 	
-	Id = Building->Id;
+	Id = Building.Id;
 	Parts.Empty();
-	BuildingTags = Building->Tags;
+	BuildingTags = Building.Tags;
 	
-	if (Building->Parts.size() == 0) 
+	if (Building.Parts.Num() == 0) 
 	{
-		auto name = FName(*(FString::FromInt(Building->Id) + "_" + FString::FromInt(Building->MainPart->Id)));
+		auto name = FName(*(FString::FromInt(Building.Id) + "_" + FString::FromInt(Building.MainPart.Id)));
 		UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
 		if (part) {
 			part->OnComponentCreated();
@@ -55,17 +55,17 @@ void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 			FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
 			part->WallMaterial = WallMaterial;
 			part->RoofMaterial = RoofMaterial;
-			part->Init(Building->MainPart, Building->Tags);
-			if (initPartsImmideately) part->ReInit();
-			part->StylePalette = Building->MainPart->StylePalette;
+			part->Init(Building.MainPart, Building.Tags);
+			if (inInitPartsImmideately) part->ReInit();
+			part->StylePalette = Building.MainPart.StylePalette;
 			Parts.Add(part);
 		}
 	}
 	else 
 	{
-		for (auto& partData : Building->Parts) 
+		for (auto& partData : Building.Parts) 
 		{
-			auto name = FName(*(FString::FromInt(Building->Id) + "_" + FString::FromInt(partData->Id)));
+			auto name = FName(*(FString::FromInt(Building.Id) + "_" + FString::FromInt(partData.Id)));
 			UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
 
 			if (part)
@@ -76,10 +76,10 @@ void ABuildingActor::Initialize(FBuilding* building, bool initPartsImmideately)
 				FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
 				part->WallMaterial = WallMaterial;
 				part->RoofMaterial = RoofMaterial;
-				part->Init(partData, Building->Tags);
+				part->Init(partData, Building.Tags);
 				
-				if (initPartsImmideately) part->ReInit();
-				part->StylePalette = partData->StylePalette;
+				if (inInitPartsImmideately) part->ReInit();
+				part->StylePalette = partData.StylePalette;
 				Parts.Add(part);
 			}
 		}
