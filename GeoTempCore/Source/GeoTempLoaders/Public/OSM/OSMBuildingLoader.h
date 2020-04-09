@@ -7,7 +7,7 @@
 #include "OSMBuildingLoader.generated.h"
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class UOsmBuildingLoader : public UObject
+class GEOTEMPLOADERS_API UOsmBuildingLoader : public UObject
 {
 	GENERATED_BODY()
 private:	

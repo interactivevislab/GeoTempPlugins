@@ -12,7 +12,7 @@ class UOsmReader;
 
 
 UCLASS(Blueprintable)
-class GEOTEMPOSM_API URoadsLoaderOsm : public UObject, public IReaderOsm
+class GEOTEMPLOADERS_API URoadsLoaderOsm : public UObject, public IReaderOsm
 {
 	GENERATED_BODY()
 

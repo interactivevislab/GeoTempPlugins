@@ -10,7 +10,7 @@
 
 
 UCLASS(Blueprintable)
-class GEOTEMPPOSTGIS_API URoadsLoaderPostGis : public UObject
+class GEOTEMPLOADERS_API URoadsLoaderPostGis : public UObject
 {
 	GENERATED_BODY()
 

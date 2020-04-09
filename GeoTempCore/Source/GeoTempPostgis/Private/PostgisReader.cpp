@@ -1,4 +1,4 @@
-#include "PostgisLoader.h"
+#include "PostgisReader.h"
 
 #if !NOPOSTGRES
 #include "libpq-fe.h"

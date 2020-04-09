@@ -18,7 +18,7 @@ class URoadsLoaderOsm;
 
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class UMapDataLoader : public UActorComponent
+class GEOTEMPLOADERS_API UMapDataLoader : public UActorComponent
 {
 	GENERATED_BODY()
 

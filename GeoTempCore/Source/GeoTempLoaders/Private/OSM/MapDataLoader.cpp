@@ -3,7 +3,7 @@
 #include "HttpRequest.h"
 #include "OSMLoader.h"
 #include "OsmManager.h"
-#include "RoadsLoaderOsm.h"
+#include "OSM/RoadsLoaderOsm.h"
 #include "OSM/OSMBuildingLoader.h"
 
 

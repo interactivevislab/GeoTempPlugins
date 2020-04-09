@@ -1,4 +1,4 @@
-#include "RoadsLoaderOsm.h"
+#include "Osm/RoadsLoaderOsm.h"
 
 #include "OsmData.h"
 #include "LoaderHelper.h"

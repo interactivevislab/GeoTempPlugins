@@ -1,4 +1,4 @@
-#include "RoadsLoaderPostGis.h"
+#include "PostGis/RoadsLoaderPostGis.h"
 
 #include "LoaderHelper.h"
 

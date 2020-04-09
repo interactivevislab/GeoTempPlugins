@@ -4,7 +4,7 @@
 
 #include "PosgisData.h"
 
-#include "PostgisLoader.generated.h"
+#include "PostgisReader.generated.h"
 
 
 UENUM(BlueprintType)
