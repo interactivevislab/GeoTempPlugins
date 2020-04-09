@@ -1,5 +1,11 @@
 #include "OSM/MapDataLoader.h"
+
 #include "HttpRequest.h"
+#include "OSMLoader.h"
+#include "OsmManager.h"
+#include "RoadsLoaderOsm.h"
+#include "OSM/OSMBuildingLoader.h"
+
 
 
 void UMapDataLoader::InitManagers(bool inForceInit)
@@ -23,6 +29,11 @@ void UMapDataLoader::InitLoaders(bool inForceInit)
 	{
 		BuildingsLoader = NewObject<UOsmBuildingLoader>();
 	}
+	if (!RoadsLoader || inForceInit)
+	{
+		RoadsLoader = NewObject<URoadsLoaderOsm>();
+		RoadsLoader->SetOsmReader(OsmReader);
+	}
 }
 
 
@@ -41,16 +52,18 @@ void UMapDataLoader::LoadData(float inLeftDegrees, float inBottomDegrees, float 
 		return;
 	}
 	IsDataReady = false;
-	auto request = OsmManager->GetOsmDataForBoundingBox(inLeftDegrees, inBottomDegrees, inRightDegrees, inTopDegrees);	
+	UHttpRequest* request = OsmManager->GetOsmDataForBoundingBox(inLeftDegrees, inBottomDegrees, inRightDegrees, inTopDegrees);
 	request->OnCompleted.AddDynamic(this, &UMapDataLoader::OnOsmRequestCompleted);
 	request->StartRequest();
 }
+
 
 void UMapDataLoader::OnOsmRequestCompleted(FString inXmlData)
 {		
 	OsmReader->InitWithXML(inXmlData);
 
-	LoadedBuildings = BuildingsLoader->GetBuildings(OsmReader);
+	LoadedBuildings		= BuildingsLoader->GetBuildings(OsmReader);
+	LoadedRoadNetwork	= RoadsLoader->GetRoadNetwork();
 
 	IsDataReady = true;
 }

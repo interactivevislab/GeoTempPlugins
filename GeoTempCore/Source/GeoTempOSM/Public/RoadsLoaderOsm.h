@@ -26,8 +26,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FRoadNetwork GetRoadNetwork();
-
-private:
-
-	static TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork);
 };

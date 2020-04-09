@@ -1,9 +1,20 @@
+#pragma once
+
 #include "CoreMinimal.h"
+
 #include "Components/ActorComponent.h"
-#include "OSMLoader.h"
-#include "OSMBuildingLoader.h"
-#include "OsmManager.h"
+
+#include "Basics.h"
+#include "BuildingsData.h"
+#include "RoadsData.h"
+
 #include "MapDataLoader.generated.h"
+
+
+class UOsmReader;
+class UOsmManager;
+class UOsmBuildingLoader;
+class URoadsLoaderOsm;
 
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
@@ -20,6 +31,9 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	UOsmBuildingLoader* BuildingsLoader;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	URoadsLoaderOsm* RoadsLoader;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	UOsmReader* OsmReader;
@@ -44,5 +58,8 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	TArray<FBuilding> LoadedBuildings;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	FRoadNetwork LoadedRoadNetwork;
 };
 
