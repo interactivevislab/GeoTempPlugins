@@ -1,14 +1,14 @@
-#include "OSM/MapDataLoader.h"
+#include "OSM/MapDataLoaderOsm.h"
 
 #include "HttpRequest.h"
-#include "OSMLoader.h"
+#include "OsmReader.h"
 #include "OsmManager.h"
-#include "OSM/RoadsLoaderOsm.h"
-#include "OSM/OSMBuildingLoader.h"
+#include "Osm/RoadsLoaderOsm.h"
+#include "Osm/BuildingLoaderOsm.h"
 
 
 
-void UMapDataLoader::InitManagers(bool inForceInit)
+void UMapDataLoaderOsm::InitManagers(bool inForceInit)
 {
 	if (!OsmReader || inForceInit) 
 	{
@@ -23,11 +23,11 @@ void UMapDataLoader::InitManagers(bool inForceInit)
 }
 
 
-void UMapDataLoader::InitLoaders(bool inForceInit)
+void UMapDataLoaderOsm::InitLoaders(bool inForceInit)
 {
 	if (!BuildingsLoader || inForceInit)
 	{
-		BuildingsLoader = NewObject<UOsmBuildingLoader>();
+		BuildingsLoader = NewObject<UBuildingLoaderOsm>();
 	}
 	if (!RoadsLoader || inForceInit)
 	{
@@ -37,7 +37,7 @@ void UMapDataLoader::InitLoaders(bool inForceInit)
 }
 
 
-void UMapDataLoader::LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees, bool inForceInitManagers, bool inForceInitLoaders)
+void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees, bool inForceInitManagers, bool inForceInitLoaders)
 {	
 	InitManagers(inForceInitManagers);
 
@@ -53,12 +53,12 @@ void UMapDataLoader::LoadData(float inLeftDegrees, float inBottomDegrees, float 
 	}
 	IsDataReady = false;
 	UHttpRequest* request = OsmManager->GetOsmDataForBoundingBox(inLeftDegrees, inBottomDegrees, inRightDegrees, inTopDegrees);
-	request->OnCompleted.AddDynamic(this, &UMapDataLoader::OnOsmRequestCompleted);
+	request->OnCompleted.AddDynamic(this, &UMapDataLoaderOsm::OnOsmRequestCompleted);
 	request->StartRequest();
 }
 
 
-void UMapDataLoader::OnOsmRequestCompleted(FString inXmlData)
+void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 {		
 	OsmReader->InitWithXML(inXmlData);
 

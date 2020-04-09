@@ -1,4 +1,5 @@
-#include "OSM/OSMBuildingLoader.h"
+#include "OSM/BuildingLoaderOsm.h"
+
 
 inline void FixPartContours(FBuildingPart& outPart)
 {	
@@ -21,7 +22,7 @@ inline void FixPartContours(FBuildingPart& outPart)
 }
 
 
-TArray<FBuilding> UOsmBuildingLoader::GetBuildings(UOsmReader* inSource)
+TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 {
 	TArray<FBuilding> buildings;
 	TArray<FBuildingPart> parts;
@@ -189,13 +190,13 @@ inline const FString* FindBuildingTag(TMap<FString, FString> inTags, FString inT
 	return tag;
 }
 
-FString UOsmBuildingLoader::FLOORS_TAG_STRING		= "levels";
-FString UOsmBuildingLoader::HEIGHT_TAG_STRING		= "height";
-FString UOsmBuildingLoader::MIN_FLOORS_TAG_STRING	= "min_levels";
-FString UOsmBuildingLoader::MIN_HEIGHT_TAG_STRING	= "min_height";
+FString UBuildingLoaderOsm::FLOORS_TAG_STRING		= "levels";
+FString UBuildingLoaderOsm::HEIGHT_TAG_STRING		= "height";
+FString UBuildingLoaderOsm::MIN_FLOORS_TAG_STRING	= "min_levels";
+FString UBuildingLoaderOsm::MIN_HEIGHT_TAG_STRING	= "min_height";
 
 
-void UOsmBuildingLoader::InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart)
+void UBuildingLoaderOsm::InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart)
 {
 	auto floorsTag		= FindBuildingTag(inWay->Tags, FLOORS_TAG_STRING);
 	auto heightTag		= FindBuildingTag(inWay->Tags, HEIGHT_TAG_STRING);
@@ -226,7 +227,7 @@ void UOsmBuildingLoader::InitBuildingPart(const OsmWay* inWay, FBuildingPart& ou
 }
 
 
-void UOsmBuildingLoader::InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart)
+void UBuildingLoaderOsm::InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart)
 {
 	auto floorsTag		= FindBuildingTag(inRelation->Tags, FLOORS_TAG_STRING);
 	auto heightTag		= FindBuildingTag(inRelation->Tags, HEIGHT_TAG_STRING);

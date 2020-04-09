@@ -15,6 +15,6 @@ class POLYGONMASKSGENERATOR_API UBasePolygonPreparer : public UObject
 	GENERATED_BODY()
 	
 	UFUNCTION(BlueprintCallable)
-	virtual void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPosgisContourData> inPolygonData,
+	virtual void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FContourData> inPolygonData,
 		TMap<FString, FString> inTags);
 };

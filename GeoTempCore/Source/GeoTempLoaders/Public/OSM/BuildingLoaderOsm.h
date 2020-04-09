@@ -3,11 +3,12 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 
-#include "OSMLoader.h"
-#include "OSMBuildingLoader.generated.h"
+#include "OsmReader.h"
+#include "BuildingLoaderOsm.generated.h"
+
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class GEOTEMPLOADERS_API UOsmBuildingLoader : public UObject
+class GEOTEMPLOADERS_API UBuildingLoaderOsm : public UObject
 {
 	GENERATED_BODY()
 private:	

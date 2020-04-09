@@ -34,12 +34,20 @@
 			"Name": "GeoTempTiles",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
-		},
+		}
 	],
 	"Plugins": [
 		{
 			"Name": "GeoTempCore",
 			"Enabled": true
 		},
+		{
+			"Name": "RuntimeMeshComponent",
+			"Enabled": true
+		},
+		{
+			"Name": "ProceduralMeshComponent",
+			"Enabled": true
+		}
 	]
 }

@@ -10,7 +10,7 @@
 #include "BuildingsData.h"
 #include "OsmData.h"
 
-#include "OSMLoader.generated.h"
+#include "OsmReader.generated.h"
 
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))

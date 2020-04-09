@@ -8,17 +8,17 @@
 #include "BuildingsData.h"
 #include "RoadsData.h"
 
-#include "MapDataLoader.generated.h"
+#include "MapDataLoaderOsm.generated.h"
 
 
 class UOsmReader;
 class UOsmManager;
-class UOsmBuildingLoader;
+class UBuildingLoaderOsm;
 class URoadsLoaderOsm;
 
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class GEOTEMPLOADERS_API UMapDataLoader : public UActorComponent
+class GEOTEMPLOADERS_API UMapDataLoaderOsm : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -30,7 +30,7 @@ public:
 	FGeoCoords GeoCoords;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
-	UOsmBuildingLoader* BuildingsLoader;
+	UBuildingLoaderOsm* BuildingsLoader;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	URoadsLoaderOsm* RoadsLoader;

@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 
 #include "RoadsData.h"
-#include "PosgisData.h"
+#include "GeometryData.h"
 
 #include "RoadsLoaderPostGis.generated.h"
 
@@ -17,15 +17,11 @@ class GEOTEMPLOADERS_API URoadsLoaderPostGis : public UObject
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FRoadNetwork GetRoadNetwork(TArray<FPostGisBinaryEntity> inRoadData, FGeoCoords inGeoCoodrs);
+	FRoadNetwork GetRoadNetwork(TArray<FWkbEntity> inRoadData, FGeoCoords inGeoCoodrs);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FString LanesTag;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FString WidthTag;
-
-private:
-
-	static TArray<FRoadSegment> GetRoadSegments(FPostGisRoadNetwork inRoadNetwork);
 };

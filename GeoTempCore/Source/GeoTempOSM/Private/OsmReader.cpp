@@ -1,4 +1,4 @@
-#include "OSMLoader.h"
+#include "OsmReader.h"
 #include <algorithm>
 
 

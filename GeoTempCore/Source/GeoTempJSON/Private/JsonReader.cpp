@@ -1,13 +1,13 @@
-#include "GeoJSONLoader.h"
+#include "JsonReader.h"
 
 
-AJsonLoader::AJsonLoader()
+AJsonReader::AJsonReader()
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
 
 
-TArray<FPosgisContourData> AJsonLoader::ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords)
+TArray<FContourData> AJsonReader::ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords)
 {
 	const FString jsonFilePath = inFilepath;
 	FString jsonString;
@@ -17,12 +17,12 @@ TArray<FPosgisContourData> AJsonLoader::ReadContoursFromFile(FString inFilepath,
 }
 
 
-TArray<FPosgisContourData> AJsonLoader::ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords)
+TArray<FContourData> AJsonReader::ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords)
 {
 	TSharedPtr<FJsonObject>		jsonObject = MakeShareable(new FJsonObject());
 	TSharedRef<TJsonReader<>>	jsonReader = TJsonReaderFactory<>::Create(inJsonString);
 
-	TArray<FPosgisContourData> contoursWithData;
+	TArray<FContourData> contoursWithData;
 	if (FJsonSerializer::Deserialize(jsonReader, jsonObject))
 	{
 		contoursWithData = ReadContoursFromJSON(jsonObject, inGeoCoords);
@@ -32,18 +32,18 @@ TArray<FPosgisContourData> AJsonLoader::ReadContoursFromString(FString inJsonStr
 }
 
 
-TArray<FPosgisContourData> AJsonLoader::ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords)
+TArray<FContourData> AJsonReader::ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords)
 {
 	GeoCoords = inGeoCoords;
 
-	TArray<FPosgisContourData> contoursWithData;
+	TArray<FContourData> contoursWithData;
 	auto featureArray = inJsonObject->GetArrayField("features");
 	ParseFeatures(featureArray, contoursWithData);
 	return contoursWithData;
 }
 
 
-void AJsonLoader::ParseJSON()
+void AJsonReader::ParseJSON()
 {
 	const FString jsonFilePath = FPaths::ProjectContentDir() + "Buildings Layer.geojson";
 	FString jsonString;
@@ -64,7 +64,7 @@ void AJsonLoader::ParseJSON()
 }
 
 
-void AJsonLoader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FPosgisContourData>& outContoursWithData)
+void AJsonReader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FContourData>& outContoursWithData)
 {
 	for (auto feature : inFeatureArray)
 	{
@@ -74,7 +74,7 @@ void AJsonLoader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FPo
 		{
 			featureTags.Add(value.Key, value.Value->AsString());
 		}
-		FPosgisContourData contourData = FPosgisContourData();
+		FContourData contourData = FContourData();
 		contourData.Tags = featureTags;
 
 		auto	geometry = feature->AsObject()->GetObjectField("geometry");
@@ -108,7 +108,7 @@ void AJsonLoader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FPo
 }
 
 
-void AJsonLoader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FPosgisContourData& outContourData)
+void AJsonReader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData)
 {
 	FContour contour;
 	auto coords = inGeometry[0]->AsArray();
@@ -144,7 +144,7 @@ void AJsonLoader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FPosgisContourD
 }
 
 
-void AJsonLoader::ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FPosgisContourData& inContourData)
+void AJsonReader::ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FContourData& inContourData)
 {
 	for (auto geom : inGeometry)
 	{
@@ -153,7 +153,7 @@ void AJsonLoader::ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FPosgisCon
 }
 
 
-void AJsonLoader::ParseRecursion(TMap<FString, JsonValuesPtr> inValues)
+void AJsonReader::ParseRecursion(TMap<FString, JsonValuesPtr> inValues)
 {
 	for (auto val : inValues)
 	{
@@ -187,7 +187,7 @@ void AJsonLoader::ParseRecursion(TMap<FString, JsonValuesPtr> inValues)
 }
 
 
-void AJsonLoader::ParseArray(TArray<JsonValuesPtr> inValues)
+void AJsonReader::ParseArray(TArray<JsonValuesPtr> inValues)
 {
 	for (auto val : inValues)
 	{

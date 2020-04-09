@@ -3,7 +3,31 @@
 #include "LoaderHelper.h"
 
 
-FRoadNetwork URoadsLoaderPostGis::GetRoadNetwork(TArray<FPostGisBinaryEntity> inRoadData, FGeoCoords inGeoCoodrs)
+
+TArray<FRoadSegment> GetRoadSegments(FPostGisRoadNetwork inRoadNetwork)
+{
+	TArray<FRoadSegment> segments;
+	for (auto postGisSegmentPair : inRoadNetwork.Segments)
+	{
+		auto postGisSegment = postGisSegmentPair.Value;
+
+		FRoadSegment segment;
+		segment.Type = postGisSegment.Highway;
+		segment.Width = postGisSegment.Lanes * postGisSegment.LaneWidth;
+		segment.Lanes = postGisSegment.Lanes;
+		segment.StartYear = postGisSegment.YearStart;
+		segment.EndYear = postGisSegment.YearEnd;
+		segment.Change = postGisSegment.Change;
+		segment.AllPoints = postGisSegment.Line.AllPoints;
+
+		segments.Add(segment);
+	}
+
+	return segments;
+}
+
+
+FRoadNetwork URoadsLoaderPostGis::GetRoadNetwork(TArray<FWkbEntity> inRoadData, FGeoCoords inGeoCoodrs)
 {
 	FPostGisRoadNetwork postGisRoadNetwork;
 	int segmentId = 0;
@@ -25,7 +49,7 @@ FRoadNetwork URoadsLoaderPostGis::GetRoadNetwork(TArray<FPostGisBinaryEntity> in
 				continue;
 			}	
 
-			auto points = FPosgisContourData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, 
+			auto points = FContourData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, 
 				inGeoCoodrs, true, 0);
 
 			FPostGisRoadSegment segment;
@@ -47,27 +71,4 @@ FRoadNetwork URoadsLoaderPostGis::GetRoadNetwork(TArray<FPostGisBinaryEntity> in
 	}
 
 	return ULoaderHelper::ConstructRoadNetwork(GetRoadSegments(postGisRoadNetwork));
-}
-
-
-TArray<FRoadSegment> URoadsLoaderPostGis::GetRoadSegments(FPostGisRoadNetwork inRoadNetwork)
-{
-	TArray<FRoadSegment> segments;
-	for (auto postGisSegmentPair : inRoadNetwork.Segments)
-	{
-		auto postGisSegment = postGisSegmentPair.Value;
-
-		FRoadSegment segment;
-		segment.Type		= postGisSegment.Highway;
-		segment.Width		= postGisSegment.Lanes * postGisSegment.LaneWidth;
-		segment.Lanes		= postGisSegment.Lanes;
-		segment.StartYear	= postGisSegment.YearStart;
-		segment.EndYear		= postGisSegment.YearEnd;
-		segment.Change		= postGisSegment.Change;
-		segment.AllPoints	= postGisSegment.Line.AllPoints;
-
-		segments.Add(segment);
-	}
-
-	return segments;
 }
