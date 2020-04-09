@@ -12,11 +12,11 @@ struct FPostGisBinaryEntity
 {
 	GENERATED_BODY()
 
-		UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-		TArray<uint8> Geometry;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	TArray<uint8> Geometry;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-		TMap<FString, FString> Tags;
+	TMap<FString, FString> Tags;
 };
 
 
