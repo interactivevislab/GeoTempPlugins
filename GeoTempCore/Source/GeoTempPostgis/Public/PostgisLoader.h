@@ -17,19 +17,6 @@ enum class EStatus : uint8
 };
 
 
-USTRUCT(BlueprintType)
-struct FPostGisBinaryEntity
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Default")
-	TArray<uint8> Geometry;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Default")
-	TMap<FString, FString> Tags;
-};
-
-
 #pragma warning( disable : 4530)
 
 UCLASS(Config = Game, BlueprintType)
