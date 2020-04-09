@@ -16,23 +16,30 @@ inline void FixFoliageContours(FPosgisContourData& polygon)
 }
 
 
-TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage(UOsmReader* inSource, FGeoCoords inGeoCoords)
+void UOsmFoliageLoader::SetOsmReader_Implementation(UOsmReader* inOsmReader)
+{
+	OsmReader = inOsmReader;
+}
+
+
+TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage()
 {
 	TArray<FPosgisContourData> polygons;
 
 	polygons.Empty();
-
 	//find all building and building parts through ways
-	for (auto wayP : inSource->Ways)
+	for (auto wayP : OsmReader->Ways)
 	{
 		auto way = wayP.second;
 		auto FoliageIterNatural = way->Tags.Find("natural");
 		auto FoliageIterLanduse = way->Tags.Find("landuse");
+		auto FoliageIterLeisure = way->Tags.Find("leisure");
 
 		FPosgisContourData polygon;
 		//if this is building or part
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
 			||	FoliageIterLanduse && FoliageIterLanduse->Equals("forest")
+			||	FoliageIterLeisure && (FoliageIterLeisure->Equals("park") || FoliageIterLeisure->Equals("garden"))
 			)
 		{
 
@@ -48,22 +55,24 @@ TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage(UOsmReader* inSource, F
 			polygon.Outer.Add(cont);
 
 			polygon.Tags = way->Tags;
-			polygon.ZeroLat = inGeoCoords.ZeroLat;
-			polygon.ZeroLon = inGeoCoords.ZeroLon;
+			polygon.ZeroLat = OsmReader->GeoCoords.ZeroLat;
+			polygon.ZeroLon = OsmReader->GeoCoords.ZeroLon;
 
 			polygons.Add(polygon);
 		}
 	}
 
-	for (auto relationP : inSource->Relations)
+	for (auto relationP : OsmReader->Relations)
 	{
 		auto relation = relationP.second;
 		auto FoliageIterNatural = relation->Tags.Find("natural");
 		auto FoliageIterLanduse = relation->Tags.Find("landuse");
+		auto FoliageIterLeisure = relation->Tags.Find("leisure");
 
 		//if this relation is building
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
 			||	FoliageIterLanduse && FoliageIterLanduse->Equals("forest")
+			||	FoliageIterLeisure && (FoliageIterLeisure->Equals("park") || FoliageIterLeisure->Equals("garden"))
 			)
 		{
 			FPosgisContourData polygon;
@@ -97,8 +106,8 @@ TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage(UOsmReader* inSource, F
 
 
 			polygon.Tags = relation->Tags;
-			polygon.ZeroLat = inGeoCoords.ZeroLat;
-			polygon.ZeroLon = inGeoCoords.ZeroLon;
+			polygon.ZeroLat = OsmReader->GeoCoords.ZeroLat;
+			polygon.ZeroLon = OsmReader->GeoCoords.ZeroLon;
 
 			polygons.Add(polygon);
 		}
