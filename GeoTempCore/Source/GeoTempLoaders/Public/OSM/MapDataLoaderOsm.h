@@ -15,6 +15,7 @@ class UOsmReader;
 class UOsmManager;
 class UBuildingLoaderOsm;
 class URoadsLoaderOsm;
+class UHttpRequest;
 
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
@@ -23,22 +24,24 @@ class GEOTEMPLOADERS_API UMapDataLoaderOsm : public UActorComponent
 	GENERATED_BODY()
 
 	const float AreaMaxSizeDegrees = 0.5f;
+
+	UHttpRequest* currentRequest = nullptr;
 	
 public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	FGeoCoords GeoCoords;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
 	UBuildingLoaderOsm* BuildingsLoader;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
 	URoadsLoaderOsm* RoadsLoader;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
 	UOsmReader* OsmReader;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
 	UOsmManager* OsmManager;
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
@@ -52,14 +55,16 @@ public:
 
 	UFUNCTION()
 	void OnOsmRequestCompleted(FString inXmlData);
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Geoprocessing")
-	bool IsDataReady;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	TArray<FBuilding> LoadedBuildings;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	FRoadNetwork LoadedRoadNetwork;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataLoadedDelegate, bool, isSuccess);
+
+	UPROPERTY(BlueprintAssignable, Category = "Geoprocessing")
+	FOnDataLoadedDelegate OnDataLoaded;
 };
 

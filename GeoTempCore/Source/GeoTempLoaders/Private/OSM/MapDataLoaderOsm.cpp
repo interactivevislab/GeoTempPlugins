@@ -43,18 +43,21 @@ void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, flo
 
 	InitLoaders(inForceInitLoaders);
 
-	if (inRightDegrees - inLeftDegrees > AreaMaxSizeDegrees || inLeftDegrees > inRightDegrees)
+	if (	inRightDegrees - inLeftDegrees > AreaMaxSizeDegrees 
+		||	inLeftDegrees > inRightDegrees 
+		||	inTopDegrees - inBottomDegrees > AreaMaxSizeDegrees 
+		||	inTopDegrees < inBottomDegrees)
 	{
-		return;
+		OnDataLoaded.Broadcast(false);
 	}
-	if (inTopDegrees - inBottomDegrees> AreaMaxSizeDegrees || inTopDegrees < inBottomDegrees)
+
+	if (currentRequest != nullptr)
 	{
-		return;
+		currentRequest->OnCompleted.RemoveAll(this);
 	}
-	IsDataReady = false;
-	UHttpRequest* request = OsmManager->GetOsmDataForBoundingBox(inLeftDegrees, inBottomDegrees, inRightDegrees, inTopDegrees);
-	request->OnCompleted.AddDynamic(this, &UMapDataLoaderOsm::OnOsmRequestCompleted);
-	request->StartRequest();
+	currentRequest = OsmManager->GetOsmDataForBoundingBox(inLeftDegrees, inBottomDegrees, inRightDegrees, inTopDegrees);
+	currentRequest->OnCompleted.AddDynamic(this, &UMapDataLoaderOsm::OnOsmRequestCompleted);
+	currentRequest->StartRequest();
 }
 
 
@@ -65,5 +68,5 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 	LoadedBuildings		= BuildingsLoader->GetBuildings(OsmReader);
 	LoadedRoadNetwork	= RoadsLoader->GetRoadNetwork();
 
-	IsDataReady = true;
+	OnDataLoaded.Broadcast(true);
 }
