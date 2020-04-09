@@ -1,7 +1,11 @@
-#include "RoadLoader.h"
+#include "LoaderHelper.h"
 
 
-FRoadNetwork URoadLoader::ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwork)
+const int ULoaderHelper::DEFAULT_LANES = 2;
+const float ULoaderHelper::DEFAULT_LANE_WIDTH = 3.5f;
+
+
+FRoadNetwork ULoaderHelper::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments)
 {
 	TMap<int, FRoadSegment> segments;
 	TMap<int, FCrossroad>	crossroads;
@@ -10,20 +14,10 @@ FRoadNetwork URoadLoader::ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwor
 	int nextSegmentId = 0;
 	int nextCrossroadId = 0;
 
-	for (auto apiSegmentPair : inApiRoadNetwork.Segments)
+	for (auto segment : inRoadSegments)
 	{
-		auto apiSegment = apiSegmentPair.Value;
-
-		FRoadSegment segment;
-		segment.Type		= apiSegment.Highway;
-		segment.Width		= apiSegment.Lanes * apiSegment.LaneWidth;
-		segment.Lanes		= apiSegment.Lanes;
-		segment.StartYear	= apiSegment.YearStart;
-		segment.EndYear		= apiSegment.YearEnd;
-		segment.Change		= apiSegment.Change;
-
-		auto pointStart = apiSegment.Line.Start;
-		auto pointEnd	= apiSegment.Line.End;
+		auto pointStart = segment.AllPoints[0];
+		auto pointEnd = segment.AllPoints[segment.AllPoints.Num() - 1];
 
 		FCrossroad* crossroadStart;
 		FCrossroad* crossroadEnd;
@@ -54,8 +48,6 @@ FRoadNetwork URoadLoader::ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwor
 			crossroadEnd = crossroads.Find(*ptr);
 		}
 
-		segment.AllPoints = apiSegmentPair.Value.Line.AllPoints;
-
 		crossroadStart->Roads.Add(nextSegmentId, segment.EndCrossroadId);
 		crossroadEnd->Roads.Add(nextSegmentId, segment.StartCrossroadId);
 
@@ -66,7 +58,7 @@ FRoadNetwork URoadLoader::ProcessRoadNetwork(FPostGisRoadNetwork inApiRoadNetwor
 }
 
 
-FRoadNetwork URoadLoader::GetRoadNetworkForYear(FRoadNetwork inFullRoadNetwork, int inYear)
+FRoadNetwork ULoaderHelper::GetRoadNetworkForYear(FRoadNetwork inFullRoadNetwork, int inYear)
 {
 	TMap<int, FRoadSegment>	segments;
 	TMap<int, FCrossroad>	crossroads;
