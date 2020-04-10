@@ -8,8 +8,18 @@ public class GeoTempLoaders : ModuleRules
     public GeoTempLoaders(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		PublicDependencyModuleNames.AddRange(new string[] { "GeoTempCore", "GeoTempOsm", "GeoTempPostGis" });
-		PrivateDependencyModuleNames.AddRange(new string[] { "GeoTempCore", "GeoTempOsm", "GeoTempPostGis" });
+		PublicDependencyModuleNames.AddRange(new string[] {
+			"GeoTempCore",
+			"GeoTempOsm",
+			"GeoTempPostGis",
+			"GeoTempJson"
+		});
+		PrivateDependencyModuleNames.AddRange(new string[] {
+			"GeoTempCore",
+			"GeoTempOsm",
+			"GeoTempPostGis",
+			"GeoTempJson"
+		});
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
