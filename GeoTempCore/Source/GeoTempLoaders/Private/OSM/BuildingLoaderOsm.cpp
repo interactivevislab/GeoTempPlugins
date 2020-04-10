@@ -173,7 +173,8 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 						part.InnerConts.Add(contour);
 					}
 				} else {
-					if (wayParts.Contains(element.first)) {
+					if (wayParts.Contains(element.first)) 
+					{
 						UE_LOG(LogTemp, Warning, TEXT("Building loader unhandled case: part of a part"));
 					}
 				}
@@ -299,7 +300,8 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 		otherQueue->Add(kv);
 	}
 	bool processed = true;
-	while (otherQueue->Num() != 0 && processed) {
+	while (otherQueue->Num() != 0 && processed)
+	{
 
 		auto p = otherQueue;
 		otherQueue = partsQueue;
@@ -307,7 +309,8 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 		otherQueue->Empty();
 		processed = false;
 		
-		for (int i = 0; i < partsQueue->Num(); i++) {
+		for (int i = 0; i < partsQueue->Num(); i++) 
+		{
 			auto kv = (*partsQueue)[i];
 			if (usedPartWays.Contains(kv.Key)) continue;
 
@@ -322,14 +325,16 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 				{
 					auto& owners = pointOwners[point];
 					int foundInd = -1;
-					for (int j = 0; j < owners.Buildings.Num(); j++) {
+					for (int j = 0; j < owners.Buildings.Num(); j++) 
+					{
 						bool inside = false;
 						bool laysOn = true;
 						auto& building = buildings[owners.Buildings[j]];
 						
 						for (auto buildingContour : building.MainPart.OuterConts)
 						{
-							for (auto otherPoint : cont.Points) {
+							for (auto otherPoint : cont.Points) 
+							{
 								bool poinLaysOn = false;
 								if (CheckPointInContour(buildingContour, otherPoint, poinLaysOn))
 								{
@@ -340,7 +345,8 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 							}						
 							if (inside) break;
 						}
-						if (inside || laysOn) {
+						if (inside || laysOn) 
+						{
 							building.Parts.Add(part);
 							wayPartOwners.Add(kv.Key, owners.Buildings[j]);
 							processed = true;
@@ -384,7 +390,8 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 					if (parentFound) break;
 				}
 			}
-			if (!parentFound) {
+			if (!parentFound) 
+			{
 				UE_LOG(LogTemp, Warning, TEXT("Building loader cannot find owner of a part: %i"), kv.Key);
 				otherQueue->Add(kv);
 			}
