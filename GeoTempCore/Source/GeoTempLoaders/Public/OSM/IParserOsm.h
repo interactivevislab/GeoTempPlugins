@@ -4,24 +4,24 @@
 
 #include "UObject/Interface.h"
 
-#include "GeometryData.h"
+#include "OsmReader.h"
 
-#include "ILoaderFolliage.generated.h"
+#include "IParserOsm.generated.h"
 
 
 UINTERFACE(BlueprintType)
-class GEOTEMPLOADERS_API ULoaderFolliage : public UInterface
+class GEOTEMPLOADERS_API UParserOsm : public UInterface
 {
 	GENERATED_BODY()
 };
 
 
-class GEOTEMPLOADERS_API ILoaderFolliage
+class GEOTEMPLOADERS_API IParserOsm
 {
 	GENERATED_BODY()
 
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	TArray<FContourData> GetFolliage();
+	void SetOsmReader(UOsmReader* inOsmReader);
 };

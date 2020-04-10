@@ -4,24 +4,24 @@
 
 #include "UObject/Interface.h"
 
-#include "JsonReader.h"
+#include "RoadsData.h"
 
-#include "ILoaderJson.generated.h"
+#include "IProviderRoads.generated.h"
 
 
 UINTERFACE(BlueprintType)
-class GEOTEMPLOADERS_API ULoaderJson : public UInterface
+class GEOTEMPLOADERS_API UProviderRoads : public UInterface
 {
 	GENERATED_BODY()
 };
 
 
-class GEOTEMPLOADERS_API ILoaderJson
+class GEOTEMPLOADERS_API IProviderRoads
 {
 	GENERATED_BODY()
 
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void SetJsonReader(AJsonReader* inJsonReader);
+	FRoadNetwork GetRoadNetwork();
 };

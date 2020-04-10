@@ -1,4 +1,83 @@
-#include "OSM/BuildingLoaderOsm.h"
+#include "OSM/LoaderBuildingsOsm.h"
+#include "Basics.h"
+
+
+const FString FLOORS_TAG_STRING		= "levels";
+const FString HEIGHT_TAG_STRING		= "height";
+const FString MIN_FLOORS_TAG_STRING = "min_levels";
+const FString MIN_HEIGHT_TAG_STRING = "min_height";
+
+
+inline const FString* FindBuildingTag(TMap<FString, FString> inTags, FString inTag, FString inTagPrefix = "building:")
+{
+	auto tag = inTags.Find(inTagPrefix + inTag);
+	if (!tag)
+	{
+		tag = inTags.Find(inTag);
+	}
+	return tag;
+}
+
+
+void InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart)
+{
+	auto floorsTag = FindBuildingTag(inWay->Tags, FLOORS_TAG_STRING);
+	auto heightTag = FindBuildingTag(inWay->Tags, HEIGHT_TAG_STRING);
+	auto minFloorsTag = FindBuildingTag(inWay->Tags, MIN_FLOORS_TAG_STRING);
+	auto minHeightTag = FindBuildingTag(inWay->Tags, MIN_HEIGHT_TAG_STRING);
+
+	outPart.Floors = floorsTag
+		? FCString::Atoi(**floorsTag)
+		: 1;
+
+	outPart.Height = heightTag
+		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
+		: outPart.Floors * outPart.FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
+
+	outPart.MinFloors = minFloorsTag
+		? FCString::Atoi(**minFloorsTag)
+		: 0;
+
+
+	outPart.MinHeight = minHeightTag
+		? FCString::Atoi(**minHeightTag) * UGeoHelpers::SCALE_MULT
+		: outPart.MinFloors * outPart.FloorHeight;
+
+	if (heightTag || minHeightTag)
+	{
+		outPart.OverrideHeight = true;
+	}
+}
+
+
+void InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart)
+{
+	auto floorsTag = FindBuildingTag(inRelation->Tags, FLOORS_TAG_STRING);
+	auto heightTag = FindBuildingTag(inRelation->Tags, HEIGHT_TAG_STRING);
+	auto minFloorsTag = FindBuildingTag(inRelation->Tags, MIN_FLOORS_TAG_STRING);
+	auto minHeightTag = FindBuildingTag(inRelation->Tags, MIN_HEIGHT_TAG_STRING);
+
+	outPart.Floors = floorsTag
+		? FCString::Atoi(**floorsTag)
+		: 1;
+
+	outPart.MinFloors = minFloorsTag
+		? FCString::Atoi(**minFloorsTag)
+		: 0;
+
+	outPart.Height = heightTag
+		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
+		: outPart.Floors * outPart.FloorHeight;
+
+	outPart.MinHeight = minHeightTag
+		? FCString::Atoi(**minHeightTag) * UGeoHelpers::SCALE_MULT
+		: outPart.MinFloors * outPart.FloorHeight;
+
+	if (heightTag || minHeightTag)
+	{
+		outPart.OverrideHeight = true;
+	}
+}
 
 
 inline void FixPartContours(FBuildingPart& outPart)
@@ -22,7 +101,13 @@ inline void FixPartContours(FBuildingPart& outPart)
 }
 
 
-TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
+void ULoaderBuildingsOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
+{
+	osmReader = inOsmReader;
+}
+
+
+TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 {
 	TArray<FBuilding> buildings;
 	TArray<FBuildingPart> parts;
@@ -30,7 +115,7 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 	buildings.Empty();
 
 	//find all building and building parts through ways
-	for (auto wayP : inSource->Ways)
+	for (auto wayP : osmReader->Ways)
 	{
 		auto way = wayP.second;
 		auto buildIter = way->Tags.Find("building");
@@ -71,7 +156,7 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 		}
 	}
 
-	for (auto relationP : inSource->Relations)
+	for (auto relationP : osmReader->Relations)
 	{
 		auto relation = relationP.second;
 		auto buildIter = relation->Tags.Find("building");
@@ -178,80 +263,4 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 		}
 	}
 	return buildings;
-}
-
-inline const FString* FindBuildingTag(TMap<FString, FString> inTags, FString inTag, FString inTagPrefix = "building:")
-{
-	auto tag = inTags.Find(inTagPrefix + inTag);
-	if (!tag)
-	{
-		tag = inTags.Find(inTag);
-	}
-	return tag;
-}
-
-FString UBuildingLoaderOsm::FLOORS_TAG_STRING		= "levels";
-FString UBuildingLoaderOsm::HEIGHT_TAG_STRING		= "height";
-FString UBuildingLoaderOsm::MIN_FLOORS_TAG_STRING	= "min_levels";
-FString UBuildingLoaderOsm::MIN_HEIGHT_TAG_STRING	= "min_height";
-
-
-void UBuildingLoaderOsm::InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart)
-{
-	auto floorsTag		= FindBuildingTag(inWay->Tags, FLOORS_TAG_STRING);
-	auto heightTag		= FindBuildingTag(inWay->Tags, HEIGHT_TAG_STRING);
-	auto minFloorsTag	= FindBuildingTag(inWay->Tags, MIN_FLOORS_TAG_STRING);
-	auto minHeightTag	= FindBuildingTag(inWay->Tags, MIN_HEIGHT_TAG_STRING);
-	
-	outPart.Floors = floorsTag
-		? FCString::Atoi(**floorsTag)
-		: 1;
-	
-	outPart.Height = heightTag
-		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
-		: outPart.Floors * outPart.FloorHeight + 2 * UGeoHelpers::SCALE_MULT;
-
-	outPart.MinFloors = minFloorsTag
-		? FCString::Atoi(**minFloorsTag)
-		: 0;
-
-	
-	outPart.MinHeight = minHeightTag
-		? FCString::Atoi(**minHeightTag) * UGeoHelpers::SCALE_MULT
-		: outPart.MinFloors * outPart.FloorHeight;
-
-	if (heightTag || minHeightTag)
-	{
-		outPart.OverrideHeight = true;
-	}	
-}
-
-
-void UBuildingLoaderOsm::InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart)
-{
-	auto floorsTag		= FindBuildingTag(inRelation->Tags, FLOORS_TAG_STRING);
-	auto heightTag		= FindBuildingTag(inRelation->Tags, HEIGHT_TAG_STRING);
-	auto minFloorsTag	= FindBuildingTag(inRelation->Tags, MIN_FLOORS_TAG_STRING);
-	auto minHeightTag	= FindBuildingTag(inRelation->Tags, MIN_HEIGHT_TAG_STRING);
-	
-	outPart.Floors = floorsTag
-		? FCString::Atoi(**floorsTag)
-		: 1;
-
-	outPart.MinFloors = minFloorsTag
-		? FCString::Atoi(**minFloorsTag)
-		: 0;
-	
-	outPart.Height = heightTag
-		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
-		: outPart.Floors * outPart.FloorHeight;
-	
-	outPart.MinHeight = minHeightTag
-		? FCString::Atoi(**minHeightTag) * UGeoHelpers::SCALE_MULT
-		: outPart.MinFloors * outPart.FloorHeight;
-
-	if (heightTag || minHeightTag)
-	{
-		outPart.OverrideHeight = true;
-	}
 }

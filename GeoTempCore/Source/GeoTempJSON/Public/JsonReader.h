@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 
-#include "GameFramework/Actor.h"
 #include "Dom/JsonObject.h"
 
 #include "GeometryData.h"
@@ -23,7 +22,7 @@ enum class EGeometryType : uint8
 
 
 UCLASS()
-class GEOTEMPJSON_API AJsonReader : public AActor
+class GEOTEMPJSON_API UJsonReader : public UObject
 {
 	GENERATED_BODY()
 
@@ -43,8 +42,6 @@ public:
 	TArray<FContourData> GlobalContoursWithData;
 
 	typedef TSharedPtr<FJsonValue> JsonValuesPtr;
-
-	AJsonReader();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<FContourData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);

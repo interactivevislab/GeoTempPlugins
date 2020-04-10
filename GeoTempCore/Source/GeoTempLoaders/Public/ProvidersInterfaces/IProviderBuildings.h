@@ -6,17 +6,17 @@
 
 #include "BuildingsData.h"
 
-#include "ILoaderBuildings.generated.h"
+#include "IProviderBuildings.generated.h"
 
 
 UINTERFACE(BlueprintType)
-class GEOTEMPLOADERS_API ULoaderBuildings : public UInterface
+class GEOTEMPLOADERS_API UProviderBuildings : public UInterface
 {
 	GENERATED_BODY()
 };
 
 
-class GEOTEMPLOADERS_API ILoaderBuildings
+class GEOTEMPLOADERS_API IProviderBuildings
 {
 	GENERATED_BODY()
 

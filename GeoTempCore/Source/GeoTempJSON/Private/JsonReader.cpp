@@ -1,13 +1,7 @@
 #include "JsonReader.h"
 
 
-AJsonReader::AJsonReader()
-{
-	PrimaryActorTick.bCanEverTick = true;
-}
-
-
-TArray<FContourData> AJsonReader::ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords)
+TArray<FContourData> UJsonReader::ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords)
 {
 	const FString jsonFilePath = inFilepath;
 	FString jsonString;
@@ -17,7 +11,7 @@ TArray<FContourData> AJsonReader::ReadContoursFromFile(FString inFilepath, FGeoC
 }
 
 
-TArray<FContourData> AJsonReader::ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords)
+TArray<FContourData> UJsonReader::ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords)
 {
 	TSharedPtr<FJsonObject>		jsonObject = MakeShareable(new FJsonObject());
 	TSharedRef<TJsonReader<>>	jsonReader = TJsonReaderFactory<>::Create(inJsonString);
@@ -32,7 +26,7 @@ TArray<FContourData> AJsonReader::ReadContoursFromString(FString inJsonString, F
 }
 
 
-TArray<FContourData> AJsonReader::ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords)
+TArray<FContourData> UJsonReader::ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords)
 {
 	GeoCoords = inGeoCoords;
 
@@ -43,7 +37,7 @@ TArray<FContourData> AJsonReader::ReadContoursFromJSON(TSharedPtr<FJsonObject> i
 }
 
 
-void AJsonReader::ParseJSON()
+void UJsonReader::ParseJSON()
 {
 	const FString jsonFilePath = FPaths::ProjectContentDir() + "Buildings Layer.geojson";
 	FString jsonString;
@@ -64,7 +58,7 @@ void AJsonReader::ParseJSON()
 }
 
 
-void AJsonReader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FContourData>& outContoursWithData)
+void UJsonReader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FContourData>& outContoursWithData)
 {
 	for (auto feature : inFeatureArray)
 	{
@@ -108,7 +102,7 @@ void AJsonReader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FCo
 }
 
 
-void AJsonReader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData)
+void UJsonReader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData)
 {
 	FContour contour;
 	auto coords = inGeometry[0]->AsArray();
@@ -144,7 +138,7 @@ void AJsonReader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& o
 }
 
 
-void AJsonReader::ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FContourData& inContourData)
+void UJsonReader::ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FContourData& inContourData)
 {
 	for (auto geom : inGeometry)
 	{
@@ -153,7 +147,7 @@ void AJsonReader::ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FContourDa
 }
 
 
-void AJsonReader::ParseRecursion(TMap<FString, JsonValuesPtr> inValues)
+void UJsonReader::ParseRecursion(TMap<FString, JsonValuesPtr> inValues)
 {
 	for (auto val : inValues)
 	{
@@ -187,7 +181,7 @@ void AJsonReader::ParseRecursion(TMap<FString, JsonValuesPtr> inValues)
 }
 
 
-void AJsonReader::ParseArray(TArray<JsonValuesPtr> inValues)
+void UJsonReader::ParseArray(TArray<JsonValuesPtr> inValues)
 {
 	for (auto val : inValues)
 	{
