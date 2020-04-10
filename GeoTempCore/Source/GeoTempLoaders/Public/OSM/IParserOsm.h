@@ -4,20 +4,19 @@
 
 #include "UObject/Interface.h"
 
-#include "ILoaderOsm.generated.h"
+#include "OsmReader.h"
 
-
-class UOsmReader;
+#include "IParserOsm.generated.h"
 
 
 UINTERFACE(BlueprintType)
-class GEOTEMPLOADERS_API ULoaderOsm : public UInterface
+class GEOTEMPLOADERS_API UParserOsm : public UInterface
 {
 	GENERATED_BODY()
 };
 
 
-class GEOTEMPLOADERS_API ILoaderOsm
+class GEOTEMPLOADERS_API IParserOsm
 {
 	GENERATED_BODY()
 

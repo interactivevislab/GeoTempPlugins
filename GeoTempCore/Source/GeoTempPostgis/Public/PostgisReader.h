@@ -20,7 +20,7 @@ enum class EStatus : uint8
 #pragma warning( disable : 4530)
 
 UCLASS(Config = Game, BlueprintType)
-class GEOTEMPPOSTGIS_API APostgisReader : public AActor
+class GEOTEMPPOSTGIS_API UPostGisReader : public UObject
 {
 	GENERATED_BODY()
 
@@ -72,6 +72,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	TArray<FWkbEntity> ExecuteRawQuery(FString inQuery, int inGeometryColumnIndex = 0);
+
+	TArray<FWkbEntity> RawQueryResult;
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	TMap<FString, FWkbEntity> ExecuteIndexedRawQuery(FString inQuery,
