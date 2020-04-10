@@ -9,7 +9,7 @@
 #include "Engine/StaticMesh.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "FoliageInfo.h"
-#include "PosgisData.h"
+#include "GeometryData.h"
 #include "CustomFoliageInstancer.generated.h"
 
 
@@ -98,6 +98,9 @@ public:
 		bool inUpdateMaskBuffer = false
 	);
 
+	UFUNCTION(BlueprintCallable)
+	void ClearFoliage_BP();
+
 	UFUNCTION()
 	void FillFoliageWithMeshes(
 		TArray<FFoliageMeshInfo> inInfos, 
@@ -124,10 +127,10 @@ public:
 	void GetDatesNearCurrent(FDateTime inCurrentTime);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseDates(TArray<FPosgisContourData> inContours);
+	void ParseDates(TArray<FContourData> inContours);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseTimeTags(FPosgisContourData inContour, TSet<int>& outDates);
+	void ParseTimeTags(FContourData inContour, TSet<int>& outDates);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void SortDatesByAscend(TSet<int> inDates);

@@ -31,6 +31,11 @@
       "LoadingPhase": "Default"
     },
     {
+      "Name": "GeoTempTiles",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
       "Name": "GeoTempFoliage",
       "Type": "Runtime",
       "LoadingPhase": "Default"
@@ -41,5 +46,13 @@
 			"Name": "GeoTempCore",
 			"Enabled": true
 		},
+		{
+			"Name": "RuntimeMeshComponent",
+			"Enabled": true
+		},
+		{
+			"Name": "ProceduralMeshComponent",
+			"Enabled": true
+		}
 	]
 }

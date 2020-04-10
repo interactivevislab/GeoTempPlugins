@@ -12,6 +12,6 @@ class POLYGONMASKSGENERATOR_API UZonesPolygonPreparer : public UBasePolygonPrepa
 {
 	GENERATED_BODY()
 	
-	void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPosgisContourData> inPolygonData,
+	void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FContourData> inPolygonData,
 		TMap<FString, FString> inTags) override;
 };

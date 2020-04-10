@@ -5,9 +5,9 @@
 #include "GameFramework/Actor.h"
 #include "Dom/JsonObject.h"
 
-#include "PosgisData.h"
+#include "GeometryData.h"
 
-#include "GeoJSONLoader.generated.h"
+#include "JsonReader.generated.h"
 
 
 UENUM(BlueprintType)
@@ -23,7 +23,7 @@ enum class EGeometryType : uint8
 
 
 UCLASS()
-class GEOTEMPJSON_API AJsonLoader : public AActor
+class GEOTEMPJSON_API AJsonReader : public AActor
 {
 	GENERATED_BODY()
 
@@ -40,19 +40,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FGeoCoords GeoCoords;
 
-	TArray<FPosgisContourData> GlobalContoursWithData;
+	TArray<FContourData> GlobalContoursWithData;
 
 	typedef TSharedPtr<FJsonValue> JsonValuesPtr;
 
-	AJsonLoader();
+	AJsonReader();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<FPosgisContourData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);
+	TArray<FContourData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<FPosgisContourData> ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords);
+	TArray<FContourData> ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords);
 
-	TArray<FPosgisContourData> ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords);
+	TArray<FContourData> ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords);
 
 	UFUNCTION(BlueprintCallable, CallInEditor)
 	void ParseJSON();
@@ -60,10 +60,10 @@ public:
 	void ParseRecursion(TMap<FString, JsonValuesPtr> inValues);
 	void ParseArray(TArray<JsonValuesPtr> inValues);
 
-	void ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FPosgisContourData>& outContoursWithData);
+	void ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FContourData>& outContoursWithData);
 
-	void ParsePolygon(TArray<JsonValuesPtr> inGeometry, FPosgisContourData& outContourData);
-	void ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FPosgisContourData& outContourData);
+	void ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData);
+	void ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData);
 
 	template <typename EnumType>
 	static FORCEINLINE EnumType GetEnumValueFromString(const FString& inEnumName, const FString& inString)

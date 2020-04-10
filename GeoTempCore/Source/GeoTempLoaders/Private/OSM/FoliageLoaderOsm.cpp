@@ -1,6 +1,6 @@
-#include "OSM/OsmFoliageLoader.h"
+#include "OSM/FoliageLoaderOsm.h"
 
-inline void FixFoliageContours(FPosgisContourData& polygon)
+inline void FixFoliageContours(FContourData& polygon)
 {
 	for (auto& cont : polygon.Outer)
 	{
@@ -16,15 +16,15 @@ inline void FixFoliageContours(FPosgisContourData& polygon)
 }
 
 
-void UOsmFoliageLoader::SetOsmReader_Implementation(UOsmReader* inOsmReader)
+void UFoliageLoaderOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 {
 	OsmReader = inOsmReader;
 }
 
 
-TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage()
+TArray<FContourData> UFoliageLoaderOsm::GetFoliage()
 {
-	TArray<FPosgisContourData> polygons;
+	TArray<FContourData> polygons;
 
 	polygons.Empty();
 	//find all building and building parts through ways
@@ -35,7 +35,7 @@ TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage()
 		auto FoliageIterLanduse = way->Tags.Find("landuse");
 		auto FoliageIterLeisure = way->Tags.Find("leisure");
 
-		FPosgisContourData polygon;
+		FContourData polygon;
 		//if this is building or part
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
 			||	FoliageIterLanduse && FoliageIterLanduse->Equals("forest")
@@ -64,10 +64,10 @@ TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage()
 
 	for (auto relationP : OsmReader->Relations)
 	{
-		auto relation = relationP.second;
+		OsmRelation* relation = relationP.second;
 		auto FoliageIterNatural = relation->Tags.Find("natural");
 		auto FoliageIterLanduse = relation->Tags.Find("landuse");
-		auto FoliageIterLeisure = relation->Tags.Find("leisure");
+		FString* FoliageIterLeisure = relation->Tags.Find("leisure");
 
 		//if this relation is building
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
@@ -75,10 +75,10 @@ TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage()
 			||	FoliageIterLeisure && (FoliageIterLeisure->Equals("park") || FoliageIterLeisure->Equals("garden"))
 			)
 		{
-			FPosgisContourData polygon;
+			FContourData polygon;
 
 			//now iterate over the ways in this relation
-			for (auto element : relation->WayRoles)
+			for (std::pair<long, std::string> element : relation->WayRoles)
 			{
 				auto way = relation->Ways[element.first];
 				if (!way)
@@ -87,7 +87,7 @@ TArray<FPosgisContourData> UOsmFoliageLoader::GetFoliage()
 				}
 
 				auto contour = FContour();
-				for (auto node : way->Nodes)
+				for (OsmNode* node : way->Nodes)
 				{
 					contour.Points.Add(node->Point);
 				}

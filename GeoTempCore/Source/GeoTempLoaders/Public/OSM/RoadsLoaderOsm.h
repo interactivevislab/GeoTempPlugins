@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 
-#include "IReaderOsm.h"
+#include "ILoaderOsm.h"
 #include "RoadsData.h"
 
 #include "RoadsLoaderOsm.generated.h"
@@ -12,7 +12,7 @@ class UOsmReader;
 
 
 UCLASS(Blueprintable)
-class GEOTEMPOSM_API URoadsLoaderOsm : public UObject, public IReaderOsm
+class GEOTEMPLOADERS_API URoadsLoaderOsm : public UObject, public ILoaderOsm
 {
 	GENERATED_BODY()
 
@@ -26,8 +26,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FRoadNetwork GetRoadNetwork();
-
-private:
-
-	static TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork);
 };

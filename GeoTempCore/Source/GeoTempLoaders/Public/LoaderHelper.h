@@ -1,3 +1,5 @@
+#pragma once
+
 #include "CoreMinimal.h"
 
 #include "RoadsData.h"
@@ -6,7 +8,7 @@
 
 
 UCLASS()
-class GEOTEMPCORE_API ULoaderHelper : public UObject
+class GEOTEMPLOADERS_API ULoaderHelper : public UObject
 {
 	GENERATED_BODY()
 

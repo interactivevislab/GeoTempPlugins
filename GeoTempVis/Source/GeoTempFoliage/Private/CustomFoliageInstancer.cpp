@@ -367,6 +367,20 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 }
 
 
+void UCustomFoliageInstancer::ClearFoliage_BP()
+{
+	AActor* owner = this->GetOwner();
+	for (auto& FoliageInstance : FoliageInstancers)
+	{
+		FoliageInstance.Value->ClearInstances();
+		FoliageInstance.Value->UnregisterComponent();
+		owner->RemoveInstanceComponent(FoliageInstance.Value);
+		FoliageInstance.Value->DestroyComponent();
+	}
+	FoliageInstancers.Empty();
+}
+
+
 void UCustomFoliageInstancer::UpdateFoliageMasksDates(FDateTime inCurrentTime, int& outRenderYearFirst, int& outRenderYearSecond, bool& outUpdateFirstTarget)
 {
 	if (polygonDates.Num()==0)
@@ -426,7 +440,7 @@ void UCustomFoliageInstancer::GetDatesNearCurrent(FDateTime inCurrentTime)
 }
 
 
-void UCustomFoliageInstancer::ParseDates(TArray<FPosgisContourData> inContours)
+void UCustomFoliageInstancer::ParseDates(TArray<FContourData> inContours)
 {
 	TSet<int> maskDates = TSet<int>();
 
@@ -438,7 +452,7 @@ void UCustomFoliageInstancer::ParseDates(TArray<FPosgisContourData> inContours)
 }
 
 
-void UCustomFoliageInstancer::ParseTimeTags(FPosgisContourData inContour, TSet<int>& outDates)
+void UCustomFoliageInstancer::ParseTimeTags(FContourData inContour, TSet<int>& outDates)
 {
 	int date	= inContour.Tags.Find("AppearStart")	? FCString::Atoi(**inContour.Tags.Find("AppearStart")		):0;
 	outDates.Add(date);
