@@ -20,5 +20,6 @@ public:
 
 private:
 
+	UPROPERTY()
 	UOsmReader* osmReader;
 };

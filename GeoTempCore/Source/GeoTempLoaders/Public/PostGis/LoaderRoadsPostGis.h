@@ -32,5 +32,6 @@ public:
 
 private:
 
+	UPROPERTY()
 	UPostGisReader* postGisReader;
 };
