@@ -29,12 +29,14 @@ struct FBuildingMeshData
 		int LastFreeIndex = 0;
 	TArray<FMeshSegmentData> Segments;
 
-	inline void Append(FBuildingMeshData otherData) {
+	inline void Append(FBuildingMeshData otherData)
+	{
 		LastFreeIndex = otherData.LastFreeIndex;
 		Segments.Append(otherData.Segments);
 	}
 
-	inline void Clear() {
+	inline void Clear()
+	{
 		LastFreeIndex = 0;
 		Segments.Empty();
 	}

@@ -3,7 +3,7 @@
 
 #include "igl/point_in_poly.h"
 
-inline bool CheckPointInContour(FContour inContour, FVector inPoint, bool& outLaysOn)
+bool CheckPointInContour(FContour inContour, FVector inPoint, bool& outLaysOn)
 {
 	outLaysOn = false;
 	std::vector<std::vector<UINT>> contourPoints;	
@@ -19,7 +19,7 @@ inline bool CheckPointInContour(FContour inContour, FVector inPoint, bool& outLa
 	return igl::point_in_poly(contourPoints, UINT(inPoint.X * 100), UINT(inPoint.Y * 100));
 }
 
-inline void FixPartContours(FBuildingPart& outPart)
+void FixPartContours(FBuildingPart& outPart)
 {	
 	for (auto& cont : outPart.OuterConts)
 	{
@@ -39,7 +39,7 @@ inline void FixPartContours(FBuildingPart& outPart)
 	}
 }
 
-USTRUCT()
+//USTRUCT()
 struct FOwnersData
 {
 	//FOwnersData()
@@ -410,7 +410,7 @@ TArray<FBuilding> UBuildingLoaderOsm::GetBuildings(UOsmReader* inSource)
 	return buildings;
 }
 
-inline const FString* FindBuildingTag(const TMap<FString, FString>& inTags, const FString& inTag, const FString& inTagPrefix = "building:")
+const FString* FindBuildingTag(const TMap<FString, FString>& inTags, const FString& inTag, const FString& inTagPrefix = "building:")
 {
 	auto tag = inTags.Find(inTagPrefix + inTag);
 	if (!tag)
