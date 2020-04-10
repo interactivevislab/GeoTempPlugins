@@ -77,7 +77,7 @@ public:
 	
 	bool tickEnabled = false;
 
-	void BeginPlay();
+	void BeginPlay() override;
 	
 	void TickComponent(float DeltaTime,enum ELevelTick TickType,FActorComponentTickFunction * ThisTickFunction) override;
 
@@ -91,7 +91,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "Tiles")
-		void CreateMeshAroundPoint(int z, int x0, int y0);
+	void CreateMeshAroundPoint(int z, int x0, int y0);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
 	UMaterialInterface* TileMaterial;	
@@ -130,7 +130,7 @@ public:
 	int BaseLevelSize = 8;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
-		int MaxLevel = 18;
+	int MaxLevel = 18;
 
 	UFUNCTION(BlueprintCallable, Category = "Math")
 	void GetMercatorXYFromOffset(FVector offsetValue, int z, int& x, int& y);
@@ -178,12 +178,17 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 	FTileTextureMeta TextureMeta;
+
+	UPROPERTY()
 	UAsyncTaskDownloadImage* _loader;
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void StartDownloadingTile(FTileTextureMeta meta, FString url);
 
+	UPROPERTY()
 	UTileTextureContainer* TileContainer;
+
+	UPROPERTY()
 	UMaterialInstanceDynamic* material;
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
@@ -202,10 +207,10 @@ public:
 	UTileTextureContainer* Container;
 
 	UPROPERTY()
-		bool IsActive;
+	bool IsActive;
 
 	UPROPERTY()
-		bool IsLoaded;
+	bool IsLoaded;
 	
 	UPROPERTY()
 	FDateTime lastAcessTime;
@@ -222,15 +227,11 @@ class UTileTextureContainer : public UObject
 {
 	GENERATED_BODY()
 
-	
-
-	
-
 	UPROPERTY()
 	TMap<FTileTextureMeta, UTextureDownloader*> loadingImages;
 public:
 	UPROPERTY()
-		TMap< FTileTextureMeta, UTileInfo*> CachedTiles;	
+	TMap< FTileTextureMeta, UTileInfo*> CachedTiles;	
 	
 	UPROPERTY()
 	FString UrlString = TEXT("http://a.tile.openstreetmap.org/{0}/{1}/{2}.png");

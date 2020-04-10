@@ -8,7 +8,7 @@
 #include "LoaderBuildingsOsm.generated.h"
 
 
-UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
+UCLASS(Blueprintable)
 class GEOTEMPLOADERS_API ULoaderBuildingsOsm : public UObject, public IParserOsm, public IProviderBuildings
 {
 	GENERATED_BODY()

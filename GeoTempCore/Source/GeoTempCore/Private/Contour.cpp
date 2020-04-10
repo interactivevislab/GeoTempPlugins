@@ -229,13 +229,13 @@ FContour FContour::MakeConvex(FContour inContour)
 }
 
 
-inline FContour FContour::RemoveCollinear(float inThreshold) const
+FContour FContour::RemoveCollinear(float inThreshold) const
 {
 	return RemoveCollinear(*this, inThreshold);
 }
 
 
-inline FContour FContour::MakeConvex() const
+FContour FContour::MakeConvex() const
 {
 	return MakeConvex(*this);
 }
