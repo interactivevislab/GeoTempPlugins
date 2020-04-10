@@ -1,12 +1,12 @@
-#include "Osm/RoadsLoaderOsm.h"
+#include "Osm/LoaderRoadsOsm.h"
 
 #include "OsmData.h"
 #include "LoaderHelper.h"
 
 
-void URoadsLoaderOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
+void ULoaderRoadsOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 {
-	OsmReader = inOsmReader;
+	osmReader = inOsmReader;
 }
 
 
@@ -31,10 +31,10 @@ TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork)
 }
 
 
-FRoadNetwork URoadsLoaderOsm::GetRoadNetwork()
+FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 {
 	TMap<int, FOsmRoadSegment> segments;
-	for (auto wayData : OsmReader->Ways)
+	for (auto wayData : osmReader->Ways)
 	{
 		OsmWay* way = wayData.second;
 		if (way->Tags.Contains("highway"))

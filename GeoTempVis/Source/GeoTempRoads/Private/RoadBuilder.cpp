@@ -1,6 +1,6 @@
 #include "RoadBuilder.h"
 
-#include "RuntimeMeshActor.h"
+#include "RoadNetworkActor.h"
 
 
 #define LIST_4_TIMES(something) something, something, something, something
@@ -242,7 +242,7 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "RoadNetworkActor";
-	auto roadNetworkActor = GetWorld()->SpawnActor<ARuntimeMeshActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+	auto roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 	auto runtimeMesh = roadNetworkActor->GetRuntimeMeshComponent();
 
 	MeshSectionData curtainsMeshData;

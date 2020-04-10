@@ -5,7 +5,7 @@
 #endif
 
 
-void APostgisReader::CheckConnectionStatus(float inDeltaTime)
+void UPostGisReader::CheckConnectionStatus(float inDeltaTime)
 {
 #if NOPOSTGRES
 	throw "Postgresql was not installed on build pc";
@@ -86,11 +86,11 @@ void APostgisReader::CheckConnectionStatus(float inDeltaTime)
 }
 
 
-TArray<FWkbEntity> APostgisReader::ExecuteRawQuery(FString inQuery, int inGeometryColumnIndex)
+TArray<FWkbEntity> UPostGisReader::ExecuteRawQuery(FString inQuery, int inGeometryColumnIndex)
 {
+	RawQueryResult = TArray<FWkbEntity>();
 #if NOPOSTGRES
 		throw "Postgresql is not installed on build pc";
-		return TArray<FWkbEntity>();
 #else
 
 	CheckConnectionStatus(0);
@@ -122,7 +122,6 @@ TArray<FWkbEntity> APostgisReader::ExecuteRawQuery(FString inQuery, int inGeomet
 		return TArray<FWkbEntity>();
 	}
 
-	TArray<FWkbEntity> ret;
 	int count = PQntuples(result);
 	int fc = PQnfields(result);
 	for (int i = 0; i < count; i++)
@@ -148,7 +147,7 @@ TArray<FWkbEntity> APostgisReader::ExecuteRawQuery(FString inQuery, int inGeomet
 				}
 				retValue.Tags.Add(FString(PQfname(result, j)), FString(UTF8_TO_TCHAR(PQgetvalue(result, i, j))));
 			}
-			ret.Add(retValue);
+			RawQueryResult.Add(retValue);
 		}
 		catch (FString e)
 		{
@@ -156,12 +155,12 @@ TArray<FWkbEntity> APostgisReader::ExecuteRawQuery(FString inQuery, int inGeomet
 		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Query sucessfully executed, returned %i elements"), count);
-	return ret;
+	return RawQueryResult;
 #endif
 }
 
 
-TMap<FString, FWkbEntity> APostgisReader::ExecuteIndexedRawQuery(FString inQuery,
+TMap<FString, FWkbEntity> UPostGisReader::ExecuteIndexedRawQuery(FString inQuery,
 	int inKeyColumnIndex, int inGeometryColumnIndex)
 {
 #if NOPOSTGRES
@@ -242,7 +241,7 @@ TMap<FString, FWkbEntity> APostgisReader::ExecuteIndexedRawQuery(FString inQuery
 }
 
 
-void APostgisReader::InitConnect(bool& outSuccess)
+void UPostGisReader::InitConnect(bool& outSuccess)
 {
 #if NOPOSTGRES
 	throw "Postgresql is not installed on build pc";
@@ -271,20 +270,20 @@ void APostgisReader::InitConnect(bool& outSuccess)
 }
 
 
-void APostgisReader::LoadConfiguration()
+void UPostGisReader::LoadConfiguration()
 {
 	LoadConfig();
 	ReloadConfig();
 }
 
 
-void APostgisReader::SaveConfiguration()
+void UPostGisReader::SaveConfiguration()
 {
 	SaveConfig();
 }
 
 
-FContourData APostgisReader::CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords)
+FContourData UPostGisReader::CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords)
 {	
 	auto byteCount = inEntity.Geometry.Num();
 	auto c = inEntity.Geometry.GetData();
@@ -370,7 +369,7 @@ FContourData APostgisReader::CreateContourFromBinary(FWkbEntity inEntity, FGeoCo
 }
 
 
-FLinesData APostgisReader::CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords)
+FLinesData UPostGisReader::CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords)
 {
 	FLinesData ret;	
 	auto byteCount = inEntity.Geometry.Num();
