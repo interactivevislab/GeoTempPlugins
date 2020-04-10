@@ -239,13 +239,13 @@ const double UGeoHelpers::EARTH_RADIUS = 6378137;
 const double UGeoHelpers::SCALE_MULT = 100;
 
 
-inline double UGeoHelpers::DegreesToRadians(double inAngle)
+double UGeoHelpers::DegreesToRadians(double inAngle)
 {
 	return inAngle * PI / 180;
 }
 
 
-inline double UGeoHelpers::RadiansToDegrees(double inAngle)
+double UGeoHelpers::RadiansToDegrees(double inAngle)
 {
 	return inAngle * 180 / PI;
 }

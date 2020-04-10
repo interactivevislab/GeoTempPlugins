@@ -1,4 +1,4 @@
-#include "PostgisLoader.h"
+#include "PostgisReader.h"
 
 #if !NOPOSTGRES
 #include "libpq-fe.h"
@@ -86,18 +86,18 @@ void APostgisReader::CheckConnectionStatus(float inDeltaTime)
 }
 
 
-TArray<FPostGisBinaryEntity> APostgisReader::ExecuteRawQuery(FString inQuery, int inGeometryColumnIndex)
+TArray<FWkbEntity> APostgisReader::ExecuteRawQuery(FString inQuery, int inGeometryColumnIndex)
 {
 #if NOPOSTGRES
 		throw "Postgresql is not installed on build pc";
-		return TArray<FPostGisBinaryEntity>();
+		return TArray<FWkbEntity>();
 #else
 
 	CheckConnectionStatus(0);
 	if (Status != EStatus::Connected || conn == nullptr)
 	{
 		Error = TEXT("Attempt to use database before connection estabilished");
-		return TArray<FPostGisBinaryEntity>();
+		return TArray<FWkbEntity>();
 	}
 
 	PGresult* result;
@@ -111,7 +111,7 @@ TArray<FPostGisBinaryEntity> APostgisReader::ExecuteRawQuery(FString inQuery, in
 			FString e = FString(PQresultErrorMessage(result));
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *e);
 			Error = e;
-			return TArray<FPostGisBinaryEntity>();
+			return TArray<FWkbEntity>();
 		}
 	}
 	else
@@ -119,17 +119,17 @@ TArray<FPostGisBinaryEntity> APostgisReader::ExecuteRawQuery(FString inQuery, in
 		FString e = FString(PQerrorMessage(conn));
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *e);
 		Error = e;
-		return TArray<FPostGisBinaryEntity>();
+		return TArray<FWkbEntity>();
 	}
 
-	TArray<FPostGisBinaryEntity> ret;
+	TArray<FWkbEntity> ret;
 	int count = PQntuples(result);
 	int fc = PQnfields(result);
 	for (int i = 0; i < count; i++)
 	{
 		try
 		{
-			FPostGisBinaryEntity retValue;
+			FWkbEntity retValue;
 			if (inGeometryColumnIndex >= 0)
 			{
 				auto byteCount = PQgetlength(result, i, inGeometryColumnIndex);
@@ -161,19 +161,19 @@ TArray<FPostGisBinaryEntity> APostgisReader::ExecuteRawQuery(FString inQuery, in
 }
 
 
-TMap<FString, FPostGisBinaryEntity> APostgisReader::ExecuteIndexedRawQuery(FString inQuery, 
+TMap<FString, FWkbEntity> APostgisReader::ExecuteIndexedRawQuery(FString inQuery,
 	int inKeyColumnIndex, int inGeometryColumnIndex)
 {
 #if NOPOSTGRES
 	throw "Postgresql is not installed on build pc";
-	return TMap<FString, FPostGisBinaryEntity>();
+	return TMap<FString, FWkbEntity>();
 #else
 
 	CheckConnectionStatus(0);
 	if (Status != EStatus::Connected || conn == nullptr)
 	{
 		Error = TEXT("Attempt to use database before connection estabilished");
-		return TMap<FString, FPostGisBinaryEntity>();
+		return TMap<FString, FWkbEntity>();
 	}
 
 	PGresult* result;
@@ -187,7 +187,7 @@ TMap<FString, FPostGisBinaryEntity> APostgisReader::ExecuteIndexedRawQuery(FStri
 			FString e = FString(PQresultErrorMessage(result));
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *e);
 			Error = e;
-			return TMap<FString, FPostGisBinaryEntity>();
+			return TMap<FString, FWkbEntity>();
 		}
 	}
 	else
@@ -195,17 +195,17 @@ TMap<FString, FPostGisBinaryEntity> APostgisReader::ExecuteIndexedRawQuery(FStri
 		FString e = FString(PQerrorMessage(conn));
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *e);
 		Error = e;
-		return TMap<FString, FPostGisBinaryEntity>();
+		return TMap<FString, FWkbEntity>();
 	}
 
-	TMap<FString, FPostGisBinaryEntity> ret;
+	TMap<FString, FWkbEntity> ret;
 	int count = PQntuples(result);
 	int fc = PQnfields(result);
 	for (int i = 0; i < count; i++)
 	{
 		try
 		{
-			FPostGisBinaryEntity retValue;
+			FWkbEntity retValue;
 			if (inGeometryColumnIndex >= 0)
 			{
 				auto byteCount = PQgetlength(result, i, inGeometryColumnIndex);
@@ -284,11 +284,11 @@ void APostgisReader::SaveConfiguration()
 }
 
 
-FPosgisContourData APostgisReader::CreateContourFromBinary(FPostGisBinaryEntity inEntity, FGeoCoords inGeoCoords)
+FContourData APostgisReader::CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords)
 {	
 	auto byteCount = inEntity.Geometry.Num();
 	auto c = inEntity.Geometry.GetData();
-	FPosgisContourData contour;
+	FContourData contour;
 	contour.ZeroLat = inGeoCoords.ZeroLat;
 	contour.ZeroLon = inGeoCoords.ZeroLon;
 	auto typeVal = ((uint32*)c)[0];
@@ -306,7 +306,7 @@ FPosgisContourData APostgisReader::CreateContourFromBinary(FPostGisBinaryEntity 
 		case 1:
 		{
 			//point
-			FVector* point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
+			FVector point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
 		}
 		break;
 
@@ -332,7 +332,7 @@ FPosgisContourData APostgisReader::CreateContourFromBinary(FPostGisBinaryEntity 
 			offset += 4;
 			for (uint32 pi = 0; pi < pcount; pi++)
 			{
-				FVector* point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
+				FVector point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
 			}
 		}
 		break;
@@ -370,12 +370,12 @@ FPosgisContourData APostgisReader::CreateContourFromBinary(FPostGisBinaryEntity 
 }
 
 
-FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity inEntity, FGeoCoords inGeoCoords)
+FLinesData APostgisReader::CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords)
 {
-	FPosgisLinesData ret;	
+	FLinesData ret;	
 	auto byteCount = inEntity.Geometry.Num();
 	auto c = inEntity.Geometry.GetData();
-	FPosgisContourData contour;
+	FContourData contour;
 	contour.ZeroLat = inGeoCoords.ZeroLat;
 	contour.ZeroLon = inGeoCoords.ZeroLon;
 	auto typeVal = ((uint32*)c)[0];
@@ -393,7 +393,7 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity inE
 		case 1:
 		{
 			//point
-			FVector* point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
+			FVector point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
 		}
 		break;
 
@@ -409,11 +409,11 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity inE
 		{
 			//polygon
 			auto contData = contour.BinaryParsePolygon(c, offset, inGeoCoords, false, height);
-			for (auto cont : contData->Outer)
+			for (auto cont : contData.Outer)
 			{
 				ret.Lines.Add(cont);
 			}
-			for (auto cont : contData->Holes)
+			for (auto cont : contData.Holes)
 			{
 				ret.Lines.Add(cont);
 			}
@@ -427,7 +427,7 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity inE
 			offset += 4;
 			for (uint32 pi = 0; pi < pcount; pi++)
 			{
-				FVector* point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
+				FVector point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
 			}
 		}
 		break;
@@ -455,11 +455,11 @@ FPosgisLinesData APostgisReader::CreateCurvesFromBinary(FPostGisBinaryEntity inE
 			for (uint32 pi = 0; pi < polyCount; pi++)
 			{
 				auto poly = contour.BinaryParsePolygon(c, offset, inGeoCoords, true, height);
-				for (auto cont : poly->Outer)
+				for (auto cont : poly.Outer)
 				{
 					ret.Lines.Add(FContour(cont));
 				}
-				for (auto cont : poly->Holes)
+				for (auto cont : poly.Holes)
 				{
 					ret.Lines.Add(FContour(cont));
 				}

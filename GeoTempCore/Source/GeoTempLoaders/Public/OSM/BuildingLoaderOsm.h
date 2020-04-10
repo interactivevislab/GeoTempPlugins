@@ -3,11 +3,12 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 
-#include "OSMLoader.h"
-#include "OSMBuildingLoader.generated.h"
+#include "OsmReader.h"
+#include "BuildingLoaderOsm.generated.h"
+
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class UOsmBuildingLoader : public UObject
+class GEOTEMPLOADERS_API UBuildingLoaderOsm : public UObject
 {
 	GENERATED_BODY()
 private:	
@@ -22,6 +23,7 @@ public:
 	static FString HEIGHT_TAG_STRING;
 	static FString MIN_FLOORS_TAG_STRING;
 	static FString MIN_HEIGHT_TAG_STRING;
+	static FString COLOR_TAG_STRING;
 	
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	TArray<FBuilding> GetBuildings(UOsmReader* inSource);

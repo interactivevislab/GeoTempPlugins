@@ -1,23 +1,24 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
-using System.IO;
 
-public class GeoTempLoaders : ModuleRules
+public class GeoTempTiles : ModuleRules
 {
-    public GeoTempLoaders(ReadOnlyTargetRules Target) : base(Target)
+	public GeoTempTiles(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		PublicDependencyModuleNames.AddRange(new string[] { "GeoTempCore", "GeoTempOsm", "GeoTempPostGis" });
-		PrivateDependencyModuleNames.AddRange(new string[] { "GeoTempCore", "GeoTempOsm", "GeoTempPostGis" });
+		
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
 			}
 			);
-				
-		
-		PrivateIncludePaths.AddRange(
+        PrivateDependencyModuleNames.AddRange(new string[] { 
+            "ProceduralMeshComponent", "Json", "GeoTempCore", "UMG",
+            "RenderCore", "RHI", "RuntimeMeshComponent"
+        });
+
+        PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...
 			}

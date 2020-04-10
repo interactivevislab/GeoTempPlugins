@@ -1,7 +1,7 @@
 #include "BasePolygonPreparer.h"
 
 
-void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FPosgisContourData> inPolygonData,
+void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FContourData> inPolygonData,
 	TMap<FString, FString> inTags)
 {
 	if (inPolygonData.Num() == 0)

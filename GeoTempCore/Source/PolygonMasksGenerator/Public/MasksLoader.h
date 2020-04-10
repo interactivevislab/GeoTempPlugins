@@ -5,7 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
 
-#include "PosgisData.h"
+#include "GeometryData.h"
 #include "MasksShaderDeclaration.h"
 
 #include "MasksLoader.generated.h"
@@ -40,7 +40,7 @@ public:
 	TArray<uint32> Triangles;
 
 	UPROPERTY()
-	TArray<FPosgisContourData> Polygons;
+	TArray<FContourData> Polygons;
 
 	UMaskLoader();
 	~UMaskLoader();
