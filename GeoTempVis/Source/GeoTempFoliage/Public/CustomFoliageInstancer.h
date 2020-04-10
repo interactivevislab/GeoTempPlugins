@@ -103,22 +103,16 @@ public:
 
 	UFUNCTION()
 	void FillFoliageWithMeshes(
-		TArray<FFoliageMeshInfo> inInfos, 
-		TArray<UHierarchicalInstancedStaticMeshComponent*> inInstancers, 
+		TArray<FFoliageMeshInfo>& inInfos, 
+		TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers, 
 		bool inUpdateMaskBuffer = false
 	);
-	
-	UFUNCTION(CallInEditor, Category = "Default")
-	void BufferMask(UTexture2D* inInitialMask);
 	
 	UFUNCTION(BlueprintCallable)
 	void InterpolateFoliageWithMaterial();
 	
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void UpdateBuffer();
-	
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	FColor GetRenderTargetValue(float inX, float inY);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void UpdateFoliageMasksDates(FDateTime inCurrentTime, int& outRenderYearFirst, int& outRenderYearSecond, bool& outUpdateFirstTarget);
@@ -127,13 +121,13 @@ public:
 	void GetDatesNearCurrent(FDateTime inCurrentTime);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseDates(TArray<FContourData> inContours);
+	void ParseDates(TArray<FContourData>& inContours);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void ParseTimeTags(FContourData inContour, TSet<int>& outDates);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void SortDatesByAscend(TSet<int> inDates);
+	void SortDatesByAscend(TSet<int>& inDates);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void FillFoliage_BP_Test(float inComponentRect, UStaticMesh* inMesh, UHierarchicalInstancedStaticMeshComponent* outComponent);

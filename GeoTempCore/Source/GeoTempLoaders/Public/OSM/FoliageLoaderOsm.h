@@ -15,10 +15,8 @@ class UFoliageLoaderOsm : public UObject, public ILoaderOsm
 
 public:
 	UPROPERTY()
-		UOsmReader* OsmReader;
+	UOsmReader* OsmReader;
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void SetOsmReader(UOsmReader* inOsmReader);
 	virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)

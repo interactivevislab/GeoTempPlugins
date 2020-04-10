@@ -46,33 +46,6 @@ void UCustomFoliageInstancer::BeginPlay()
 }
 
 
-void UCustomFoliageInstancer::BufferMask(UTexture2D* inInitialMask)
-{
-	maskBuffer.Empty();
-	inInitialMask->UpdateResource();
-	TArray<FColor> OutData;
-
-	ENQUEUE_RENDER_COMMAND(FPixelShaderRunner)([&](FRHICommandListImmediate& RHICmdList)
-	{
-		auto texture	= ((FTexture2DResource*)inInitialMask->Resource)->GetTexture2DRHI();
-		auto rect		= FIntRect(0, 0, inInitialMask->Resource->GetSizeX(), inInitialMask->Resource->GetSizeY());
-
-		RHICmdList.ReadSurfaceData(texture, rect, OutData, FReadSurfaceDataFlags());
-	});
-	FlushRenderingCommands();
-	auto maskSizeX = inInitialMask->PlatformData->Mips[0].SizeX;
-	auto maskSizeY = inInitialMask->PlatformData->Mips[0].SizeY;
-	for (int x = 0; x < maskSizeY; x++)
-	{
-		for (int y = 0; y < maskSizeX; y++)
-		{
-			int pixelIndex = x * inInitialMask->GetSizeX() + y;
-			maskBuffer.Add(static_cast<float>(OutData[pixelIndex].R) / 255);
-		}
-	}
-}
-
-
 void UCustomFoliageInstancer::InterpolateFoliageWithMaterial()
 {
 	for (FFoliageMeshInfo Info : FoliageMeshes)
@@ -171,7 +144,8 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 			{
 				meshInfo.MaterialInstances.Add(x, Cast<UMaterialInstanceDynamic>(material));
 			}
-			else {
+			else
+			{
 				auto materialName		= FName(*(*TEXT("NewInstancedMaterial") + "_" + FString::FromInt(x)));
 				auto dynamicMaterial	= UMaterialInstanceDynamic::Create(material, meshInfo.Mesh, materialName);
 
@@ -195,7 +169,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 			}
 			else
 			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", InitialTarget);
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", InitialTarget	);
 			}
 
 			if (IsValid(TypesTarget))
@@ -204,7 +178,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 			}
 			else
 			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", InitialTarget);
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", InitialTarget	);
 			}
 		}
 		auto meshPtr = FoliageInstancers.Find(meshInfo.Mesh);
@@ -274,8 +248,8 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 
 
 void UCustomFoliageInstancer::FillFoliageWithMeshes(
-	TArray<FFoliageMeshInfo> inInfos, 
-	TArray<UHierarchicalInstancedStaticMeshComponent*> inInstancers, 
+	TArray<FFoliageMeshInfo>& inInfos, 
+	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers, 
 	bool inUpdateMaskBuffer)
 {
 	float cellX				= 0;
@@ -440,7 +414,7 @@ void UCustomFoliageInstancer::GetDatesNearCurrent(FDateTime inCurrentTime)
 }
 
 
-void UCustomFoliageInstancer::ParseDates(TArray<FContourData> inContours)
+void UCustomFoliageInstancer::ParseDates(TArray<FContourData>& inContours)
 {
 	TSet<int> maskDates = TSet<int>();
 
@@ -461,7 +435,7 @@ void UCustomFoliageInstancer::ParseTimeTags(FContourData inContour, TSet<int>& o
 }
 
 
-void UCustomFoliageInstancer::SortDatesByAscend(TSet<int> inDates)
+void UCustomFoliageInstancer::SortDatesByAscend(TSet<int>& inDates)
 {
 	int minDate = 0;
 	auto datesArray = inDates.Array();
@@ -488,40 +462,6 @@ void UCustomFoliageInstancer::UpdateBuffer()
 	if (InitialTarget != NULL)
 	{
 		FTextureRenderTarget2DResource* textureResource = (FTextureRenderTarget2DResource*)InitialTarget->Resource;
-		if (textureResource->ReadPixels(colorBuffer))
-		{
-		}
+		textureResource->ReadPixels(colorBuffer);
 	}
-}
-
-
-FColor UCustomFoliageInstancer::GetRenderTargetValue(float inX, float inY)
-{
-	float size = 10000;
-
-	if (InitialTarget == NULL || colorBuffer.Num() == 0)
-	{
-		return FColor(0);
-	}
-
-	float width		= InitialTarget->GetSurfaceWidth();
-	float height	= InitialTarget->GetSurfaceHeight();
-
-	//Conver coordinates to texture space
-	float normalizedX = (inX / size) + 0.5f;
-	float normalizedY = (inY / size) + 0.5f;
-
-	int i = (int)(normalizedX * width);
-	int j = (int)(normalizedY * height);
-
-	if (i < 0) i = 0;
-	if (i >= width) i = width - 1;
-	if (j < 0) j = 0;
-	if (j >= height) j = height - 1;
-
-	int index = i + j * width;
-	if (index < 0) index = 0;
-	if (index >= colorBuffer.Num()) index = colorBuffer.Num();
-
-	return colorBuffer[index];
 }

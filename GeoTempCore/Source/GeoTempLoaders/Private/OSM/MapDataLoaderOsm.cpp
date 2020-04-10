@@ -38,7 +38,7 @@ void UMapDataLoaderOsm::InitLoaders(bool inForceInit)
 	if (!FoliageLoader || inForceInit)
 	{
 		FoliageLoader = NewObject<UFoliageLoaderOsm>();
-		FoliageLoader->SetOsmReader(OsmReader);
+		FoliageLoader->Execute_SetOsmReader(FoliageLoader,OsmReader);
 	}
 }
 
