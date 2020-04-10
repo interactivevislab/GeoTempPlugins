@@ -1,4 +1,4 @@
-#include "OSM/FoliageLoaderOsm.h"
+#include "OSM/LoaderFoliageOsm.h"
 
 inline void FixFoliageContours(FContourData& polygon)
 {
@@ -16,19 +16,19 @@ inline void FixFoliageContours(FContourData& polygon)
 }
 
 
-void UFoliageLoaderOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
+void ULoaderFoliageOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 {
-	OsmReader = inOsmReader;
+	osmReader = inOsmReader;
 }
 
 
-TArray<FContourData> UFoliageLoaderOsm::GetFoliage()
+TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 {
 	TArray<FContourData> polygons;
 
 	polygons.Empty();
 	//find all building and building parts through ways
-	for (auto wayP : OsmReader->Ways)
+	for (auto wayP : osmReader->Ways)
 	{
 		auto way = wayP.second;
 		auto FoliageIterNatural = way->Tags.Find("natural");
@@ -55,14 +55,14 @@ TArray<FContourData> UFoliageLoaderOsm::GetFoliage()
 			polygon.Outer.Add(cont);
 
 			polygon.Tags = way->Tags;
-			polygon.ZeroLat = OsmReader->GeoCoords.ZeroLat;
-			polygon.ZeroLon = OsmReader->GeoCoords.ZeroLon;
+			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
+			polygon.ZeroLon = osmReader->GeoCoords.ZeroLon;
 
 			polygons.Add(polygon);
 		}
 	}
 
-	for (auto relationP : OsmReader->Relations)
+	for (auto relationP : osmReader->Relations)
 	{
 		OsmRelation* relation = relationP.second;
 		auto FoliageIterNatural = relation->Tags.Find("natural");
@@ -106,8 +106,8 @@ TArray<FContourData> UFoliageLoaderOsm::GetFoliage()
 
 
 			polygon.Tags = relation->Tags;
-			polygon.ZeroLat = OsmReader->GeoCoords.ZeroLat;
-			polygon.ZeroLon = OsmReader->GeoCoords.ZeroLon;
+			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
+			polygon.ZeroLon = osmReader->GeoCoords.ZeroLon;
 
 			polygons.Add(polygon);
 		}

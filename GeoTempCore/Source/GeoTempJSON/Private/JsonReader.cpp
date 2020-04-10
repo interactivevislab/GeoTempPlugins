@@ -1,12 +1,6 @@
 #include "JsonReader.h"
 
 
-UJsonReader::UJsonReader()
-{
-	//PrimaryActorTick.bCanEverTick = true;
-}
-
-
 TArray<FContourData> UJsonReader::ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords)
 {
 	const FString jsonFilePath = inFilepath;

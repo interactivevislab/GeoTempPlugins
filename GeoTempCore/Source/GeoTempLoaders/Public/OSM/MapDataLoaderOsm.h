@@ -14,9 +14,9 @@
 
 class UOsmReader;
 class UOsmManager;
-class UBuildingLoaderOsm;
-class URoadsLoaderOsm;
-class UFoliageLoaderOsm;
+class ULoaderBuildingsOsm;
+class ULoaderRoadsOsm;
+class ULoaderFoliageOsm;
 class UHttpRequest;
 
 
@@ -35,13 +35,13 @@ public:
 	FGeoCoords GeoCoords;
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
-	UBuildingLoaderOsm* BuildingsLoader;
+	ULoaderBuildingsOsm* BuildingsLoader;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
-	URoadsLoaderOsm* RoadsLoader;
+	ULoaderRoadsOsm* RoadsLoader;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
-	UFoliageLoaderOsm* FoliageLoader;
+	ULoaderFoliageOsm* FoliageLoader;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
 	UOsmReader* OsmReader;
