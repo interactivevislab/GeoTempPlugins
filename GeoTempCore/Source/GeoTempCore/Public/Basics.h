@@ -61,8 +61,8 @@ public:
 	static const double EARTH_RADIUS;
 	static const double SCALE_MULT;
 
-	inline static double DegreesToRadians(double inAngle);
-	inline static double RadiansToDegrees(double inAngle);
+	static double DegreesToRadians(double inAngle);
+	static double RadiansToDegrees(double inAngle);
 
 	static FVector GetLocalCoordinates(double inX, double inY, double inZ, FGeoCoords inGeoCoords);
 
