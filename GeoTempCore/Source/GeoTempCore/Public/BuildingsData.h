@@ -51,6 +51,10 @@ struct GEOTEMPCORE_API FBuildingPart
 	TArray<FContour> InnerConts;
 	TArray<FContour> RoofData;
 
+	TMap<FString, FString> Tags;
+
+	FLinearColor Color;
+
 	FBuildingPart();
 	
 	FBuildingPart(const long inId);

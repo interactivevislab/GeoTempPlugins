@@ -9,7 +9,8 @@
 UTilesController::UTilesController(const FObjectInitializer& ObjectInitializer) : URuntimeMeshComponent(ObjectInitializer)
 {	
 	PrimaryComponentTick.bCanEverTick = true;
-	/*if (!mesh) {
+	/*if (!mesh)
+	{
 		root= CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("Tiles mesh"), true);
 	}*/
 }
@@ -46,7 +47,8 @@ void UTilesController::TickComponent(float DeltaTime, enum ELevelTick TickType, 
 		
 		if (tile.Key.Z == BaseLevel && FMath::Abs(x - x0) > BaseLevelSize || FMath::Abs(y - y0) > BaseLevelSize)
 		{
-			if (TileLoader->IsTextureLoaded(tile.Key)) {
+			if (TileLoader->IsTextureLoaded(tile.Key))
+			{
 				
 				pendingDelete.Add(tile.Key);
 			}
@@ -88,29 +90,22 @@ void UTilesController::TickComponent(float DeltaTime, enum ELevelTick TickType, 
 			for (int i = 0; i < 4; i++)
 			{
 				auto meta1 = FTileTextureMeta{ x + i % 2, y + i / 2, meta.Z };
-				if (!TileIndecies.Contains(meta1)) {										
+				if (!TileIndecies.Contains(meta1)) 
+				{
 					flag = true;
 				}
 			}
-			if (!flag) {
+			if (!flag)
+			{
 				CreateTileMesh(parentMeta);
 				SplitTiles.Remove(parentMeta);
 				for (int i = 0; i < 4; i++)
 				{
 					auto meta1 = FTileTextureMeta{ x + i % 2, y + i / 2, meta.Z };
-					ClearTileMesh(meta1);					
+					ClearTileMesh(meta1);
 				}
 			}
-
-			
-			
 		}
-		
-	}
-	for(auto meta : pendingDelete)
-	{
-		if (!TileIndecies.Contains(meta)) continue;		
-			
 	}
 }
 
@@ -118,7 +113,8 @@ float UTilesController::GetPixelSize(FTileTextureMeta meta)
 {
 	auto pos = GetXYOffsetFromMercatorOffset(meta.Z, meta.X, meta.Y) + GetOwner()->GetActorLocation();
 	auto controller =  GEngine->GetFirstLocalPlayerController(GetWorld());
-	if (controller) {
+	if (controller)
+	{
 		auto manager = controller->PlayerCameraManager;
 		float dist = (pos - manager->GetCameraLocation()).Size();
 		float tan = FMath::Tan(manager->GetCameraCachePOV().DesiredFOV * PI / 180 / 2);
@@ -165,7 +161,8 @@ void UTilesController::CreateMeshAroundPoint(int z, int x0, int y0)
 	{
 		for (int y = 0; y < BaseLevelSize; y++)
 		{
-			if (!SplitTiles.Contains(FTileTextureMeta{ x + x0 - BaseLevelSize / 2, y + y0 - BaseLevelSize / 2, z })) {
+			if (!SplitTiles.Contains(FTileTextureMeta{ x + x0 - BaseLevelSize / 2, y + y0 - BaseLevelSize / 2, z }))
+			{
 				CreateTileMesh(x + x0 - BaseLevelSize / 2, y + y0 - BaseLevelSize / 2, z);
 			}
 		}
@@ -211,7 +208,8 @@ int UTilesController::CreateTileMesh(int x, int y, int z)
 
 int UTilesController::CreateTileMesh(FTileTextureMeta meta)
 {	
-	if (TileIndecies.Contains(meta)) {
+	if (TileIndecies.Contains(meta))
+	{
 		//mesh->SetMeshSectionVisible(TileIndecies[meta], true);
 		return TileIndecies[meta];
 	}
@@ -256,8 +254,7 @@ int UTilesController::CreateTileMesh(FTileTextureMeta meta)
 	int sectionIndex = -1;
 	if (freeIndices.Num() > 0)
 	{
-		sectionIndex = freeIndices.Last();
-		freeIndices.RemoveAt(freeIndices.Num() - 1);
+		sectionIndex = freeIndices.Pop();
 	}
 	else
 	{		
@@ -279,7 +276,8 @@ void UTilesController::ClearTileMesh(FTileTextureMeta meta)
 	int index = TileIndecies[meta];
 	SetMeshSectionVisible(index, false);
 	
-	if (TileLoader->CachedTiles.Contains(meta)) {
+	if (TileLoader->CachedTiles.Contains(meta))
+	{
 		TileLoader->CachedTiles[meta]->IsActive = false;
 		TileLoader->CachedTiles[meta]->lastAcessTime = FDateTime::Now();		
 	} else
@@ -425,7 +423,8 @@ UTileInfo* UTileTextureContainer::GetTileMaterial(FTileTextureMeta meta, UMateri
 
 void UTileTextureContainer::CacheTexture(FTileTextureMeta meta, UTexture* texture)
 {
-	if (CachedTiles.Contains(meta)) {
+	if (CachedTiles.Contains(meta))
+	{
 		CachedTiles[meta]->Texture = texture;
 	}
 	
@@ -435,7 +434,7 @@ void UTileTextureContainer::FreeLoader(FTileTextureMeta meta)
 {
 	if (!loadingImages.Contains(meta))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("WTF?"));
+		UE_LOG(LogTemp, Warning, TEXT("Unexpected error happened: attemp to free unexisting tile loader"));
 	}		
 	//auto loader = loadingImages[meta];
 	//loadingImages.Remove(meta);
