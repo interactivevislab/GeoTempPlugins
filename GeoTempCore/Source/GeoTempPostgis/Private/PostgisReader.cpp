@@ -306,7 +306,7 @@ FContourData APostgisReader::CreateContourFromBinary(FWkbEntity inEntity, FGeoCo
 		case 1:
 		{
 			//point
-			FVector* point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
+			FVector point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
 		}
 		break;
 
@@ -332,7 +332,7 @@ FContourData APostgisReader::CreateContourFromBinary(FWkbEntity inEntity, FGeoCo
 			offset += 4;
 			for (uint32 pi = 0; pi < pcount; pi++)
 			{
-				FVector* point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
+				FVector point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
 			}
 		}
 		break;
@@ -393,7 +393,7 @@ FLinesData APostgisReader::CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoord
 		case 1:
 		{
 			//point
-			FVector* point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
+			FVector point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
 		}
 		break;
 
@@ -409,11 +409,11 @@ FLinesData APostgisReader::CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoord
 		{
 			//polygon
 			auto contData = contour.BinaryParsePolygon(c, offset, inGeoCoords, false, height);
-			for (auto cont : contData->Outer)
+			for (auto cont : contData.Outer)
 			{
 				ret.Lines.Add(cont);
 			}
-			for (auto cont : contData->Holes)
+			for (auto cont : contData.Holes)
 			{
 				ret.Lines.Add(cont);
 			}
@@ -427,7 +427,7 @@ FLinesData APostgisReader::CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoord
 			offset += 4;
 			for (uint32 pi = 0; pi < pcount; pi++)
 			{
-				FVector* point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
+				FVector point = contour.BinaryParsePoint(c, offset, inGeoCoords, height);
 			}
 		}
 		break;
@@ -455,11 +455,11 @@ FLinesData APostgisReader::CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoord
 			for (uint32 pi = 0; pi < polyCount; pi++)
 			{
 				auto poly = contour.BinaryParsePolygon(c, offset, inGeoCoords, true, height);
-				for (auto cont : poly->Outer)
+				for (auto cont : poly.Outer)
 				{
 					ret.Lines.Add(FContour(cont));
 				}
-				for (auto cont : poly->Holes)
+				for (auto cont : poly.Holes)
 				{
 					ret.Lines.Add(FContour(cont));
 				}

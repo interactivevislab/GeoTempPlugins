@@ -23,7 +23,7 @@ enum class EGeometryType : uint8
 
 
 UCLASS()
-class GEOTEMPJSON_API AJsonReader : public AActor
+class GEOTEMPJSON_API UJsonReader : public UObject
 {
 	GENERATED_BODY()
 
@@ -44,7 +44,7 @@ public:
 
 	typedef TSharedPtr<FJsonValue> JsonValuesPtr;
 
-	AJsonReader();
+	UJsonReader();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<FContourData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);

@@ -51,18 +51,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 	TMap<FString, FString> Tags;
 
-	void Append(FContourData* inOther);
+	void Append(const FContourData& inOther);
 
-	FVector* BinaryParsePoint(uint8* inArray, int& outOffset, ProjectionType inProjection, float inHeight = 0);
-	static FVector* BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight = 0);
+	FVector BinaryParsePoint(uint8* inArray, int& outOffset, ProjectionType inProjection, float inHeight = 0);
+	static FVector BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight = 0);
 
 	TArray<FVector> BinaryParseCurve(uint8* inArray, int& outOffset, ProjectionType inProjection,
 		bool inSkipBOM = false, float inHeight = 0);
 	static TArray<FVector> BinaryParseCurve(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 		bool inSkipBOM = false, float inHeight = 0);
 
-	FContourData* BinaryParsePolygon(uint8* inArray, int& outOffset, ProjectionType inProjection,
+	FContourData BinaryParsePolygon(uint8* inArray, int& outOffset, ProjectionType inProjection,
 		bool inSkipBOM, float inHeight = 0);
-	static FContourData* BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
+	static FContourData BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 		bool inSkipBOM, float inHeight = 0);
 };

@@ -23,6 +23,7 @@ public:
 	static FString HEIGHT_TAG_STRING;
 	static FString MIN_FLOORS_TAG_STRING;
 	static FString MIN_HEIGHT_TAG_STRING;
+	static FString COLOR_TAG_STRING;
 	
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	TArray<FBuilding> GetBuildings(UOsmReader* inSource);
