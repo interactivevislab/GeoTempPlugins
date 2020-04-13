@@ -7,6 +7,18 @@
 #define LIST_8_TIMES(something) LIST_4_TIMES(something), LIST_4_TIMES(something)
 
 
+struct MeshSectionData
+{
+	TArray<FVector>				Vertices;
+	TArray<int>					Indices;
+	TArray<FVector>				Normals;
+	TArray<FVector2D>			Uv0;
+	TArray<FVector2D>			Uv1;
+	TArray<FColor>				VertexColors;
+	TArray<FRuntimeMeshTangent>	Tangents;
+};
+
+
 MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSectionData& outCurtainsMeshData,
 	float inAutoRoadZ, float inRailRoadZ, float inRoadHeight, float inCurtainsWidth, float inStretch)
 {
@@ -209,7 +221,11 @@ void URoadBuilder::ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh
 
 void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 {
-	roadMaterials = {
+	const int CURTAINS_MATERIAL_INDEX	= 0;
+	const int AUTO_MATERIAL_INDEX		= 1;
+	const int RAIL_MATERIAL_INDEX		= 2;
+
+	TMap<int, UMaterialInstanceDynamic*> roadMaterials = {
 		{ CURTAINS_MATERIAL_INDEX,	UMaterialInstanceDynamic::Create(RoadMaterial, this) },
 		{ AUTO_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadMaterial, this) },
 		{ RAIL_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadMaterial, this) },
