@@ -1,7 +1,12 @@
-#include "PostGis/RoadsLoaderPostGis.h"
+#include "PostGis/LoaderRoadsPostGis.h"
 
 #include "LoaderHelper.h"
 
+
+void ULoaderRoadsPostGis::SetPostGisReader_Implementation(UPostGisReader* inPostGisReader)
+{
+	postGisReader = inPostGisReader;
+}
 
 
 TArray<FRoadSegment> GetRoadSegments(FPostGisRoadNetwork inRoadNetwork)
@@ -27,11 +32,11 @@ TArray<FRoadSegment> GetRoadSegments(FPostGisRoadNetwork inRoadNetwork)
 }
 
 
-FRoadNetwork URoadsLoaderPostGis::GetRoadNetwork(TArray<FWkbEntity> inRoadData, FGeoCoords inGeoCoodrs)
+FRoadNetwork ULoaderRoadsPostGis::GetRoadNetwork_Implementation()
 {
 	FPostGisRoadNetwork postGisRoadNetwork;
 	int segmentId = 0;
-	for (auto segmentData : inRoadData)
+	for (auto segmentData : postGisReader->RawQueryResult)
 	{
 		int offset = 4;
 		auto data = segmentData.Geometry.GetData();
@@ -49,8 +54,7 @@ FRoadNetwork URoadsLoaderPostGis::GetRoadNetwork(TArray<FWkbEntity> inRoadData, 
 				continue;
 			}	
 
-			auto points = FContourData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, 
-				inGeoCoodrs, true, 0);
+			auto points = FContourData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, GeoCoodrs, true, 0);
 
 			FPostGisRoadSegment segment;
 			segment.Line = {

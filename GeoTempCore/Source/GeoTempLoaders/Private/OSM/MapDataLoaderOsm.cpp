@@ -3,8 +3,8 @@
 #include "HttpRequest.h"
 #include "OsmReader.h"
 #include "OsmManager.h"
-#include "Osm/RoadsLoaderOsm.h"
-#include "Osm/BuildingLoaderOsm.h"
+#include "Osm/LoaderRoadsOsm.h"
+#include "Osm/LoaderBuildingsOsm.h"
 
 
 
@@ -27,12 +27,13 @@ void UMapDataLoaderOsm::InitLoaders(bool inForceInit)
 {
 	if (!BuildingsLoader || inForceInit)
 	{
-		BuildingsLoader = NewObject<UBuildingLoaderOsm>();
+		BuildingsLoader = NewObject<ULoaderBuildingsOsm>();
+		IParserOsm::Execute_SetOsmReader(BuildingsLoader, OsmReader);
 	}
 	if (!RoadsLoader || inForceInit)
 	{
-		RoadsLoader = NewObject<URoadsLoaderOsm>();
-		RoadsLoader->SetOsmReader(OsmReader);
+		RoadsLoader = NewObject<ULoaderRoadsOsm>();
+		IParserOsm::Execute_SetOsmReader(RoadsLoader, OsmReader);
 	}
 }
 
@@ -65,8 +66,8 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 {		
 	OsmReader->InitWithXML(inXmlData);
 
-	LoadedBuildings		= BuildingsLoader->GetBuildings(OsmReader);
-	LoadedRoadNetwork	= RoadsLoader->GetRoadNetwork();
+	LoadedBuildings = IProviderBuildings::Execute_GetBuildings(BuildingsLoader);
+	LoadedRoadNetwork = IProviderRoads::Execute_GetRoadNetwork(RoadsLoader);
 
 	OnDataLoaded.Broadcast(true);
 }

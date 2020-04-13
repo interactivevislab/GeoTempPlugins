@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 
-#include "GameFramework/Actor.h"
 #include "Dom/JsonObject.h"
 
 #include "GeometryData.h"
@@ -43,8 +42,6 @@ public:
 	TArray<FContourData> GlobalContoursWithData;
 
 	typedef TSharedPtr<FJsonValue> JsonValuesPtr;
-
-	UJsonReader();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<FContourData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);

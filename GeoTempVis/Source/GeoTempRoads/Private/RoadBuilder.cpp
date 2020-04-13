@@ -1,6 +1,6 @@
 #include "RoadBuilder.h"
 
-#include "Dom/JsonObject.h"
+#include "RoadNetworkActor.h"
 
 
 #define LIST_4_TIMES(something) something, something, something, something
@@ -195,41 +195,31 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 }
 
 
-void URoadBuilder::ConstructRoadMeshSection(TArray<FRoadSegment> inSegments, int inSectionIndex, 
-	UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData)
+void URoadBuilder::ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, TArray<FRoadSegment> inSegments,
+	int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData)
 {
 	auto sectionData = CalculateMeshDataForRoad(inSegments, outCurtainsMeshData, 
 		AutoRoadZ, RailRoadZ, RoadHeight, CurtainsWidth, Stretch);
 
-	CreateMeshSection(inSectionIndex, sectionData.Vertices, sectionData.Indices, sectionData.Normals,
+	inRuntimeMesh->CreateMeshSection(inSectionIndex, sectionData.Vertices, sectionData.Indices, sectionData.Normals,
 		sectionData.Uv0, sectionData.Uv1, sectionData.VertexColors, sectionData.Tangents, false);
-	SetMaterial(inSectionIndex, inMaterial);
+	inRuntimeMesh->SetMaterial(inSectionIndex, inMaterial);
 }
 
 
-void URoadBuilder::AddRoadNetworkToMesh(FRoadNetwork inRoadNetwork)
+void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 {
 	roadMaterials = {
 		{ CURTAINS_MATERIAL_INDEX,	UMaterialInstanceDynamic::Create(RoadMaterial, this) },
+		{ AUTO_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadMaterial, this) },
 		{ RAIL_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadMaterial, this) },
 	};
 
-	auto startIndex = roadMaterials.Num();
-	auto endIndex = startIndex + CoatingChangeYearEnd - CoatingChangeYearStart;
-	for (int i = startIndex; i <= endIndex; i++)
-	{
-		roadMaterials.Add(i, UMaterialInstanceDynamic::Create(RoadMaterial, this));
-		coatingChangeDatas.Add({
-			i,
-			RoadType::Asphalt,
-			CoatingChangeYearStart + i - startIndex
-		});
-	}
-
-	roadMaterials[RAIL_MATERIAL_INDEX]		->SetScalarParameterValue("CoatingType", static_cast<float>(RoadType::Rail));
 	roadMaterials[CURTAINS_MATERIAL_INDEX]	->SetScalarParameterValue("CoatingType", static_cast<float>(RoadType::Sand));
+	roadMaterials[AUTO_MATERIAL_INDEX]		->SetScalarParameterValue("CoatingType", static_cast<float>(RoadType::Asphalt));
+	roadMaterials[RAIL_MATERIAL_INDEX]		->SetScalarParameterValue("CoatingType", static_cast<float>(RoadType::Rail));
 
-	TArray<FRoadSegment> roadSegments, railSegments, specialSegments;
+	TArray<FRoadSegment> autoSegments, railSegments;
 	for (auto segmentData : inRoadNetwork.Segments)
 	{
 		auto segment = segmentData.Value;
@@ -237,7 +227,7 @@ void URoadBuilder::AddRoadNetworkToMesh(FRoadNetwork inRoadNetwork)
 		{
 			case EHighwayType::Auto:
 			{
-				((segment.Change == "") ? roadSegments : specialSegments).Add(segment);
+				autoSegments.Add(segment);
 			}
 			break;
 
@@ -249,72 +239,19 @@ void URoadBuilder::AddRoadNetworkToMesh(FRoadNetwork inRoadNetwork)
 		}
 	}
 
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = GetOwner();
+	SpawnInfo.Name = "RoadNetworkActor";
+	auto roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+	auto runtimeMesh = roadNetworkActor->GetRuntimeMeshComponent();
+
 	MeshSectionData curtainsMeshData;
+	ConstructRoadMeshSection(runtimeMesh, autoSegments, AUTO_MATERIAL_INDEX, 
+		roadMaterials[AUTO_MATERIAL_INDEX], curtainsMeshData);
+	ConstructRoadMeshSection(runtimeMesh, railSegments, RAIL_MATERIAL_INDEX, 
+		roadMaterials[RAIL_MATERIAL_INDEX], curtainsMeshData);
 
-	ConstructRoadMeshSection(railSegments, RAIL_MATERIAL_INDEX, roadMaterials[RAIL_MATERIAL_INDEX], curtainsMeshData);
-
-	auto numSections = endIndex - startIndex + 1;
-	auto segmentsOnSection = roadSegments.Num() / numSections	+ 1;
-	for (int i = 0; i < numSections; i++)
-	{
-		TArray<FRoadSegment> sectionSegments;
-		for (int j = 0; j < segmentsOnSection; j++)
-		{
-			auto index = i + j * numSections;
-			if (index < roadSegments.Num())
-			{
-				sectionSegments.Add(roadSegments[index]);
-			}
-		}
-
-		ConstructRoadMeshSection(sectionSegments, startIndex + i, roadMaterials[startIndex + i], curtainsMeshData);
-	}
-
-	auto startSpecialIndex = roadMaterials.Num();
-	for (int i = 0; i < specialSegments.Num(); i++)
-	{
-		auto segment = specialSegments[i];
-		auto specialIndex = startSpecialIndex + i;
-
-		TArray<FString> changeData;
-		segment.Change.ParseIntoArray(changeData, TEXT(";"));
-		auto changeYear = FCString::Atoi(*changeData[0]);
-		auto changeType = CoatingTags.Find(changeData[1]);
-
-		roadMaterials.Add(specialIndex, UMaterialInstanceDynamic::Create(RoadMaterial, this));
-		coatingChangeDatas.Add({
-			specialIndex,
-			(changeType != nullptr) ? *changeType : RoadType::Dirt1,
-			changeYear
-		});
-		ConstructRoadMeshSection(TArray<FRoadSegment>{ segment }, specialIndex, roadMaterials[specialIndex], curtainsMeshData);
-	}
-
-	CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normals, 
+	runtimeMesh->CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normals,
 		curtainsMeshData.Uv0, curtainsMeshData.Uv1, curtainsMeshData.VertexColors, curtainsMeshData.Tangents, false);
-	SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
-}
-
-
-void URoadBuilder::SetYear(int inYear)
-{
-	for (auto material : roadMaterials)
-	{
-		material.Value->SetScalarParameterValue("Year", inYear);
-	}
-	for (auto data : coatingChangeDatas)
-	{
-		roadMaterials[data.MaterialIndex]->SetScalarParameterValue("CoatingType", 
-			static_cast<float>(inYear >= data.ChangeYear ? data.TargetCoating : RoadType::Dirt1));
-	}
-}
-
-
-void URoadBuilder::UpdateLandscapeData(FVector4 inRect) {
-	for (auto material : roadMaterials) {
-		material.Value->SetScalarParameterValue("Left",		inRect.X);
-		material.Value->SetScalarParameterValue("Right",	inRect.Y);
-		material.Value->SetScalarParameterValue("Top",		inRect.Z);
-		material.Value->SetScalarParameterValue("Bottom",	inRect.W);
-	}
+	runtimeMesh->SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
 }

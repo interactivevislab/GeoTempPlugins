@@ -22,7 +22,7 @@ struct MeshSectionData
 
 
 UCLASS(BlueprintType, Meta = (BlueprintSpawnableComponent))
-class GEOTEMPROADS_API	URoadBuilder : public URuntimeMeshComponent
+class GEOTEMPROADS_API	URoadBuilder : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -47,40 +47,20 @@ public:
 	float Stretch = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int CoatingChangeYearStart;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int CoatingChangeYearEnd;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FString, RoadType> CoatingTags;
 
 	UFUNCTION(BlueprintCallable)
-	void AddRoadNetworkToMesh(FRoadNetwork inRoadNetwork);
-
-	UFUNCTION(BlueprintCallable)
-	void SetYear(int inYear);
-
-	UFUNCTION(BlueprintCallable)
-	void UpdateLandscapeData(FVector4 inRect);
+	void SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork);
 
 private:
 
-	void ConstructRoadMeshSection(TArray<FRoadSegment> inSegments, int inSectionIndex,
-		UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
+	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, TArray<FRoadSegment> inSegments, 
+		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
 
 	UPROPERTY()
 	TMap<int, UMaterialInstanceDynamic*> roadMaterials;
 
 	const static int CURTAINS_MATERIAL_INDEX	= 0;
-	const static int RAIL_MATERIAL_INDEX		= 1;
-
-	struct CoatingChangeData
-	{
-		int MaterialIndex;
-		RoadType TargetCoating;
-		int ChangeYear;
-	};
-
-	TArray<CoatingChangeData> coatingChangeDatas;
+	const static int AUTO_MATERIAL_INDEX		= 1;
+	const static int RAIL_MATERIAL_INDEX		= 2;
 };
