@@ -15,10 +15,10 @@ enum class EGeometryType : uint8
 TArray<FContourData> UJsonReader::ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords)
 {
 	const FString jsonFilePath = inFilepath;
-	FString jsonString;
-	FFileHelper::LoadFileToString(jsonString, *jsonFilePath);
+	FString bufferString;
+	FFileHelper::LoadFileToString(bufferString, *jsonFilePath);
 
-	return ReadContoursFromString(jsonString, inGeoCoords);
+	return ReadContoursFromString(bufferString, inGeoCoords);
 }
 
 
