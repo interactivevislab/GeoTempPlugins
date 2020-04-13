@@ -55,6 +55,8 @@ struct GEOTEMPCORE_API FBuildingPart
 
 	FLinearColor Color;
 
+	FString RoofType;
+	
 	FBuildingPart();
 	
 	FBuildingPart(const long inId);
