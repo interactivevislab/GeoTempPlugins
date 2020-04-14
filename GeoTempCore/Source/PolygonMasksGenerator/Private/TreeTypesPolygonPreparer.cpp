@@ -1,7 +1,7 @@
 #include "TreeTypesPolygonPreparer.h"
 
 
-void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FContourData> inPolygonData,
+void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FMultipolygonData> inPolygonData,
 	TMap<FString, FString> inTags)
 {
 	if (inPolygonData.Num() == 0)

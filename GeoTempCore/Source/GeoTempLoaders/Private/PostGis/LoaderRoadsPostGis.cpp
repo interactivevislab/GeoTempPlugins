@@ -54,7 +54,7 @@ FRoadNetwork ULoaderRoadsPostGis::GetRoadNetwork_Implementation()
 				continue;
 			}	
 
-			auto points = FContourData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, GeoCoodrs, true, 0);
+			auto points = FMultipolygonData::BinaryParseCurve(segmentData.Geometry.GetData(), offset, GeoCoodrs, true, 0);
 
 			FPostGisRoadSegment segment;
 			segment.Line = {

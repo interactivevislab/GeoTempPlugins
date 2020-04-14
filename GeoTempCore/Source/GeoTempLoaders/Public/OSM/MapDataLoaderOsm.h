@@ -68,7 +68,7 @@ public:
 	FRoadNetwork LoadedRoadNetwork;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
-	TArray<FContourData> LoadedFoliageContours;
+	TArray<FMultipolygonData> LoadedFoliageContours;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataLoadedDelegate, bool, isSuccess);
 

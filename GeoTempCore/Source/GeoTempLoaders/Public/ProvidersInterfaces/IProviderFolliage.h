@@ -23,5 +23,5 @@ class GEOTEMPLOADERS_API IProviderFolliage
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	TArray<FContourData> GetFolliage();
+	TArray<FMultipolygonData> GetFolliage();
 };

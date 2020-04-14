@@ -121,10 +121,10 @@ public:
 	void GetDatesNearCurrent(FDateTime inCurrentTime);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseDates(TArray<FContourData>& inContours);
+	void ParseDates(TArray<FMultipolygonData>& inContours);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseTimeTags(const FContourData& inContour, TSet<int>& outDates);
+	void ParseTimeTags(const FMultipolygonData& inContour, TSet<int>& outDates);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void SortDatesByAscend(TSet<int>& inDates);

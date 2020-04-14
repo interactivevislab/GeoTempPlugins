@@ -1,7 +1,7 @@
 #include "ZonesPolygonPreparer.h"
 
 
-void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FContourData> inPolygonData,
+void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FMultipolygonData> inPolygonData,
 	TMap<FString, FString> inTags)
 {
 	if (inPolygonData.Num() == 0)

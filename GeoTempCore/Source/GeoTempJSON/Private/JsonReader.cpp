@@ -1,7 +1,7 @@
 #include "JsonReader.h"
 
 
-TArray<FContourData> UJsonReader::ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords)
+TArray<FMultipolygonData> UJsonReader::ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords)
 {
 	const FString jsonFilePath = inFilepath;
 	FString jsonString;
@@ -11,12 +11,12 @@ TArray<FContourData> UJsonReader::ReadContoursFromFile(FString inFilepath, FGeoC
 }
 
 
-TArray<FContourData> UJsonReader::ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords)
+TArray<FMultipolygonData> UJsonReader::ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords)
 {
 	TSharedPtr<FJsonObject>		jsonObject = MakeShareable(new FJsonObject());
 	TSharedRef<TJsonReader<>>	jsonReader = TJsonReaderFactory<>::Create(inJsonString);
 
-	TArray<FContourData> contoursWithData;
+	TArray<FMultipolygonData> contoursWithData;
 	if (FJsonSerializer::Deserialize(jsonReader, jsonObject))
 	{
 		contoursWithData = ReadContoursFromJSON(jsonObject, inGeoCoords);
@@ -26,11 +26,11 @@ TArray<FContourData> UJsonReader::ReadContoursFromString(FString inJsonString, F
 }
 
 
-TArray<FContourData> UJsonReader::ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords)
+TArray<FMultipolygonData> UJsonReader::ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords)
 {
 	GeoCoords = inGeoCoords;
 
-	TArray<FContourData> contoursWithData;
+	TArray<FMultipolygonData> contoursWithData;
 	auto featureArray = inJsonObject->GetArrayField("features");
 	ParseFeatures(featureArray, contoursWithData);
 	return contoursWithData;
@@ -58,7 +58,7 @@ void UJsonReader::ParseJSON()
 }
 
 
-void UJsonReader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FContourData>& outContoursWithData)
+void UJsonReader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FMultipolygonData>& outContoursWithData)
 {
 	for (auto feature : inFeatureArray)
 	{
@@ -68,7 +68,7 @@ void UJsonReader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FCo
 		{
 			featureTags.Add(value.Key, value.Value->AsString());
 		}
-		FContourData contourData = FContourData();
+		FMultipolygonData contourData = FMultipolygonData();
 		contourData.Tags = featureTags;
 
 		auto	geometry = feature->AsObject()->GetObjectField("geometry");
@@ -102,7 +102,7 @@ void UJsonReader::ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FCo
 }
 
 
-void UJsonReader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData)
+void UJsonReader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FMultipolygonData& outContourData)
 {
 	FContour contour;
 	auto coords = inGeometry[0]->AsArray();
@@ -138,7 +138,7 @@ void UJsonReader::ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& o
 }
 
 
-void UJsonReader::ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FContourData& inContourData)
+void UJsonReader::ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FMultipolygonData& inContourData)
 {
 	for (auto geom : inGeometry)
 	{

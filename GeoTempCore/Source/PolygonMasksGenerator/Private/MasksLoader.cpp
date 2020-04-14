@@ -29,7 +29,6 @@ UMaskLoader::UMaskLoader()
 
 	CurrentTexture		= nullptr;
 	CurrentRenderTarget = nullptr;
-	TextureParameterSRV = nullptr;
 }
 
 
@@ -77,12 +76,6 @@ void UMaskLoader::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 	//If we are about to unload, so just clean up the SRV
 	if (IsUnloading) 
 	{
-		if (TextureParameterSRV != nullptr)
-		{
-			TextureParameterSRV.SafeRelease();
-			TextureParameterSRV = nullptr;
-		}
-
 		return;
 	}
 

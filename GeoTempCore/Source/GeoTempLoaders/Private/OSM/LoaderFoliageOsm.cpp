@@ -7,9 +7,9 @@ void ULoaderFoliageOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 }
 
 
-TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
+TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 {
-	TArray<FContourData> polygons;
+	TArray<FMultipolygonData> polygons;
 
 	polygons.Empty();
 	//find all building and building parts through ways
@@ -20,7 +20,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 		auto FoliageIterLanduse = way->Tags.Find("landuse");
 		auto FoliageIterLeisure = way->Tags.Find("leisure");
 
-		FContourData polygon;
+		FMultipolygonData polygon;
 		//if this is building or part
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
 			||	FoliageIterLanduse && FoliageIterLanduse->Equals("forest")
@@ -40,8 +40,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			polygon.Outer.Add(cont);
 
 			polygon.Tags = way->Tags;
-			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
-			polygon.ZeroLon = osmReader->GeoCoords.ZeroLon;
+			polygon.Origin = osmReader->GeoCoords;
 
 			polygons.Add(polygon);
 		}
@@ -60,7 +59,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			||	FoliageIterLeisure && (FoliageIterLeisure->Equals("park") || FoliageIterLeisure->Equals("garden"))
 			)
 		{
-			FContourData polygon;
+			FMultipolygonData polygon;
 
 			//now iterate over the ways in this relation
 			for (auto element : relation->WayRoles)
@@ -90,8 +89,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			}
 
 			polygon.Tags = relation->Tags;
-			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
-			polygon.ZeroLon = osmReader->GeoCoords.ZeroLon;
+			polygon.Origin = osmReader->GeoCoords;
 
 			polygons.Add(polygon);
 		}

@@ -39,17 +39,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FGeoCoords GeoCoords;
 
-	TArray<FContourData> GlobalContoursWithData;
+	TArray<FMultipolygonData> GlobalContoursWithData;
 
 	typedef TSharedPtr<FJsonValue> JsonValuesPtr;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<FContourData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);
+	TArray<FMultipolygonData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<FContourData> ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords);
+	TArray<FMultipolygonData> ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords);
 
-	TArray<FContourData> ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords);
+	TArray<FMultipolygonData> ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords);
 
 	UFUNCTION(BlueprintCallable, CallInEditor)
 	void ParseJSON();
@@ -57,10 +57,10 @@ public:
 	void ParseRecursion(TMap<FString, JsonValuesPtr> inValues);
 	void ParseArray(TArray<JsonValuesPtr> inValues);
 
-	void ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FContourData>& outContoursWithData);
+	void ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FMultipolygonData>& outContoursWithData);
 
-	void ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData);
-	void ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData);
+	void ParsePolygon(TArray<JsonValuesPtr> inGeometry, FMultipolygonData& outContourData);
+	void ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FMultipolygonData& outContourData);
 
 	template <typename EnumType>
 	static FORCEINLINE EnumType GetEnumValueFromString(const FString& inEnumName, const FString& inString)

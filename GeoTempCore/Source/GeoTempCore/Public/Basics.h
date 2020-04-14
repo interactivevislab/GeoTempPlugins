@@ -49,7 +49,7 @@ enum class ProjectionType : uint8
 };
 
 
-/** Struct to store geodetic coordinates of origin point */
+/** Struct to match scene with source projection coordinates */
 USTRUCT(BlueprintType)
 struct GEOTEMPCORE_API FGeoCoords
 {
@@ -57,14 +57,17 @@ struct GEOTEMPCORE_API FGeoCoords
 
 public:
 
+	/** Coordinatesystem the data is stored in source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	ProjectionType Projection;
+	ProjectionType Projection = ProjectionType::WGS84;
 
+	/** x coordinate of origin point in source projection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	float ZeroLon;
+	float OriginLon;
 
+	/** y coordinate of origin point in source projection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	float ZeroLat;
+	float OriginLat;
 
 	FGeoCoords();
 	FGeoCoords(ProjectionType projection, float zeroLon, float zeroLat);
@@ -77,15 +80,34 @@ class GEOTEMPCORE_API UGeoHelpers : public UObject
 	GENERATED_BODY()
 
 public:
-
+	/** Earth radius */
 	static const double EARTH_RADIUS;
+	
+	/** Scale multiplier to convert meters to scene units */
 	static const double SCALE_MULT;
 
+	/** Routine to convert degrees to radians */
 	static double DegreesToRadians(double inAngle);
+	/** Routine to convert radians to degrees */
 	static double RadiansToDegrees(double inAngle);
 
+	/** Routine to get scene coordinates from source coordinates
+	 * @param inX x coordinate in source projection
+	 * @param inY y coordinate in source projection
+	 * @param inZ z coordinate in source projection
+	 * @param inGeoCoords scene origin coordinate in source projection
+	 * @see FGeoCoords
+	 * @return FVector of scene coordinates
+	 */
 	static FVector GetLocalCoordinates(double inX, double inY, double inZ, FGeoCoords inGeoCoords);
 
+	/** Routine to convert scene coorinates to source coordinates
+	 * @param inX x coordinate of point in scene
+	 * @param inY y coordinate of point in scene
+	 * @param inGeoCoords scene origin coordinate in source projection
+	 * @see FGeoCoords
+	 * @return FVector2D of coordinates in source projection
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Default")
 	static FVector2D ConvertToLonLat(float inX, float inY, FGeoCoords inGeoCoords);
 };

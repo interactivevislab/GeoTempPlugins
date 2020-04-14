@@ -369,18 +369,26 @@ UTileData* UTileTextureContainer::GetTileMaterial(FTileCoordinates meta, UMateri
 
 	if (CachedTiles.Num() > 512)
 	{
-		TArray<FTileCoordinates> pendingDelete;
-
+		TArray<FTileCoordinates> pendingDelete;		
 		for (auto cached : CachedTiles)
 		{
-			if (!cached.Value->IsActive && (cached.Value->lastAcessTime - FDateTime::Now()).GetTotalSeconds() > 60)
+			//if (!cached.Value)
+			//{
+			//	//all gone wrong. Probably we somehow lost all cache on engine reload or something like that
+			//	CachedTiles.Empty();
+			//	break;
+			//}
+			if (!cached.Value || !cached.Value->IsActive && (cached.Value->lastAcessTime - FDateTime::Now()).GetTotalSeconds() > 60)
 			{
 				pendingDelete.Add(cached.Key);
 			}
 		}
 		for (auto tile : pendingDelete)
 		{
-			CachedTiles[tile]->IsLoaded = false;
+			auto t = CachedTiles[tile];
+			if (t) {
+				t->IsLoaded = false;
+			}
 			CachedTiles.Remove(tile);			 
 		}
 	}

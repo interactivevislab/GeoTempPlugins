@@ -56,7 +56,7 @@ public:
 	bool IsInit = false;
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Connection")
-	static FContourData CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords);
+	static FMultipolygonData CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords);
 
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
 	static FLinesData CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords);

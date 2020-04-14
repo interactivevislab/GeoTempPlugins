@@ -106,7 +106,9 @@ public:
 	/** Reinitialize this part */
 	void ForceRecalc();
 
-	/** Data of this part */
+	/** Container with data of this part
+	 * @see FBuildingPart
+	 */
 	FBuildingPart PartData;
 
 	/** Parent Building Actor */
