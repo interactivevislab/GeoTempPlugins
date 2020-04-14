@@ -42,7 +42,7 @@ void ABuildingActor::Initialize(const FBuilding& inBuilding, bool inInitPartsImm
 	Parts.Empty();
 	BuildingTags = Building.Tags;
 	
-	if (Building.Parts.Num() == 0) 
+	if (Building.Parts.Num() == 0 || Building.MainPart.Height != 0) 
 	{
 		auto name = FName(*(FString::FromInt(Building.Id) + "_" + FString::FromInt(Building.MainPart.Id)));
 		UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
@@ -61,27 +61,25 @@ void ABuildingActor::Initialize(const FBuilding& inBuilding, bool inInitPartsImm
 			Parts.Add(part);
 		}
 	}
-	else 
-	{
-		for (auto& partData : Building.Parts) 
-		{
-			auto name = FName(*(FString::FromInt(Building.Id) + "_" + FString::FromInt(partData.Id)));
-			UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
 
-			if (part)
-			{
-				part->RegisterComponent();
-				part->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-				
-				FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
-				part->WallMaterial = WallMaterial;
-				part->RoofMaterial = RoofMaterial;
-				part->Init(partData, Building.Tags);
-				
-				if (inInitPartsImmideately) part->ReInit();
-				part->StylePalette = partData.StylePalette;
-				Parts.Add(part);
-			}
+	for (auto& partData : Building.Parts) 
+	{
+		auto name = FName(*(FString::FromInt(Building.Id) + "_" + FString::FromInt(partData.Id)));
+		UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
+
+		if (part)
+		{
+			part->RegisterComponent();
+			part->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+			
+			FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
+			part->WallMaterial = WallMaterial;
+			part->RoofMaterial = RoofMaterial;
+			part->Init(partData, Building.Tags);
+			
+			if (inInitPartsImmideately) part->ReInit();
+			part->StylePalette = partData.StylePalette;
+			Parts.Add(part);
 		}
 	}
 }
