@@ -139,53 +139,64 @@ public:
 	int MaxLevel = 18;
 	
 private: 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
-	FVector Offset;
 
-
+	/** free indices in tile array */
 	UPROPERTY()
 	TArray<int> freeIndices;
-	
+
+	/** Map of tile indices in array */
 	UPROPERTY(NoClear)
 	TMap<FTileCoordinates, int> TileIndecies;
-	
+
+	/** Tiles which are not currently present, but preserved in memory a them are parents of other tiles */
 	UPROPERTY()
 	TSet<FTileCoordinates> SplitTiles;
 
-
+	/** Get tile coordinates based on offset vector in scene space*/
 	UFUNCTION(BlueprintCallable, Category = "Math")
 	void GetMercatorXYFromOffset(FVector offsetValue, int z, int& x, int& y);
 
+	/** Get tile coordinates offset from default tile coordinates based on offset vector in scene space*/
 	UFUNCTION(BlueprintCallable, Category = "Math")
 	void GetMercatorXYOffsetFromOffset(FVector offsetValue, int z, int& x, int& y);
 
+	/** Get scene coordinates of tile based on it tile coordinates */
 	UFUNCTION(BlueprintCallable, Category = "Math")
 	FVector GetXYOffsetFromMercatorOffset(int z, int x, int y);
 
+	/** Calculate mercator x position based on lontitude */
 	static float GetMercatorXFromDegrees(double lon)
 	{
 		return ((lon / 180 * PI) + PI) / 2 / PI;
 	}	
 
+	/** Calculate mercator x position based on latitude */
 	static float GetMercatorYFromDegrees(double lat)
 	{
 		return (PI - FMath::Loge(FMath::Tan(PI / 4 + lat * PI / 180 / 2))) / 2 / PI;
 	}
 
-	
+	/** Const earth radius */
 	static double EarthRadius;// = 6378.137;
-	static double EarthOneDegreeLengthOnEquatorMeters;// = 111152.8928;
+	/** Const one degree on equator length */
+	static double EarthOneDegreeLengthOnEquator;// = 111152.8928;
 
+	/** create and mesh section for a tile */
 	int CreateTileMesh(int x, int y, int z);
 
+	/** create and mesh section for a tile */
 	int CreateTileMesh(FTileCoordinates meta);
 
+	/** create mesh section of a tile */	
 	void ClearTileMesh(FTileCoordinates meta);
 
+	/** check if this tile is currently split */
 	bool IsTileSplit(int x, int y, int z);
 
+	/** split tile */
 	void SplitTile(FTileCoordinates meta);
-	
+
+	/** split tile */
 	void SplitTile(int x, int y, int z);
 };
 

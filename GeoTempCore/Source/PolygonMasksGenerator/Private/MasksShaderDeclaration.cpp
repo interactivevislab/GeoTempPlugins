@@ -9,10 +9,10 @@ IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderVariableParameters, "PSVari
 void FVertexDeclarationExample::InitRHI()
 {
 	FVertexDeclarationElementList elements;
-	uint32 stride = sizeof(FMyTextureVertex);
-	elements.Add(FVertexElement(0, STRUCT_OFFSET(FMyTextureVertex, Position),	VET_Float3, 0, stride));
-	elements.Add(FVertexElement(0, STRUCT_OFFSET(FMyTextureVertex, Color),		VET_Color,	1, stride));
-	elements.Add(FVertexElement(0, STRUCT_OFFSET(FMyTextureVertex, YearData),	VET_Float4, 2, stride));
+	uint32 stride = sizeof(FMaskPolygonVertex);
+	elements.Add(FVertexElement(0, STRUCT_OFFSET(FMaskPolygonVertex, Position),	VET_Float3, 0, stride));
+	elements.Add(FVertexElement(0, STRUCT_OFFSET(FMaskPolygonVertex, Color),		VET_Color,	1, stride));
+	elements.Add(FVertexElement(0, STRUCT_OFFSET(FMaskPolygonVertex, YearData),	VET_Float4, 2, stride));
 	VertexDeclarationRhi = RHICreateVertexDeclaration(elements);
 }
 

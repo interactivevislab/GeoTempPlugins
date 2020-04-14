@@ -27,7 +27,7 @@ void UTilesController::TickComponent(float DeltaTime, enum ELevelTick TickType, 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);	
 
 	int x0, y0;
-	GetMercatorXYFromOffset(Offset, BaseLevel, x0, y0);
+	GetMercatorXYFromOffset(FVector::ZeroVector, BaseLevel, x0, y0);
 	
 	CreateMeshAroundPoint(BaseLevel, x0, y0);
 
@@ -109,7 +109,7 @@ float UTilesController::GetPixelSize(FTileCoordinates meta)
 		float dist = (pos - manager->GetCameraLocation()).Size();
 		float tan = FMath::Tan(manager->GetCameraCachePOV().DesiredFOV * PI / 180 / 2);
 		float viewSize = 2 * dist * tan;
-		float tileSize = 360 * EarthOneDegreeLengthOnEquatorMeters * FMath::Cos(CenterLat * PI / 180) / (1 << meta.Z);
+		float tileSize = 360 * EarthOneDegreeLengthOnEquator * FMath::Cos(CenterLat * PI / 180) / (1 << meta.Z);
 		float tilePixelsSize = tileSize / viewSize * GEngine->GameViewport->Viewport->GetSizeXY().X;
 		return tilePixelsSize;
 	}
@@ -160,7 +160,7 @@ void UTilesController::CreateMeshAroundPoint(int z, int x0, int y0)
 }
 
 double UTilesController::EarthRadius  = 6378.137 * 100;
-double UTilesController::EarthOneDegreeLengthOnEquatorMeters = 111152.8928 * 100;
+double UTilesController::EarthOneDegreeLengthOnEquator = 111152.8928 * 100;
 
 void UTilesController::GetMercatorXYFromOffset(FVector offsetValue, int z, int& x, int& y)
 {
@@ -175,8 +175,8 @@ void UTilesController::GetMercatorXYFromOffset(FVector offsetValue, int z, int& 
 
 void UTilesController::GetMercatorXYOffsetFromOffset(FVector offsetValue, int z, int& dx, int& dy)
 {
-	float fdx = offsetValue.X * (1 << z) / 360 / EarthOneDegreeLengthOnEquatorMeters / FMath::Cos(CenterLat * PI / 180);
-	float fdy = offsetValue.Y * (1 << z) / 360 / EarthOneDegreeLengthOnEquatorMeters / FMath::Cos(CenterLat * PI / 180);
+	float fdx = offsetValue.X * (1 << z) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
+	float fdy = offsetValue.Y * (1 << z) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
 	dx = (int)FMath::RoundFromZero(fdx);
 	dy = (int)FMath::RoundFromZero(fdy);
 }
@@ -185,8 +185,8 @@ FVector UTilesController::GetXYOffsetFromMercatorOffset(int z, int x, int y)
 {
 	int x0 = GetMercatorXFromDegrees(CenterLon) * (1 << z);
 	int y0 = GetMercatorYFromDegrees(CenterLat) * (1 << z);
-	float fdx = (x - x0) * 360 * EarthOneDegreeLengthOnEquatorMeters / (1 << z) * FMath::Cos(CenterLat * PI / 180);
-	float fdy = (y - y0) * 360 * EarthOneDegreeLengthOnEquatorMeters / (1 << z) * FMath::Cos(CenterLat * PI / 180);
+	float fdx = (x - x0) * 360 * EarthOneDegreeLengthOnEquator / (1 << z) * FMath::Cos(CenterLat * PI / 180);
+	float fdy = (y - y0) * 360 * EarthOneDegreeLengthOnEquator / (1 << z) * FMath::Cos(CenterLat * PI / 180);
 	return FVector(fdx, fdy, 0) + GetOwner()->GetActorLocation();
 }
 
@@ -213,7 +213,7 @@ int UTilesController::CreateTileMesh(FTileCoordinates meta)
 	
 	float x0 = GetMercatorXFromDegrees(CenterLon) * (1 << z);
 	float y0 = GetMercatorYFromDegrees(CenterLat) * (1 << z);
-	float size = EarthOneDegreeLengthOnEquatorMeters / (1 << z) * 360 * FMath::Cos(CenterLat * PI / 180);
+	float size = EarthOneDegreeLengthOnEquator / (1 << z) * 360 * FMath::Cos(CenterLat * PI / 180);
 	
 	FVector delta((x - x0) * size, (y - y0) * size, 0);
 

@@ -13,7 +13,7 @@
 TGlobalResource<FVertexDeclarationExample> GTextureVertexDeclarationMask;
 
 
-TResourceArray<FMyTextureVertex>* dataMask;
+TResourceArray<FMaskPolygonVertex>* dataMask;
 
 
 UMaskLoader::UMaskLoader()
@@ -92,18 +92,18 @@ void UMaskLoader::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 	}
 		
 	
-	if (!VertBuf.IsValid() || Dirty)
+	if (!VertBuf.IsValid() || IsDirty)
 	{
-		Dirty = false;
+		IsDirty = false;
 
-		dataMask = new TResourceArray<FMyTextureVertex>();
+		dataMask = new TResourceArray<FMaskPolygonVertex>();
 		for (int i = 0; i < Vertices.Num(); i++)
 		{
 			dataMask->Add(Vertices[i]);
 		}
 
 		FRHIResourceCreateInfo info(dataMask);
-		VertBuf = RHICreateVertexBuffer(sizeof(FMyTextureVertex) * Vertices.Num(), BUF_Static | BUF_Transient, info);
+		VertBuf = RHICreateVertexBuffer(sizeof(FMaskPolygonVertex) * Vertices.Num(), BUF_Static | BUF_Transient, info);
 
 		auto triangles = TResourceArray<uint32>();
 		for (int i = 0; i < Triangles.Num(); i++)
@@ -113,20 +113,6 @@ void UMaskLoader::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 
 		FRHIResourceCreateInfo indInfo(&triangles);
 		IndBuf = RHICreateIndexBuffer(sizeof(uint32), sizeof(uint32) * Triangles.Num(), BUF_Volatile, indInfo);
-	}
-
-	//If our input texture reference has changed, we need to recreate our SRV
-	if (MustRegenerateSRV)
-	{
-		MustRegenerateSRV = false;
-
-		if (TextureParameterSRV != nullptr)
-		{
-			TextureParameterSRV.SafeRelease();
-			TextureParameterSRV = nullptr;
-		}
-
-		TextureParameterSRV = RHICreateShaderResourceView(TextureParameter, 0);
 	}
 
 	// This is where the magic happens
@@ -162,7 +148,6 @@ void UMaskLoader::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 		GraphicsPSOInit.BoundShaderState.VertexShaderRHI		= GETSAFERHISHADER_VERTEX(*VertexShader);
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI			= GETSAFERHISHADER_PIXEL(*PixelShader);
 
-		PixelShader->SetOutputTexture(outRhiCmdList, TextureParameterSRV);
 		VertexShader->SetUniformBuffers(outRhiCmdList, ConstantParameters, VariableParameters);
 		PixelShader	->SetUniformBuffers(outRhiCmdList, ConstantParameters, VariableParameters);
 		SetGraphicsPipelineState(outRhiCmdList, GraphicsPSOInit);
@@ -180,15 +165,9 @@ void UMaskLoader::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 }
 
 
-void UMaskLoader::UpdateRect()
+void UMaskLoader::RenderMaskForTime(int inYear, UTextureRenderTarget2D* inTarget, float inFraction)
 {
+	VariableParameters.Year = inYear + inFraction;
 	VariableParameters.Rect = Rect;
-}
-
-
-void UMaskLoader::RenderMaskForTime(int inYear, UTextureRenderTarget2D* inInclTarget, float inP)
-{
-	VariableParameters.Year = inYear + inP;
-	VariableParameters.Rect = Rect;
-	ExecutePixelShader(inInclTarget);
+	ExecutePixelShader(inTarget);
 }

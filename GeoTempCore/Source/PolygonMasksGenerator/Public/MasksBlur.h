@@ -8,7 +8,7 @@
 
 #include "MasksBlur.generated.h"
 
-
+/** Utility object for bluring textures */
 UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
 class POLYGONMASKSGENERATOR_API UMaskBlurer : public UActorComponent
 {
@@ -19,62 +19,68 @@ public:
 	UMaskBlurer();
 	~UMaskBlurer();
 
+	/** \fn BlurMask
+	 * Blur render target and write it into another render target
+	 * @param inTargetToWrite render target to write result
+	 * @param inTempTarget texture for inner updates. Are not used and can be freely changed outside this blurer render pass so you can use same tempTarget in multiple blurers and other classes. However the data is not stored.
+	 * @param inInputTexture render target with texture to blur
+	 * @param inDistance blur distance as fraction of texture size
+	 * @param inSteps number of steps blur function perform in each axis
+	 */
 	UFUNCTION(BlueprintCallable)
-	void BlurMask(UTextureRenderTarget2D* inTexTarget, UTextureRenderTarget2D* inTempTarget, 
+	void BlurMask(UTextureRenderTarget2D* inTargetToWrite, UTextureRenderTarget2D* inTempTarget, 
 		UTextureRenderTarget2D* inInputTexture, float inDistance, int inSteps);
 	
 #pragma region Render Data
 
 private:
 
+	/** const buffer */
 	FPixelShaderConstantParametersBlur	constParams;
+	/** variable buffer */
 	FPixelShaderVariableParametersBlur	varParams;
 
+	/** feature level */
 	ERHIFeatureLevel::Type	featureLevel;
+
+	/** vertex buffer */
 	FVertexBufferRHIRef		vertBuf;
-	FTexture2DRHIRef		currentTex; //Main texture
+	/** output texture ref */
+	FTexture2DRHIRef		currentTex;
+
+	/** input texture ref */
 	FTexture2DRHIRef		texParam;
 
+	/** inner pointer to outputRenderTarget */
 	UPROPERTY()
-	UTextureRenderTarget2D* currentRenderTarget = nullptr;
+	UTextureRenderTarget2D* outputRenderTarget = nullptr;
 
+	/** inner pointer to tempRenderTarget */
 	UPROPERTY()
 	UTextureRenderTarget2D* innerRenderTarget = nullptr;
 
+	/** inner pointer to innerRenderTarget */
 	UPROPERTY()
 	UTextureRenderTarget2D* inputTarget = nullptr;
 
-	/** Since we are only reading from the resource, we do not need a UAV; an SRV is sufficient */
+	/** Reference to texture Since we are only reading from the resource, we do not need a UAV; an SRV is sufficient */
 	FShaderResourceViewRHIRef texParamSrv;
-	
-	FIndexBufferRHIRef indBuf1;
-	FIndexBufferRHIRef indBuf2;
-	
+
+	/** Are we already called shader in this frame */
 	bool isPixelShaderExecuting;
-	bool mustRegenerateSRV;
-	bool isUnloading;
 	
-/********************************************************************************************************/
-/* Let the user change rendertarget during runtime if they want to :D                                   */
-/* @param RenderTarget - This is the output rendertarget!                                               */
-/* @param InputTexture - This is a rendertarget that's used as a texture parameter to the shader :)     */
-/* @param EndColor - This will be set to the dynamic parameter buffer each frame                        */
-/* @param TextureParameterBlendFactor - The scalar weight that decides how much of the texture to blend */
-/********************************************************************************************************/
-public:
+	/** Shoud we regenereate SRV */
+	bool mustRegenerateSRV;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-	UTextureRenderTarget2D* BlurTarget;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-	float BlurDistance;
-
+	/** Is this object currently unloading */
+	bool isUnloading;
+protected:
+	/** Request to execute pixel shader on next render pass */
 	UFUNCTION(BlueprintCallable, Category = "Render Data")
 	void ExecutePixelShader(UTextureRenderTarget2D* inTarget, UTextureRenderTarget2D* inTexture);
 
-	/************************************************************************/
-	/* Only execute this from the render thread!!!                          */
-	/************************************************************************/
+	
+	/** Execute pixel shader from render tread */
 	void ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmdList);
 
 #pragma endregion 

@@ -64,7 +64,7 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FCont
 			minY = FMath::Min(minY, points[i].Y);
 			maxY = FMath::Max(maxY, points[i].Y);
 
-			FMyTextureVertex vert;
+			FMaskPolygonVertex vert;
 			vert.Position = points[i] + (isExclude ? FVector::UpVector * 1 : FVector::ZeroVector);
 
 			if (isExclude)
@@ -84,14 +84,7 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FCont
 		{
 			inTarget->Triangles.Add(triangles[i] + zeroInd);
 		}
-
-		inTarget->Years.AddUnique(startAppearYear);
-		inTarget->Years.AddUnique(endAppearYear);
-		inTarget->Years.AddUnique(startDemolishYear);
-		inTarget->Years.AddUnique(endDemolishYear);
 	}
-
-	inTarget->Years.Sort();
 
 	auto dX = maxX - minX;
 	auto dY = maxY - minY;
@@ -105,6 +98,5 @@ void UBasePolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FCont
 	}
 
 	inTarget->Rect = FVector4(minX, maxX, minY, maxY);
-	inTarget->UpdateRect();
-	inTarget->Dirty = true;
+	inTarget->IsDirty = true;
 }
