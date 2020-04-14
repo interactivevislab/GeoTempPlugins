@@ -5,6 +5,7 @@
 #include "OsmManager.h"
 #include "Osm/LoaderRoadsOsm.h"
 #include "Osm/LoaderBuildingsOsm.h"
+#include "Osm/LoaderFoliageOsm.h"
 
 
 
@@ -34,6 +35,11 @@ void UMapDataLoaderOsm::InitLoaders(bool inForceInit)
 	{
 		RoadsLoader = NewObject<ULoaderRoadsOsm>();
 		IParserOsm::Execute_SetOsmReader(RoadsLoader, OsmReader);
+	}
+	if (!FoliageLoader || inForceInit)
+	{
+		FoliageLoader = NewObject<ULoaderFoliageOsm>();
+		IParserOsm::Execute_SetOsmReader(FoliageLoader, OsmReader);
 	}
 }
 
@@ -66,8 +72,8 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 {		
 	OsmReader->InitWithXML(inXmlData);
 
-	LoadedBuildings = IProviderBuildings::Execute_GetBuildings(BuildingsLoader);
-	LoadedRoadNetwork = IProviderRoads::Execute_GetRoadNetwork(RoadsLoader);
-
+	LoadedBuildings			= IProviderBuildings::Execute_GetBuildings(BuildingsLoader);
+	LoadedRoadNetwork		= IProviderRoads::Execute_GetRoadNetwork(RoadsLoader);
+	LoadedFoliageContours	= IProviderFolliage::Execute_GetFolliage(FoliageLoader);
 	OnDataLoaded.Broadcast(true);
 }
