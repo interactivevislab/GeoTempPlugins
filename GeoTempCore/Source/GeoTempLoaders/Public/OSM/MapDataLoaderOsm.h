@@ -7,6 +7,7 @@
 #include "Basics.h"
 #include "BuildingsData.h"
 #include "RoadsData.h"
+#include "GeometryData.h"
 
 #include "MapDataLoaderOsm.generated.h"
 
@@ -15,6 +16,7 @@ class UOsmReader;
 class UOsmManager;
 class ULoaderBuildingsOsm;
 class ULoaderRoadsOsm;
+class ULoaderFoliageOsm;
 class UHttpRequest;
 
 
@@ -39,6 +41,9 @@ public:
 	ULoaderRoadsOsm* RoadsLoader;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
+	ULoaderFoliageOsm* FoliageLoader;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
 	UOsmReader* OsmReader;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
@@ -61,6 +66,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
 	FRoadNetwork LoadedRoadNetwork;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+	TArray<FContourData> LoadedFoliageContours;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataLoadedDelegate, bool, isSuccess);
 
