@@ -1,20 +1,5 @@
 #include "OSM/LoaderFoliageOsm.h"
 
-inline void FixFoliageContours(FContourData& polygon)
-{
-	for (auto& cont : polygon.Outer)
-	{
-		cont.FixLoop();
-		cont.FixClockwise();
-	}
-
-	for (auto& cont : polygon.Holes)
-	{
-		cont.FixLoop();
-		cont.FixClockwise(true);
-	}
-}
-
 
 void ULoaderFoliageOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 {
@@ -64,10 +49,10 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 	for (auto relationP : osmReader->Relations)
 	{
-		OsmRelation* relation = relationP.second;
+		auto relation = relationP.second;
 		auto FoliageIterNatural = relation->Tags.Find("natural");
 		auto FoliageIterLanduse = relation->Tags.Find("landuse");
-		FString* FoliageIterLeisure = relation->Tags.Find("leisure");
+		auto FoliageIterLeisure = relation->Tags.Find("leisure");
 
 		//if this relation is building
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
@@ -78,7 +63,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			FContourData polygon;
 
 			//now iterate over the ways in this relation
-			for (std::pair<long, std::string> element : relation->WayRoles)
+			for (auto element : relation->WayRoles)
 			{
 				auto way = relation->Ways[element.first];
 				if (!way)
@@ -87,7 +72,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				}
 
 				auto contour = FContour();
-				for (OsmNode* node : way->Nodes)
+				for (auto node : way->Nodes)
 				{
 					contour.Points.Add(node->Point);
 				}
@@ -104,29 +89,12 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				}
 			}
 
-
 			polygon.Tags = relation->Tags;
 			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
 			polygon.ZeroLon = osmReader->GeoCoords.ZeroLon;
 
 			polygons.Add(polygon);
 		}
-
-	}
-	for (auto& polygon : polygons)
-	{
-		FixFoliageContours(polygon);
 	}
 	return polygons;
-}
-
-
-inline const FString* FindFoliageTag(TMap<FString, FString> inTags, FString inTag, FString inTagPrefix = "building:")
-{
-	auto tag = inTags.Find(inTagPrefix + inTag);
-	if (!tag)
-	{
-		tag = inTags.Find(inTag);
-	}
-	return tag;
 }
