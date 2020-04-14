@@ -13,7 +13,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 	float RoofHeight;
 
-	//~ begin IRoofMaker implementation
+	//!@{
+	/** Implementation of IRoofMaker */
 	virtual FBuildingMeshData GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial) override;
-	//~ end IRoofMaker implementation
+	//!@}
 };
