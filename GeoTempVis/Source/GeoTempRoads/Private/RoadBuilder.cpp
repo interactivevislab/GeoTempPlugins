@@ -239,10 +239,15 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 		}
 	}
 
+	if (roadNetworkActor)
+	{
+		RemoveRoadNetworkActor();
+	}
+
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "RoadNetworkActor";
-	auto roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+	roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 	auto runtimeMesh = roadNetworkActor->GetRuntimeMeshComponent();
 
 	MeshSectionData curtainsMeshData;
@@ -254,4 +259,13 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	runtimeMesh->CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normals,
 		curtainsMeshData.Uv0, curtainsMeshData.Uv1, curtainsMeshData.VertexColors, curtainsMeshData.Tangents, false);
 	runtimeMesh->SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
+}
+
+void URoadBuilder::RemoveRoadNetworkActor()
+{
+	if (roadNetworkActor)
+	{
+		roadNetworkActor->Destroy();
+		roadNetworkActor = nullptr;
+	}
 }

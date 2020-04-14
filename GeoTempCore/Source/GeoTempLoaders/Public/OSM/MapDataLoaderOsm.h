@@ -7,6 +7,7 @@
 #include "Basics.h"
 #include "BuildingsData.h"
 #include "RoadsData.h"
+#include "GeometryData.h"
 
 #include "MapDataLoaderOsm.generated.h"
 
@@ -15,6 +16,7 @@ class UOsmReader;
 class UOsmManager;
 class ULoaderBuildingsOsm;
 class ULoaderRoadsOsm;
+class ULoaderFoliageOsm;
 class UHttpRequest;
 
 
@@ -53,6 +55,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
 	FRoadNetwork LoadedRoadNetwork;
 
+	/** Loaded and processed foliage data. */
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
+	TArray<FContourData> LoadedFoliageContours;
+
 	/** Delegate type for reporting completion of data loading. */
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataLoadedDelegate, bool, isSuccess);
 
@@ -82,6 +88,9 @@ private:
 
 	/** Loader for road network data. */
 	ULoaderRoadsOsm* roadsLoader;
+
+	/** Loader for foliage data. */
+	ULoaderFoliageOsm* foliageLoader;
 
 	/** Reads and processes data when HTTP request is completed. */
 	UFUNCTION()

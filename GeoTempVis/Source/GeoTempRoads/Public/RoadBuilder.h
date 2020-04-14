@@ -9,6 +9,9 @@
 #include "RoadBuilder.generated.h"
 
 
+class ARoadNetworkActor;
+
+
 struct MeshSectionData
 {
 	TArray<FVector>				Vertices;
@@ -52,6 +55,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork);
 
+	/** Destroy spawned RoadNetworkActor. */
+	UFUNCTION(BlueprintCallable)
+	void RemoveRoadNetworkActor();
+
 private:
 
 	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, TArray<FRoadSegment> inSegments, 
@@ -63,4 +70,7 @@ private:
 	const static int CURTAINS_MATERIAL_INDEX	= 0;
 	const static int AUTO_MATERIAL_INDEX		= 1;
 	const static int RAIL_MATERIAL_INDEX		= 2;
+
+	/** Spawned RoadNetworkActor. */
+	ARoadNetworkActor* roadNetworkActor = nullptr;
 };
