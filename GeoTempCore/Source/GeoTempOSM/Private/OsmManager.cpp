@@ -10,7 +10,7 @@ void UOsmManager::Init(FString inOsmApiVersion)
 {
 	apiVersion = inOsmApiVersion;
 	tickEnabled = true;
-	client = NewObject<UHttpClient>();
+	client = NewObject<UHttpClient>(this);
 	client->Init();
 	SaveConfig();
 }

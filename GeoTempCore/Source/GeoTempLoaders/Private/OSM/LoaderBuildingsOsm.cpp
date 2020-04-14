@@ -314,19 +314,19 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			//now iterate over the ways in this relation
 			for (auto element : relation->WayRoles)
 			{				
-				auto way = relation->Ways[element.Key];				
+				auto way = relation->Ways.Find(element.Key);				
 				if (!way)
 				{
 					continue;
 				}
-				if (way->Tags.Find("building:part"))
+				if ((*way)->Tags.Find("building:part"))
 				{
 					building.Parts.Add(wayParts[element.Key]);
 					usedPartWays.Add(element.Key);
 					wayPartOwners.Add(element.Key, buildings.Num());
 				} else {
 					auto contour = FContour();
-					for (auto node : way->Nodes)
+					for (auto node : (*way)->Nodes)
 					{
 						contour.Points.Add(node->Point);
 					}
@@ -360,13 +360,13 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 
 			for (auto element : relation->WayRoles)
 			{
-				auto way = relation->Ways[element.Key];
+				auto way = relation->Ways.Find(element.Key);
 				if (!way)
 				{
 					continue;
 				}
 								
-				for (auto node : way->Nodes)
+				for (auto node : (*way)->Nodes)
 				{					
 					if (!pointOwners.Contains(node->Point))
 					{

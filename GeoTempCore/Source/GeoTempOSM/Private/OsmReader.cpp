@@ -158,15 +158,15 @@ void UOsmReader::ReadData()
 
 			if (!std::strcmp(type, "node"))
 			{
-				relObj->NodeRoles[memberId] = role;
+				relObj->NodeRoles.Add(memberId, role);
 			}
 			else if (!std::strcmp(type, "way"))
 			{
-				relObj->WayRoles[memberId] = role;
+				relObj->WayRoles.Add(memberId, role);
 			}
 			else if (!std::strcmp(type, "relation"))
 			{
-				relObj->RelRoles[memberId] = role;
+				relObj->RelRoles.Add(memberId, role);
 			}
 
 			node = node->NextSiblingElement("member");
