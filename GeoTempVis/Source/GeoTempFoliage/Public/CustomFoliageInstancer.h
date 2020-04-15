@@ -124,11 +124,8 @@ public:
 	void ParseDates(TArray<FContourData>& inContours);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseTimeTags(FContourData inContour, TSet<int>& outDates);
+	void ParseTimeTags(const FContourData& inContour, TSet<int>& outDates);
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void SortDatesByAscend(TSet<int>& inDates);
-
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void FillFoliage_BP_Test(float inComponentRect, UStaticMesh* inMesh, UHierarchicalInstancedStaticMeshComponent* outComponent);
 };

@@ -48,7 +48,7 @@ void UCustomFoliageInstancer::BeginPlay()
 
 void UCustomFoliageInstancer::InterpolateFoliageWithMaterial()
 {
-	for (FFoliageMeshInfo Info : FoliageMeshes)
+	for (FFoliageMeshInfo& Info : FoliageMeshes)
 	{
 		auto meshPtr = FoliageInstancers.FindRef(Info.Mesh);
 
@@ -57,64 +57,6 @@ void UCustomFoliageInstancer::InterpolateFoliageWithMaterial()
 			return;
 		}
 		meshPtr->SetScalarParameterValueOnMaterials("Interpolation", CurrentInterpolation);
-	}
-}
-
-void UCustomFoliageInstancer::FillFoliage_BP_Test(float inComponentRect, UStaticMesh* inMesh, UHierarchicalInstancedStaticMeshComponent* outComponent)
-{
-	FVector2D rect = FVector2D(inComponentRect);
-
-	float cellX = 0;
-	float cellY = 0;
-	float X = 0;
-	float Y = 0;
-
-	auto meshPtr = FoliageInstancers.Find(inMesh);
-
-	if (!outComponent)
-	{
-		auto instancerName = FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
-		AActor* owner = this->GetOwner();
-
-		outComponent = NewObject<UHierarchicalInstancedStaticMeshComponent>(owner, instancerName);
-		owner->AddInstanceComponent(outComponent);
-		outComponent->RegisterComponent();
-
-	}
-	outComponent->SetStaticMesh(inMesh);
-	outComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	FoliageInstancers.Add(inMesh, outComponent);
-	
-	outComponent->SetCastShadow(true);
-
-	while (cellX < rect.X)
-	{
-		while (cellY < rect.Y)
-		{
-
-			float helperX = 0.0f;
-			float helperY = 0.0f;
-
-
-
-			helperX = FMath::FRandRange(0, FMath::Clamp(CellSize.X, 0.0f, (rect.X - cellX)));
-			helperY = FMath::FRandRange(0, FMath::Clamp(CellSize.Y, 0.0f, (rect.Y - cellY)));
-
-			X = FMath::Clamp(cellX + helperX, 0.0f, rect.X);
-			Y = FMath::Clamp(cellY + helperY, 0.0f, rect.Y);
-
-			FQuat rotation = FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 0));
-			outComponent->AddInstance(
-				FTransform(
-					rotation,
-					FVector(X, Y, 0.0f),
-					FVector(5.0f)
-				)
-			);
-			cellY += CellSize.Y;
-		}
-		cellX += CellSize.X; cellY = 0;
 	}
 }
 
@@ -336,7 +278,8 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 			}
 			cellY += CellSize.Y;
 		}
-		cellX += CellSize.X; cellY = 0;
+		cellX += CellSize.X; 
+		cellY = 0;
 	}
 }
 
@@ -426,7 +369,7 @@ void UCustomFoliageInstancer::ParseDates(TArray<FContourData>& inContours)
 }
 
 
-void UCustomFoliageInstancer::ParseTimeTags(FContourData inContour, TSet<int>& outDates)
+void UCustomFoliageInstancer::ParseTimeTags(const FContourData& inContour, TSet<int>& outDates)
 {
 	int date	= inContour.Tags.Find("AppearStart")	? FCString::Atoi(**inContour.Tags.Find("AppearStart")		):0;
 	outDates.Add(date);

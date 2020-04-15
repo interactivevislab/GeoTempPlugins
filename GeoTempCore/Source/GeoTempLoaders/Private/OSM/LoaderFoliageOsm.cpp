@@ -2,21 +2,6 @@
 
 #include "LoaderHelper.h"
 
-inline void FixFoliageContours(FContourData& polygon)
-{
-	for (auto& cont : polygon.Outer)
-	{
-		cont.FixLoop();
-		cont.FixClockwise();
-	}
-
-	for (auto& cont : polygon.Holes)
-	{
-		cont.FixLoop();
-		cont.FixClockwise(true);
-	}
-}
-
 
 inline const double signedArea(const TArray<FVector> &p)
 {
@@ -94,7 +79,92 @@ inline const TArray<FVector> border(const TArray<FVector> &p, double thickness)
 }
 
 
+TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours)
+{
+	TArray<FContour> closedContours = {};
+	while (inUnclosedContours.Num() > 0)
+	{
+		if (closedContours.Num() == 0)
+		{
+			closedContours.Add(inUnclosedContours[0]);
+			inUnclosedContours.RemoveAt(0);
+			continue;
+		}
+		bool hasConnections = false;
 
+		for (auto& contour : closedContours)
+		{
+			auto lastPointIndex = contour.Points.Num() - 1;
+			int contourToRemove = -1;
+
+			for (int i = 0; i < inUnclosedContours.Num(); i++)
+			{
+				if (contour.Points[lastPointIndex] == inUnclosedContours[i].Points[0])
+				{
+					for (int j = 1; j < inUnclosedContours[i].Points.Num(); j++)
+					{
+						contour.Points.Add(inUnclosedContours[i].Points[j]);
+					}
+					contourToRemove = i;
+					break;
+				}
+
+				if (contour.Points[0] == inUnclosedContours[i].Points.Last())
+				{
+					for (int j = inUnclosedContours[i].Points.Num() - 2; j >= 0; j--)
+					{
+						contour.Points.Insert(inUnclosedContours[i].Points[j], 0);
+					}
+					contourToRemove = i;
+					break;
+				}
+
+				if (contour.Points[0] == inUnclosedContours[i].Points[0])
+				{
+					for (int j = 1; j < inUnclosedContours[i].Points.Num(); j++)
+					{
+						contour.Points.Insert(inUnclosedContours[i].Points[j], 0);
+					}
+					contourToRemove = i;
+					break;
+				}
+
+				if (contour.Points[lastPointIndex] == inUnclosedContours[i].Points.Last())
+				{
+					for (int j = inUnclosedContours[i].Points.Num() - 2; j >= 0; j--)
+					{
+						contour.Points.Add(inUnclosedContours[i].Points[j]);
+					}
+					contourToRemove = i;
+					break;
+				}
+			}
+			if (contourToRemove >= 0)
+			{
+				inUnclosedContours.RemoveAt(contourToRemove);
+				hasConnections = true;
+			}
+			else
+			{
+				hasConnections = false;
+			}
+		}
+		if (!hasConnections)
+		{
+			closedContours.Add(inUnclosedContours[0]);
+			inUnclosedContours.RemoveAt(0);
+			continue;
+		}
+	}
+	for (auto& contour : closedContours)
+	{
+		if (!contour.IsClosed())
+		{
+			contour.FixClockwise();
+		}
+	}
+	return closedContours;
+}
 
 
 void ULoaderFoliageOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
@@ -203,8 +273,11 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 		{
 			FContourData polygon;
 
+			TArray<FContour> UnclosedOuterContours;
+			TArray<FContour> UnclosedInnerContours;
+
 			//now iterate over the ways in this relation
-			for (std::pair<long, std::string> element : relation->WayRoles)
+			for (auto element : relation->WayRoles)
 			{
 				auto way = relation->Ways[element.first];
 				if (!way)
@@ -213,23 +286,42 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				}
 
 				auto contour = FContour();
-				for (OsmNode* node : way->Nodes)
+				for (auto node : way->Nodes)
 				{
 					contour.Points.Add(node->Point);
 				}
 
 				if (element.second == "outer")
 				{
-					contour.FixClockwise();
-					polygon.Outer.Add(contour);
+					if (contour.IsClosed())
+					{
+						contour.FixClockwise();
+						polygon.Outer.Add(contour);
+					}
+					else
+					{
+						UnclosedOuterContours.Add(contour);
+					}
 				}
 				else if (element.second == "inner")
 				{
-					contour.FixClockwise(true);
-					polygon.Holes.Add(contour);
+					if (contour.IsClosed())
+					{
+						contour.FixClockwise(true);
+						polygon.Holes.Add(contour);
+					}
+					else
+					{
+						UnclosedInnerContours.Add(contour);
+					}
 				}
 			}
-
+			auto fixedContours = FixRelationContours(UnclosedOuterContours);
+			
+			for (auto& contour : fixedContours)
+			{
+					polygon.Outer.Add(contour);
+			}
 
 			polygon.Tags = relation->Tags;
 			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
@@ -242,22 +334,6 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 			polygons.Add(polygon);
 		}
-
-	}
-	for (auto& polygon : polygons)
-	{
-		FixFoliageContours(polygon);
 	}
 	return polygons;
-}
-
-
-inline const FString* FindFoliageTag(TMap<FString, FString> inTags, FString inTag, FString inTagPrefix = "building:")
-{
-	auto tag = inTags.Find(inTagPrefix + inTag);
-	if (!tag)
-	{
-		tag = inTags.Find(inTag);
-	}
-	return tag;
 }

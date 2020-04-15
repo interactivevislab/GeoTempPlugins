@@ -33,6 +33,9 @@ struct GEOTEMPCORE_API FContour
 	//returns true if contour violates clockwise rule without applying any changes to the contour
 	bool IsNotClockwise(bool reverse = false);
 
+	//returns true if the first and the last points are equal
+	bool IsClosed();
+
 	void Cleanup();	
 
 	///Creates copy of this contour and removes points which are collinear to neighbors or near to these
