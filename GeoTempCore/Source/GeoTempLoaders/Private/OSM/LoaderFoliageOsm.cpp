@@ -224,34 +224,72 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 		if (way->Tags.Contains("highway"))
 		{
-			TArray<FVector> roadPoints = {};
-			TArray<FVector> inversePoints = {};
 			FVector pointDelta;
-			for (auto node : way->Nodes)
-			{
-				roadPoints.Add(node->Point);
-				inversePoints.Insert(node->Point,0);
-				if (inversePoints.Num()>1)
-				{
-					pointDelta = FVector::CrossProduct((inversePoints[1] - inversePoints[0]).GetSafeNormal(), FVector(0, 0, 0.5));
-					inversePoints[1] = inversePoints[1] + pointDelta;
-				}
-			}
-			inversePoints[0] = inversePoints[0] + pointDelta;
-			roadPoints.Append(inversePoints);
-			FVector firstPoint = roadPoints[0];
-			roadPoints.Add(firstPoint);
 
 			auto lanes = ULoaderHelper::TryGetTag(way->Tags, "lanes", ULoaderHelper::DEFAULT_LANES);
 			auto width = ULoaderHelper::TryGetTag(way->Tags, "width", lanes * ULoaderHelper::DEFAULT_LANE_WIDTH);
 
-			auto roadCont = FContour(border(roadPoints, width*50));
-			polygon.Outer.Add(roadCont);
+			for (int i = 0; i < way->Nodes.size() - 1; i++)
+			{
+				FContourData roadPolygon;
+				auto startPoint = way->Nodes[i]->Point;
+				auto endPoint = way->Nodes[i + 1]->Point;
 
-			polygon.Tags = way->Tags;
-			polygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
+				pointDelta = FVector::CrossProduct((startPoint - endPoint).GetSafeNormal(), FVector(0, 0, 1));
 
-			polygons.Add(polygon);
+				pointDelta *= (width * 50);
+
+				auto point0 = startPoint + pointDelta;
+				auto point1 = startPoint - pointDelta;
+				auto point2 = endPoint + pointDelta;
+				auto point3 = endPoint - pointDelta;
+
+				auto roadCont = FContour();
+				roadCont.Points.Append({
+					point0,
+					point2 
+				});
+
+				const int capDensity = 8;
+				auto yDelta = FVector::CrossProduct(pointDelta, FVector::UpVector);
+
+				FVector radiusDeltas[capDensity + 1];
+
+				for (int j = 1; j < capDensity; j++)
+				{
+					float angle = PI / capDensity * j;
+
+					float x = FMath::Cos(angle);
+					float y = FMath::Sin(angle);
+
+					roadCont.Points.Add(endPoint - FVector(0, 0, 2) + (pointDelta * x + yDelta * y));
+				}
+
+				roadCont.Points.Append({
+					point3,
+					point1
+				});
+
+				for (int j = 1; j < capDensity; j++)
+				{
+					float angle = PI / capDensity * j;
+
+					float x = FMath::Cos(angle);
+					float y = FMath::Sin(angle);
+
+					roadCont.Points.Add(startPoint - FVector(0, 0, 2) - (pointDelta * x + yDelta * y));
+				}
+				
+				roadCont.Points.Append({
+					point0
+				});
+				
+				roadPolygon.Outer.Add(roadCont);
+				roadPolygon.Tags = way->Tags;
+				roadPolygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
+
+				polygons.Add(roadPolygon);
+			}
 		}
 	}
 
