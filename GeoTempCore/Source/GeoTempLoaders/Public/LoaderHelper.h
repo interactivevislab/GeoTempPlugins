@@ -19,9 +19,6 @@ public:
 
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	static FRoadNetwork GetRoadNetworkForYear(FRoadNetwork inFullRoadNetwork, int inYear);
-
 #pragma region Tags
 
 	template<typename ValueType>
