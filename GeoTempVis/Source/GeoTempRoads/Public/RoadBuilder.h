@@ -9,18 +9,15 @@
 #include "RoadBuilder.generated.h"
 
 
-struct MeshSectionData
-{
-	TArray<FVector>				Vertices;
-	TArray<int>					Indices;
-	TArray<FVector>				Normals;
-	TArray<FVector2D>			Uv0;
-	TArray<FVector2D>			Uv1;
-	TArray<FColor>				VertexColors;
-	TArray<FRuntimeMeshTangent>	Tangents;
-};
+struct MeshSectionData;
 
 
+/**
+* \class URoadBuilder
+* \brief Actor component, that can create road network actors.
+*
+* @see ARoadNetworkActor
+*/
 UCLASS(BlueprintType, Meta = (BlueprintSpawnableComponent))
 class GEOTEMPROADS_API	URoadBuilder : public UActorComponent
 {
@@ -28,39 +25,46 @@ class GEOTEMPROADS_API	URoadBuilder : public UActorComponent
 
 public:
 
+	/** Material that be used in creating road network actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* RoadMaterial;
 
+	/** Z-coordinate of highway surface. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AutoRoadZ;
 
+	/** Z-coordinate of railroad surface. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float RailRoadZ;
 
+	/** Height of road down from Z-coordinate. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float RoadHeight;
 
+	/** Width of roadsides. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float CurtainsWidth;
 
+	/** Stretch of road textures. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Stretch = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<FString, RoadType> CoatingTags;
-
+	/** Spawns ARoadNetworkActor based on road network structure. */
 	UFUNCTION(BlueprintCallable)
 	void SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork);
 
 private:
 
+	/**
+	* \fn ConstructRoadMeshSection
+	* \brief Add new mesh section in RuntimeMeshComponent.
+	*
+	* @param inRuntimeMesh			Target RuntimeMesh.
+	* @param inSegments				Array of road segments for mesh data calculation.
+	* @param inSectionIndex			Index of target mesh section.
+	* @param inMaterial				Material for mesh section.
+	* @param outCurtainsMeshData	Calculated data for roadsides' mesh section.
+	*/
 	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, TArray<FRoadSegment> inSegments, 
 		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
-
-	UPROPERTY()
-	TMap<int, UMaterialInstanceDynamic*> roadMaterials;
-
-	const static int CURTAINS_MATERIAL_INDEX	= 0;
-	const static int AUTO_MATERIAL_INDEX		= 1;
-	const static int RAIL_MATERIAL_INDEX		= 2;
 };
