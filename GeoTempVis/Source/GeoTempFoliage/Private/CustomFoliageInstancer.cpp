@@ -74,7 +74,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 
 	UpdateBuffer();
 
-	for (FFoliageMeshInfo meshInfo : FoliageMeshes)
+	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 	{
 		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
 
@@ -88,9 +88,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 			}
 			else
 			{
-				auto materialName		= FName(*(*TEXT("NewInstancedMaterial") + "_" + FString::FromInt(x)));
-				auto dynamicMaterial	= UMaterialInstanceDynamic::Create(material, meshInfo.Mesh, materialName);
-
+				auto dynamicMaterial = UMaterialInstanceDynamic::Create(material, this);
 				meshInfo.MaterialInstances.Add(x, dynamicMaterial);
 			}
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue	("InstancerWidth",	Width		);
@@ -133,11 +131,20 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 		}
 		else 
 		{
+			if (!foliageActor)
+			{
+				FActorSpawnParameters SpawnInfo;
+				SpawnInfo.Owner = GetOwner();
+				SpawnInfo.Name = "FoliageActor";
+				foliageActor = GetWorld()->SpawnActor<AActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+			}
+
+
 			auto instancerName	= FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
 			AActor* owner = this->GetOwner();
 
-			InstancedMesh	= NewObject<UHierarchicalInstancedStaticMeshComponent>(owner, instancerName);
-			owner			->AddInstanceComponent(InstancedMesh);
+			InstancedMesh	= NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
+			foliageActor	->AddInstanceComponent(InstancedMesh);
 			InstancedMesh	->RegisterComponent();
 
 			InstancedMesh->SetStaticMesh(meshInfo.Mesh);
@@ -168,7 +175,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 	{
 		case ELayersOption::PolyLayered: 
 		{
-			for (FFoliageMeshInfo meshInfo : FoliageMeshes)
+			for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 			{
 				TArray<FFoliageMeshInfo> infos;
 				TArray<UHierarchicalInstancedStaticMeshComponent*> instancers;
@@ -286,11 +293,15 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 void UCustomFoliageInstancer::ClearFoliage_BP()
 {
 	AActor* owner = this->GetOwner();
+	if (!foliageActor)
+	{
+		return;
+	}
 	for (auto& FoliageInstance : FoliageInstancers)
 	{
 		FoliageInstance.Value->ClearInstances();
 		FoliageInstance.Value->UnregisterComponent();
-		owner->RemoveInstanceComponent(FoliageInstance.Value);
+		foliageActor->RemoveInstanceComponent(FoliageInstance.Value);
 		FoliageInstance.Value->DestroyComponent();
 	}
 	FoliageInstancers.Empty();

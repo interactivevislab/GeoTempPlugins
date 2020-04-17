@@ -66,6 +66,10 @@ private:
 	/** Array of dates accociated with foliage areas to render to masks. */
 	TArray<int> polygonDates;
 
+	/** An actor to contain foliage instancer component. */
+	UPROPERTY()
+	AActor* foliageActor = nullptr;
+
 protected:
 	virtual void BeginPlay() override;
 
