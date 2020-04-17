@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "TileLoader.h"
+#include "TileVisualizer.h"
+#include "TilesContainer.h"
 #include "Engine/Engine.h"
-#include "Engine/Texture2DDynamic.h"
 
 // Sets default values for this component's properties
 UTilesController::UTilesController(const FObjectInitializer& ObjectInitializer) : URuntimeMeshComponent(ObjectInitializer)
@@ -119,7 +119,10 @@ float UTilesController::GetPixelSize(FTileCoordinates meta)
 
 void UTilesController::CreateMesh()
 {
-	if (!TileLoader) TileLoader = NewObject<UTileTextureContainer>(this);
+	if (!TileLoader)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Tile Loader is not initialized"));
+	}
 
 	int z = BaseLevel;
 
@@ -216,29 +219,28 @@ int UTilesController::CreateTileMesh(FTileCoordinates meta)
 	float size = EarthOneDegreeLengthOnEquator / (1 << z) * 360 * FMath::Cos(CenterLat * PI / 180);
 	
 	FVector delta((x - x0) * size, (y - y0) * size, 0);
+	if (TileMeshResolution < 1) TileMeshResolution = 1;
+	for (int ix = 0; ix < TileMeshResolution + 1; ix++)
+	{
+		for (int iy = 0; iy < TileMeshResolution + 1; iy++)
+		{
+			vertices.Add(delta + FVector(size * ix / TileMeshResolution, size * iy / TileMeshResolution, 0));
+			normals.Add(FVector::UpVector);
+			uvs.Add(FVector2D(1.0f * ix / TileMeshResolution, 1.0f * iy / TileMeshResolution));
 
-	vertices.Add(delta + FVector(0, 0, 0));
-	vertices.Add(delta + FVector(size, 0, 0));
-	vertices.Add(delta + FVector(size, size, 0));
-	vertices.Add(delta + FVector(0, size, 0));
+			if (ix != TileMeshResolution && iy != TileMeshResolution)
+			{
+				int w = TileMeshResolution + 1;
+				triangles.Add(iy * w + ix);				
+				triangles.Add(iy * w + ix + 1);
+				triangles.Add((iy + 1) * w + ix);
 
-	normals.Add(FVector::UpVector);
-	normals.Add(FVector::UpVector);
-	normals.Add(FVector::UpVector);
-	normals.Add(FVector::UpVector);
-
-	uvs.Add(FVector2D(0, 0));
-	uvs.Add(FVector2D(1, 0));
-	uvs.Add(FVector2D(1, 1));
-	uvs.Add(FVector2D(0, 1));
-
-	triangles.Add(0);
-	triangles.Add(2);
-	triangles.Add(1);
-
-	triangles.Add(0);
-	triangles.Add(3);
-	triangles.Add(2);
+				triangles.Add(iy * w + ix + 1);
+				triangles.Add((iy + 1) * w + ix + 1);
+				triangles.Add((iy + 1) * w + ix);
+			}
+		}		
+	}
 
 
 	int sectionIndex = -1;
@@ -252,9 +254,11 @@ int UTilesController::CreateTileMesh(FTileCoordinates meta)
 	}	
 	CreateMeshSection(sectionIndex, vertices, triangles, normals, uvs, TArray<FColor>(),
 	                       TArray<FRuntimeMeshTangent>(), false);
+	
 	auto tile = TileLoader->GetTileMaterial(x, y, z, TileMaterial, this->GetOwner());
-	SetMaterial(sectionIndex, tile->Material);	
-	TileLoader->CachedTiles[meta]->IsActive = true;	
+	SetMaterial(sectionIndex, tile->Material);
+	
+	TileLoader->SetTileActive(meta, true);	
 	TileIndecies.Add(meta, sectionIndex);
 	Tiles.Add(meta, tile);
 	return  sectionIndex;
@@ -262,18 +266,10 @@ int UTilesController::CreateTileMesh(FTileCoordinates meta)
 
 void UTilesController::ClearTileMesh(FTileCoordinates meta)
 {
-	//mesh->ClearMeshSection(index);
 	int index = TileIndecies[meta];
 	SetMeshSectionVisible(index, false);
 	
-	if (TileLoader->CachedTiles.Contains(meta))
-	{
-		TileLoader->CachedTiles[meta]->IsActive = false;
-		TileLoader->CachedTiles[meta]->lastAcessTime = FDateTime::Now();		
-	} else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Unexpected error happened: attemp to clean unexisting tile"));
-	}	
+	TileLoader->SetTileActive(meta, false);
 	freeIndices.Add(index);
 	TileIndecies.Remove(meta);
 	Tiles[meta]->IsActive = false;
@@ -327,124 +323,3 @@ void UTilesController::SplitTile(int x, int y, int z)
 	
 }
 
-void UTextureDownloader::StartDownloadingTile(FTileCoordinates meta, FString url)
-{
-	TextureCoords = meta;	
-	Loader = UAsyncTaskDownloadImage::DownloadImage(url);
-	Loader->OnSuccess.AddDynamic(this, &UTextureDownloader::OnTextureLoaded);
-	Loader->OnFail.AddDynamic(this, &UTextureDownloader::OnLoadFailed);
-}
-
-void UTextureDownloader::OnTextureLoaded(UTexture2DDynamic* Texture)
-{
-	if (!Texture->IsValidLowLevel())
-	{
-		TileContainer->FreeLoader(TextureCoords);
-		UE_LOG(LogTemp, Warning, TEXT("Loaded texture is corrupt"));
-	}
-	if(!Material->IsValidLowLevel())
-	{
-		TileContainer->FreeLoader(TextureCoords);
-		UE_LOG(LogTemp, Warning, TEXT("Texture loaded for already destroyed tile"));
-	}
-	TileContainer->CacheTexture(TextureCoords, (UTexture*)(Texture));
-	Material->SetTextureParameterValue("Tile", (UTexture*)(Texture));
-}
-
-void UTextureDownloader::OnLoadFailed(UTexture2DDynamic* Texture)
-{
-	TileContainer->FreeLoader(TextureCoords);
-	UE_LOG(LogTemp, Warning, TEXT("Load failed"));
-}
-
-UTileData* UTileTextureContainer::GetTileMaterial(int x, int y, int z, UMaterialInterface* mat, AActor* owner)
-{
-	auto meta = FTileCoordinates{ x, y, z };
-	return GetTileMaterial(meta, mat, owner);
-}
-
-UTileData* UTileTextureContainer::GetTileMaterial(FTileCoordinates meta, UMaterialInterface* mat, AActor* owner)
-{
-	//UE_LOG(LogTemp, Warning, TEXT("Total cached textures: %i"), CachedTiles.Num());
-
-	if (CachedTiles.Num() > 512)
-	{
-		TArray<FTileCoordinates> pendingDelete;		
-		for (auto cached : CachedTiles)
-		{
-			//if (!cached.Value)
-			//{
-			//	//all gone wrong. Probably we somehow lost all cache on engine reload or something like that
-			//	CachedTiles.Empty();
-			//	break;
-			//}
-			if (!cached.Value || !cached.Value->IsActive && (cached.Value->lastAcessTime - FDateTime::Now()).GetTotalSeconds() > 60)
-			{
-				pendingDelete.Add(cached.Key);
-			}
-		}
-		for (auto tile : pendingDelete)
-		{
-			auto t = CachedTiles[tile];
-			if (t) {
-				t->IsLoaded = false;
-			}
-			CachedTiles.Remove(tile);			 
-		}
-	}
-	auto cached = CachedTiles.Find(meta);
-	if (!cached || !*cached)
-	{
-		//if (loadingImages.Contains(meta)) return loadingImages[meta]->material;
-		UMaterialInstanceDynamic* matInstance = UMaterialInstanceDynamic::Create(mat, owner);		
-		auto url = FString::Format(*UrlString, { meta.Z, meta.X, meta.Y });
-		UTextureDownloader* loader;
-		loader = NewObject<UTextureDownloader>();		
-		loader->TileContainer = this;		
-		loader->StartDownloadingTile(meta, url);
-		loader->Material = matInstance;
-		loadingImages.Add(meta, loader);
-		//matInstance->SetTextureParameterValue("Tile", CachedTextures[meta]);
-		auto TileInfo = NewObject<UTileData>();
-		TileInfo->Container = this;
-		TileInfo->Material = matInstance;
-		TileInfo->lastAcessTime = FDateTime::Now();
-		CachedTiles.Add(meta, TileInfo);
-		return TileInfo;
-	}	
-	else
-	{		
-		return *cached;
-	}
-}
-
-
-void UTileTextureContainer::CacheTexture(FTileCoordinates meta, UTexture* texture)
-{
-	if (CachedTiles.Contains(meta))
-	{
-		CachedTiles[meta]->Texture = texture;
-	}
-	
-}
-
-void UTileTextureContainer::FreeLoader(FTileCoordinates meta)
-{
-	if (!loadingImages.Contains(meta))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Unexpected error happened: attemp to free unexisting tile loader"));
-	}		
-	//auto loader = loadingImages[meta];
-	//loadingImages.Remove(meta);
-	//unusedDownloaders.Add(loader);
-}
-
-bool UTileTextureContainer::IsTextureLoaded(FTileCoordinates meta)
-{
-	return CachedTiles.Contains(meta) && CachedTiles[meta]->Texture && CachedTiles[meta]->Texture->IsValidLowLevel();
-}
-
-void UTileTextureContainer::Clear()
-{
-	CachedTiles.Empty();
-}

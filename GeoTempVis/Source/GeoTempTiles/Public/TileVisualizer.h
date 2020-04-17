@@ -9,7 +9,8 @@
 #include "GameFramework/PlayerController.h"
 #include "RuntimeMeshComponent.h"
 #include "Tickable.h"
-#include "TileLoader.generated.h"
+#include "TilesBasics.h"
+#include "TileVisualizer.generated.h"
 
 class UTileTextureContainer;
 
@@ -17,54 +18,6 @@ class UTileData;
 
 
 #pragma region TileMeta
-
-/** Tile coordinates struct for using in maps */
-USTRUCT(BlueprintType)
-struct FTileCoordinates
-{
-	GENERATED_BODY()
-
-
-public:
-	/** X coordinate */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-		int X;
-
-	/** Y coordinate */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-		int Y;
-
-	/** Z coordinate */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-		int Z;
-
-	/** Comparison operator */
-	bool operator==(const FTileCoordinates& v) const
-	{
-		return X == v.X && Y == v.Y && Z == v.Z;
-	}
-};
-
-/** Hash function for FTileCoordinates */
-FORCEINLINE uint32 GetTypeHash(const FTileCoordinates& k)
-{
-	return (std::hash<int>()(k.X) ^ std::hash<int>()(k.Y) ^ std::hash<int>()(k.Z));
-}
-
-
-//namespace std
-//{
-//	template <>
-//	struct hash<FTileCoordinates>
-//	{
-//		size_t operator()(const FTileCoordinates& k) const
-//		{
-//			// Compute individual hash values for two data members and combine them using XOR and bit shifting
-//			return (hash<int>()(k.X) ^ hash<int>()(k.Y) ^ hash<int>()(k.Z));
-//		}
-//	};
-//}
-//#pragma endregion
 
 /** Actor component for tiles handling and visualization*/
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -184,6 +137,8 @@ private:
 	/** create and mesh section for a tile */
 	int CreateTileMesh(int x, int y, int z);
 
+	int TileMeshResolution = 4;
+	
 	/** create and mesh section for a tile */
 	int CreateTileMesh(FTileCoordinates meta);
 
@@ -200,114 +155,5 @@ private:
 	void SplitTile(int x, int y, int z);
 };
 
-/** Handle for tile web loading delegates */
-UCLASS()
-class UTextureDownloader : public UObject
-{
-	GENERATED_BODY()
-public:
 
-	/** Coordinates of the tile loading */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	FTileCoordinates TextureCoords;
-
-	/** Pointer to web loading task*/
-	UPROPERTY()
-	UAsyncTaskDownloadImage* Loader;
-
-	/** Initializer for beginning of tile download */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void StartDownloadingTile(FTileCoordinates meta, FString url);
-
-	/** Pointer to tile texture container */
-	UPROPERTY()
-	UTileTextureContainer* TileContainer;
-
-	/** Pointer to material generated for the tile loading */
-	UPROPERTY()
-	UMaterialInstanceDynamic* Material;
-
-	/** Event to call when tile sucessfully loaded */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void OnTextureLoaded(UTexture2DDynamic* Texture);
-
-	/** Event to call when tile download has failed */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void OnLoadFailed(UTexture2DDynamic* Texture);
-};
-
-/** Tile data container */
-UCLASS()
-class UTileData : public UObject
-{
-	GENERATED_BODY()
-public:
-
-	/** Pointer to tile texture container */
-	UPROPERTY()
-	UTileTextureContainer* Container;
-
-	/** Is this tile currently active and visible */
-	UPROPERTY()
-	bool IsActive;
-
-	/** Is this tile currently loaded and ready */
-	UPROPERTY()
-	bool IsLoaded;
-
-	/** Last time this tile was requested on tile generation process */
-	UPROPERTY()
-	FDateTime lastAcessTime;
-
-	/** Pointer for texture of this tile */
-	UPROPERTY()
-	UTexture* Texture;
-
-	/** Pointer to material generated for the tile loading */
-	UPROPERTY()
-	UMaterialInstanceDynamic* Material;
-};
-
-UCLASS()
-class UTileTextureContainer : public UObject
-{
-	GENERATED_BODY()
-	
-private: 
-	UPROPERTY()
-	TMap<FTileCoordinates, UTextureDownloader*> loadingImages;
-	
-public:
-	friend class UTextureDownloader;
-	
-	/** Map of currently loaded and cached tiles */
-	UPROPERTY()
-	TMap< FTileCoordinates, UTileData*> CachedTiles;
-
-	/** Url template for tile downloading */
-	UPROPERTY()
-	FString UrlString = TEXT("http://a.tile.openstreetmap.org/{0}/{1}/{2}.png");
-
-	//UFUNCTION(BlueprintCallable, Category = "Default")
-	UTileData* GetTileMaterial(int x, int y, int z, UMaterialInterface* mat, AActor* owner);
-
-	/** Get uninitialized tile material for current tile and start downloading texture */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	UTileData* GetTileMaterial(FTileCoordinates meta, UMaterialInterface* mat, AActor* owner);
-
-	/** Check if texture already downloaded and cached */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	bool IsTextureLoaded(FTileCoordinates meta);
-
-	/** Clear all caches */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void Clear();
-	
-private:
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void CacheTexture(FTileCoordinates meta, UTexture* texture);
-
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void FreeLoader(FTileCoordinates meta);
-};
 
