@@ -3,94 +3,6 @@
 #include "LoaderHelper.h"
 
 
-TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours)
-{
-	TArray<FContour> closedContours = {};
-	while (inUnclosedContours.Num() > 0)
-	{
-		if (closedContours.Num() == 0)
-		{
-			closedContours.Add(inUnclosedContours[0]);
-			inUnclosedContours.RemoveAt(0);
-			continue;
-		}
-		bool hasConnections = false;
-
-		for (auto& contour : closedContours)
-		{
-			auto lastPointIndex = contour.Points.Num() - 1;
-			int contourToRemove = -1;
-
-			for (int i = 0; i < inUnclosedContours.Num(); i++)
-			{
-				if (contour.Points[lastPointIndex] == inUnclosedContours[i].Points[0])
-				{
-					for (int j = 1; j < inUnclosedContours[i].Points.Num(); j++)
-					{
-						contour.Points.Add(inUnclosedContours[i].Points[j]);
-					}
-					contourToRemove = i;
-					break;
-				}
-
-				if (contour.Points[0] == inUnclosedContours[i].Points.Last())
-				{
-					for (int j = inUnclosedContours[i].Points.Num() - 2; j >= 0; j--)
-					{
-						contour.Points.Insert(inUnclosedContours[i].Points[j], 0);
-					}
-					contourToRemove = i;
-					break;
-				}
-
-				if (contour.Points[0] == inUnclosedContours[i].Points[0])
-				{
-					for (int j = 1; j < inUnclosedContours[i].Points.Num(); j++)
-					{
-						contour.Points.Insert(inUnclosedContours[i].Points[j], 0);
-					}
-					contourToRemove = i;
-					break;
-				}
-
-				if (contour.Points[lastPointIndex] == inUnclosedContours[i].Points.Last())
-				{
-					for (int j = inUnclosedContours[i].Points.Num() - 2; j >= 0; j--)
-					{
-						contour.Points.Add(inUnclosedContours[i].Points[j]);
-					}
-					contourToRemove = i;
-					break;
-				}
-			}
-			if (contourToRemove >= 0)
-			{
-				inUnclosedContours.RemoveAt(contourToRemove);
-				hasConnections = true;
-			}
-			else
-			{
-				hasConnections = false;
-			}
-		}
-		if (!hasConnections)
-		{
-			closedContours.Add(inUnclosedContours[0]);
-			inUnclosedContours.RemoveAt(0);
-			continue;
-		}
-	}
-	for (auto& contour : closedContours)
-	{
-		if (!contour.IsClosed())
-		{
-			contour.FixClockwise();
-		}
-	}
-	return closedContours;
-}
-
-
 void ULoaderFoliageOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 {
 	osmReader = inOsmReader;
@@ -100,6 +12,9 @@ void ULoaderFoliageOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 {
 	TArray<FContourData> polygons;
+
+	TArray<FContour> UnclosedOuterContours;
+	TArray<FContour> UnclosedInnerContours;
 
 	polygons.Empty();
 	//find all building and building parts through ways
@@ -235,8 +150,8 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 		{
 			FContourData polygon;
 
-			TArray<FContour> UnclosedOuterContours;
-			TArray<FContour> UnclosedInnerContours;
+			UnclosedOuterContours.Empty();
+			UnclosedInnerContours.Empty();
 
 			//now iterate over the ways in this relation
 			for (auto element : relation->WayRoles)
@@ -278,12 +193,9 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 					}
 				}
 			}
-			auto fixedContours = FixRelationContours(UnclosedOuterContours);
-			
-			for (auto& contour : fixedContours)
-			{
-					polygon.Outer.Add(contour);
-			}
+
+			polygon.Outer.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours));
+			polygon.Holes.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours));
 
 			polygon.Tags = relation->Tags;
 			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;

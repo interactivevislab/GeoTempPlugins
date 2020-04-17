@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 
 #include "RoadsData.h"
+#include "GeometryData.h"
 
 #include "LoaderHelper.Generated.h"
 
@@ -18,6 +19,8 @@ public:
 	const static float DEFAULT_LANE_WIDTH;
 
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
+
+	static TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours);
 
 #pragma region Tags
 

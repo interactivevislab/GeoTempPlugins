@@ -1,6 +1,7 @@
 #include "OSM/LoaderBuildingsOsm.h"
 
 #include "igl/point_in_poly.h"
+#include "LoaderHelper.h"
 
 const FString FLOORS_TAG_STRING		= "levels";
 const FString HEIGHT_TAG_STRING		= "height";
@@ -162,6 +163,9 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 
 	TSet<long> usedPartWays, usedPartRelations;
 
+	TArray<FContour> UnclosedOuterContours;
+	TArray<FContour> UnclosedInnerContours;
+
 	//find all building and building parts through ways
 	for (auto wayP : osmReader->Ways)
 	{
@@ -238,6 +242,9 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			FBuildingPart part = FBuildingPart(relation->Id);
 			InitBuildingPart(relation, part);
 			
+			UnclosedOuterContours.Empty();
+			UnclosedInnerContours.Empty();
+
 			for (auto element : relation->WayRoles)
 			{
 				auto way = relation->Ways[element.first];
@@ -256,13 +263,27 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 
 					if (element.second == "outer")
 					{
-						contour.FixClockwise();
-						part.OuterConts.Add(contour);
+						if (contour.IsClosed())
+						{
+							contour.FixClockwise();
+							part.OuterConts.Add(contour);
+						}
+						else
+						{
+							UnclosedOuterContours.Add(contour);
+						}
 					}
 					else if (element.second == "inner")
 					{
-						contour.FixClockwise(false);
-						part.InnerConts.Add(contour);
+						if (contour.IsClosed())
+						{
+							contour.FixClockwise(false);
+							part.InnerConts.Add(contour);
+						}
+						else
+						{
+							UnclosedInnerContours.Add(contour);
+						}
 					}
 				} else {
 					if (wayParts.Contains(element.first)) 
@@ -271,6 +292,9 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					}
 				}
 			}
+			part.OuterConts.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours));
+			part.InnerConts.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours));
+
 			relParts.Add(part.Id, part);
 			for (auto element : relation->WayRoles)
 			{
@@ -311,6 +335,9 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			FBuildingPart part = FBuildingPart(relation->Id);
 			InitBuildingPart(relation, part);
 			
+			UnclosedOuterContours.Empty();
+			UnclosedInnerContours.Empty();
+
 			//now iterate over the ways in this relation
 			for (auto element : relation->WayRoles)
 			{				
@@ -333,17 +360,33 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 
 					if (element.second == "outer")
 					{
-						contour.FixClockwise();
-						part.OuterConts.Add(contour);
+						if (contour.IsClosed())
+						{
+							contour.FixClockwise();
+							part.OuterConts.Add(contour);
+						}
+						else
+						{
+							UnclosedOuterContours.Add(contour);
+						}
 					}
 					else if (element.second == "inner")
 					{
-						contour.FixClockwise(true);
-						part.InnerConts.Add(contour);
+						if (contour.IsClosed())
+						{
+							contour.FixClockwise(true);
+							part.InnerConts.Add(contour);
+						}
+						else
+						{
+							UnclosedInnerContours.Add(contour);
+						}
 					}
 				}
 			}
 			
+			part.OuterConts.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours));
+			part.InnerConts.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours));
 
 			for (auto element : relation->RelRoles)
 			{
