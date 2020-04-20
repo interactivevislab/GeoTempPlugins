@@ -16,12 +16,19 @@ class GEOTEMPLOADERS_API UProviderFolliage : public UInterface
 };
 
 
+/**
+* \class IProviderFolliage
+* \brief Interface for providing folliage data.
+*
+* @see FContourData
+*/
 class GEOTEMPLOADERS_API IProviderFolliage
 {
 	GENERATED_BODY()
 
 public:
 
+	/** Provide folliage data. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	TArray<FContourData> GetFolliage();
 };
