@@ -20,9 +20,6 @@ TArray<FRoadSegment> GetRoadSegments(FPostGisRoadNetwork inRoadNetwork)
 		segment.Type = postGisSegment.Highway;
 		segment.Width = postGisSegment.Lanes * postGisSegment.LaneWidth;
 		segment.Lanes = postGisSegment.Lanes;
-		segment.StartYear = postGisSegment.YearStart;
-		segment.EndYear = postGisSegment.YearEnd;
-		segment.Change = postGisSegment.Change;
 		segment.AllPoints = postGisSegment.Line.AllPoints;
 
 		segments.Add(segment);
