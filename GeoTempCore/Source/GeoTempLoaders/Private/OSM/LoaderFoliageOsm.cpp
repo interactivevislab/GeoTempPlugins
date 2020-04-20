@@ -68,7 +68,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			auto lanes = ULoaderHelper::TryGetTag(way->Tags, "lanes", ULoaderHelper::DEFAULT_LANES);
 			auto width = ULoaderHelper::TryGetTag(way->Tags, "width", lanes * ULoaderHelper::DEFAULT_LANE_WIDTH);
 
-			for (int i = 0; i < way->Nodes.size() - 1; i++)
+			for (int i = 0; i < way->Nodes.Num() - 1; i++)
 			{
 				FContourData roadPolygon;
 				auto startPoint = way->Nodes[i]->Point;
