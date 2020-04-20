@@ -16,12 +16,19 @@ class GEOTEMPLOADERS_API UParserOsm : public UInterface
 };
 
 
+/**
+* \class IParserOsm
+* \brief Interface for parsing OSM data.
+*
+* @see UOsmReader
+*/
 class GEOTEMPLOADERS_API IParserOsm
 {
 	GENERATED_BODY()
 
 public:
 
+	/** Sets UOsmReader as data source. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void SetOsmReader(UOsmReader* inOsmReader);
 };

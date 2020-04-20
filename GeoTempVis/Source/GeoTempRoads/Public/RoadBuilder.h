@@ -12,6 +12,9 @@
 struct MeshSectionData;
 
 
+class ARoadNetworkActor;
+
+
 /**
 * \class URoadBuilder
 * \brief Actor component, that can create road network actors.
@@ -53,6 +56,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork);
 
+	/** Destroy spawned RoadNetworkActor. */
+	UFUNCTION(BlueprintCallable)
+	void RemoveRoadNetworkActor();
+
 private:
 
 	/**
@@ -67,4 +74,7 @@ private:
 	*/
 	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, TArray<FRoadSegment> inSegments, 
 		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
+
+	/** Spawned RoadNetworkActor. */
+	ARoadNetworkActor* roadNetworkActor = nullptr;
 };
