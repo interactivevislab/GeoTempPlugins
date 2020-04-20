@@ -24,10 +24,6 @@ public:
 	/** Creates a complete road network structure based on data from road segments. */
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
 
-	/** Selects road network elements that existed in a particular year. */
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	static FRoadNetwork GetRoadNetworkForYear(FRoadNetwork inFullRoadNetwork, int inYear);
-
 #pragma region Tags
 
 	/** Casts FString to another type. */
