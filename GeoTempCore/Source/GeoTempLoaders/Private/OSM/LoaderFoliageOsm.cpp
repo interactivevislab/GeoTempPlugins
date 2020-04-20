@@ -54,6 +54,17 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			{
 				polygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
 			}
+			else
+			{
+				if (FoliageIterLeisure)
+				{
+					polygon.Tags.Add(TPair<FString, FString>("typeRole", "park"));
+				}
+				else
+				{
+					polygon.Tags.Add(TPair<FString, FString>("typeRole", "forest"));
+				}
+			}
 
 			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
 			polygon.ZeroLon = osmReader->GeoCoords.ZeroLon;
@@ -204,6 +215,17 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			if (partIter)
 			{
 				polygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
+			}
+			else
+			{
+				if (FoliageIterLeisure)
+				{
+					polygon.Tags.Add(TPair<FString, FString>("typeRole", "park"));
+				}
+				else
+				{
+					polygon.Tags.Add(TPair<FString, FString>("typeRole", "forest"));
+				}
 			}
 
 			polygons.Add(polygon);

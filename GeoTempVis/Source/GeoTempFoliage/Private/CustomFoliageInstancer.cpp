@@ -253,7 +253,11 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 				int px = X / Width	* (InitialTarget->GetSurfaceWidth()	-1);
 				int py = Y / Height	* (InitialTarget->GetSurfaceHeight()-1);
 
-				if (colorBuffer[(int)(py * InitialTarget->GetSurfaceWidth() + px)].R>0)
+				float spawnRandomValue	= rs.FRandRange(0.0f, 1.0f);
+				float presenceChance	= colorBuffer[(int)(py * InitialTarget->GetSurfaceWidth() + px)].R/255.0f;
+				bool presenceSuppressed	= colorBuffer[(int)(py * InitialTarget->GetSurfaceWidth() + px)].G > 0;
+
+				if	(!presenceSuppressed && presenceChance > 0 && spawnRandomValue <= presenceChance)
 				{
 					totalAdded++;
 
@@ -414,7 +418,9 @@ void UCustomFoliageInstancer::UpdateBuffer()
 
 	if (InitialTarget != NULL)
 	{
-		FTextureRenderTarget2DResource* textureResource = (FTextureRenderTarget2DResource*)InitialTarget->Resource;
-		textureResource->ReadPixels(colorBuffer);
+		auto textureResource = InitialTarget->GameThread_GetRenderTargetResource();
+		FReadSurfaceDataFlags flags;
+		flags.SetLinearToGamma(false);
+		textureResource->ReadPixels(colorBuffer,flags);
 	}
 }
