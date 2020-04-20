@@ -9,50 +9,43 @@
 
 
 
-void UMapDataLoaderOsm::InitManagers(bool inForceInit)
+void UMapDataLoaderOsm::Init()
 {
-	if (!OsmReader || inForceInit) 
-	{
-		OsmReader = NewObject<UOsmReader>();
-		OsmReader->GeoCoords = GeoCoords;
-	}
-	if (!OsmManager || inForceInit) 
-	{
-		OsmManager = NewObject<UOsmManager>();
-		OsmManager->Init();
-	}
+	osmReader = NewObject<UOsmReader>(this);
+	osmReader->GeoCoords = GeoCoords;
+
+	osmManager = NewObject<UOsmManager>(this);
+	osmManager->Init();
+
+	buildingsLoader = NewObject<ULoaderBuildingsOsm>(this);
+	IParserOsm::Execute_SetOsmReader(buildingsLoader, osmReader);
+
+	roadsLoader = NewObject<ULoaderRoadsOsm>(this);
+	IParserOsm::Execute_SetOsmReader(roadsLoader, osmReader);
+
+	foliageLoader = NewObject<ULoaderFoliageOsm>();
+	IParserOsm::Execute_SetOsmReader(foliageLoader, osmReader);
+
+	isInitialized = true;
 }
 
 
-void UMapDataLoaderOsm::InitLoaders(bool inForceInit)
+void UMapDataLoaderOsm::UpdateGeoCoords(FGeoCoords inGeoCoords)
 {
-	if (!BuildingsLoader || inForceInit)
-	{
-		BuildingsLoader = NewObject<ULoaderBuildingsOsm>();
-		IParserOsm::Execute_SetOsmReader(BuildingsLoader, OsmReader);
-	}
-	if (!RoadsLoader || inForceInit)
-	{
-		RoadsLoader = NewObject<ULoaderRoadsOsm>();
-		IParserOsm::Execute_SetOsmReader(RoadsLoader, OsmReader);
-	}
-	if (!FoliageLoader || inForceInit)
-	{
-		FoliageLoader = NewObject<ULoaderFoliageOsm>();
-		IParserOsm::Execute_SetOsmReader(FoliageLoader, OsmReader);
-	}
+	osmReader->GeoCoords = inGeoCoords;
 }
 
 
-void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees, bool inForceInitManagers, bool inForceInitLoaders)
+void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees)
 {	
-	InitManagers(inForceInitManagers);
+	if (!isInitialized)
+	{ 
+		Init(); 
+	}
 
-	InitLoaders(inForceInitLoaders);
-
-	if (	inRightDegrees - inLeftDegrees > AreaMaxSizeDegrees 
+	if (	inRightDegrees - inLeftDegrees > areaMaxSizeDegrees 
 		||	inLeftDegrees > inRightDegrees 
-		||	inTopDegrees - inBottomDegrees > AreaMaxSizeDegrees 
+		||	inTopDegrees - inBottomDegrees > areaMaxSizeDegrees 
 		||	inTopDegrees < inBottomDegrees)
 	{
 		OnDataLoaded.Broadcast(false);
@@ -62,7 +55,7 @@ void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, flo
 	{
 		currentRequest->OnCompleted.RemoveAll(this);
 	}
-	currentRequest = OsmManager->GetOsmDataForBoundingBox(inLeftDegrees, inBottomDegrees, inRightDegrees, inTopDegrees);
+	currentRequest = osmManager->GetOsmDataForBoundingBox(inLeftDegrees, inBottomDegrees, inRightDegrees, inTopDegrees);
 	currentRequest->OnCompleted.AddDynamic(this, &UMapDataLoaderOsm::OnOsmRequestCompleted);
 	currentRequest->StartRequest();
 }
@@ -70,10 +63,10 @@ void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, flo
 
 void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 {		
-	OsmReader->InitWithXML(inXmlData);
+	osmReader->InitWithXML(inXmlData);
 
-	LoadedBuildings			= IProviderBuildings::Execute_GetBuildings(BuildingsLoader);
-	LoadedRoadNetwork		= IProviderRoads::Execute_GetRoadNetwork(RoadsLoader);
-	LoadedFoliageContours	= IProviderFolliage::Execute_GetFolliage(FoliageLoader);
+	LoadedBuildings			= IProviderBuildings::Execute_GetBuildings(buildingsLoader);
+	LoadedRoadNetwork		= IProviderRoads::Execute_GetRoadNetwork(roadsLoader);
+	LoadedFoliageContours	= IProviderFolliage::Execute_GetFolliage(foliageLoader);
 	OnDataLoaded.Broadcast(true);
 }

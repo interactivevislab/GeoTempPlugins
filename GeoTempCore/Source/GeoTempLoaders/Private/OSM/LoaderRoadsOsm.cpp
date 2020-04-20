@@ -36,7 +36,7 @@ FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 	TMap<int, FOsmRoadSegment> segments;
 	for (auto wayData : osmReader->Ways)
 	{
-		OsmWay* way = wayData.second;
+		OsmWay* way = wayData.Value;
 		if (way->Tags.Contains("highway"))
 		{
 			FOsmRoadSegment segment;

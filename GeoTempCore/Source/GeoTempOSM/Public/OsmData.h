@@ -2,12 +2,10 @@
 
 #include "CoreMinimal.h"
 
-#include <vector>
-#include <unordered_map>
-
 #include "Basics.h"
 
 
+/** OSM node. */
 struct OsmNode
 {
 	long Id;
@@ -18,27 +16,29 @@ struct OsmNode
 };
 
 
+/** OSM way. */
 struct OsmWay
 {
 	long Id;
-	std::vector<OsmNode*> Nodes;
+	TArray<OsmNode*> Nodes;
 	TMap<FString, FString> Tags;
 
 	OsmWay(long id);
 };
 
 
+/** OSM relation. */
 struct OsmRelation
 {
 	long Id;
 
-	std::unordered_map<long, std::string> NodeRoles;
-	std::unordered_map<long, std::string> WayRoles;
-	std::unordered_map<long, std::string> RelRoles;
+	TMap<long, FString> NodeRoles;
+	TMap<long, FString> WayRoles;
+	TMap<long, FString> RelRoles;
 
-	std::unordered_map<long, OsmNode*> Nodes;
-	std::unordered_map<long, OsmWay*> Ways;
-	std::unordered_map<long, OsmRelation*> Relations;
+	TMap<long, OsmNode*> Nodes;
+	TMap<long, OsmWay*> Ways;
+	TMap<long, OsmRelation*> Relations;
 
 	TMap<FString, FString> Tags;
 

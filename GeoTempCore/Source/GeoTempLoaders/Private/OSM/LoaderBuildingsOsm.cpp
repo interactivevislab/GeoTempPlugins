@@ -165,7 +165,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 	//find all building and building parts through ways
 	for (auto wayP : osmReader->Ways)
 	{
-		auto way = wayP.second;
+		auto way = wayP.Value;
 		auto buildIter = way->Tags.Find("building");
 		auto partIter = way->Tags.Find("building:part");
 
@@ -181,7 +181,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 		
 			////get all points of this way and add necessary bindings
 			TArray<FVector> points;
-			points.Reserve(way->Nodes.size());
+			points.Reserve(way->Nodes.Num());
 			for (auto node : way->Nodes)
 			{
 				points.Add(node->Point);				
@@ -230,7 +230,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 	//find all building part so we can use it in future parsing
 	for (auto relationP : osmReader->Relations)
 	{
-		auto relation = relationP.second;		
+		auto relation = relationP.Value;		
 		auto partIter = relation->Tags.Find("building:part");
 		
 		if (partIter)
@@ -240,32 +240,32 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			
 			for (auto element : relation->WayRoles)
 			{
-				auto way = relation->Ways[element.first];
+				auto way = relation->Ways.Find(element.Key);
 				if (!way)
 				{
 					continue;
 				}				
 				//if this way is also a building part, just add it to parts list (is that even possible here?)
-				if (!way->Tags.Find("building:part"))
+				if (!(*way)->Tags.Find("building:part"))
 				{
 					auto contour = FContour();
-					for (auto node : way->Nodes)
+					for (auto node : (*way)->Nodes)
 					{
 						contour.Points.Add(node->Point);
 					}
 
-					if (element.second == "outer")
+					if (element.Value == "outer")
 					{
 						contour.FixClockwise();
 						part.OuterConts.Add(contour);
 					}
-					else if (element.second == "inner")
+					else if (element.Value == "inner")
 					{
 						contour.FixClockwise(false);
 						part.InnerConts.Add(contour);
 					}
 				} else {
-					if (wayParts.Contains(element.first)) 
+					if (wayParts.Contains(element.Key)) 
 					{
 						UE_LOG(LogTemp, Warning, TEXT("Building loader unhandled case: part of a part"));
 					}
@@ -274,13 +274,13 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			relParts.Add(part.Id, part);
 			for (auto element : relation->WayRoles)
 			{
-				auto way = relation->Ways[element.first];
+				auto way = relation->Ways.Find(element.Key);
 				if (!way)
 				{
 					continue;
 				}
 								
-				for (auto node : way->Nodes)
+				for (auto node : (*way)->Nodes)
 				{					
 					if (!pointOwners.Contains(node->Point))
 					{
@@ -296,7 +296,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 	//now process buildings
 	for (auto relationP : osmReader->Relations)
 	{
-		auto relation = relationP.second;
+		auto relation = relationP.Value;
 		auto buildIter = relation->Tags.Find("building");
 		//if this relation is building
 		if (buildIter)
@@ -314,29 +314,29 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			//now iterate over the ways in this relation
 			for (auto element : relation->WayRoles)
 			{				
-				auto way = relation->Ways[element.first];				
+				auto way = relation->Ways.Find(element.Key);				
 				if (!way)
 				{
 					continue;
 				}
-				if (way->Tags.Find("building:part"))
+				if ((*way)->Tags.Find("building:part"))
 				{
-					building.Parts.Add(wayParts[element.first]);
-					usedPartWays.Add(element.first);
-					wayPartOwners.Add(element.first, buildings.Num());
+					building.Parts.Add(wayParts[element.Key]);
+					usedPartWays.Add(element.Key);
+					wayPartOwners.Add(element.Key, buildings.Num());
 				} else {
 					auto contour = FContour();
-					for (auto node : way->Nodes)
+					for (auto node : (*way)->Nodes)
 					{
 						contour.Points.Add(node->Point);
 					}
 
-					if (element.second == "outer")
+					if (element.Value == "outer")
 					{
 						contour.FixClockwise();
 						part.OuterConts.Add(contour);
 					}
-					else if (element.second == "inner")
+					else if (element.Value == "inner")
 					{
 						contour.FixClockwise(true);
 						part.InnerConts.Add(contour);
@@ -347,12 +347,12 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 
 			for (auto element : relation->RelRoles)
 			{
-				auto rel = relation->Relations[element.first];
+				auto rel = relation->Relations[element.Key];
 				if (rel->Tags.Find("building:part"))
 				{
-					building.Parts.Add(relParts[element.first]);
-					usedPartRelations.Add(element.first);
-					relPartOwners.Add(element.first, buildings.Num());
+					building.Parts.Add(relParts[element.Key]);
+					usedPartRelations.Add(element.Key);
+					relPartOwners.Add(element.Key, buildings.Num());
 				}
 			}			
 			building.MainPart = part;
@@ -360,13 +360,13 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 
 			for (auto element : relation->WayRoles)
 			{
-				auto way = relation->Ways[element.first];
+				auto way = relation->Ways.Find(element.Key);
 				if (!way)
 				{
 					continue;
 				}
 								
-				for (auto node : way->Nodes)
+				for (auto node : (*way)->Nodes)
 				{					
 					if (!pointOwners.Contains(node->Point))
 					{

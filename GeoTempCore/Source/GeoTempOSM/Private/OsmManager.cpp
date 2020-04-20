@@ -6,11 +6,11 @@
 #define UrlWithArgs(formatString, ...) FString::Format(TEXT(formatString), TArray<FStringFormatArg>{ ##__VA_ARGS__ })
 
 
-void UOsmManager::Init(FString inApiVersion)
+void UOsmManager::Init(FString inOsmApiVersion)
 {
-	apiVersion = inApiVersion;
+	apiVersion = inOsmApiVersion;
 	tickEnabled = true;
-	client = NewObject<UHttpClient>();
+	client = NewObject<UHttpClient>(this);
 	client->Init();
 	SaveConfig();
 }
@@ -20,19 +20,12 @@ UHttpRequest* UOsmManager::CreateRequest(FString inVerb, FString inUrlTail,
 	ParametersSet inParameters, FString inContent)
 {
 	auto* apiRequest = NewObject<UHttpRequest>(this);
-	apiRequest->Manager = this;
-	apiRequest->request = client->CreateRequest(apiVersion, inVerb, inUrlTail, inParameters, inContent);
-
-	apiRequest->request->OnProcessRequestComplete().BindLambda(
-		[apiRequest](FHttpRequestPtr inHttpRequest, FHttpResponsePtr inHttpResponse, bool inSucceeded)
-		{
-			apiRequest->OnHttpRequestCompleted(inHttpRequest, inHttpResponse, inSucceeded);
-		});
+	auto innerRequest = client->CreateRequest(apiVersion, inVerb, inUrlTail, inParameters, inContent);
+	apiRequest->Init(innerRequest);
 
 	apiRequest->OnReadyToDelete.AddDynamic(this, &UOsmManager::MarkRequestForDelete);
 
-	apiRequest->Id = nextRequestId;
-	currentRequests.Add(nextRequestId++, apiRequest);
+	currentRequests.Add(apiRequest->GetId(), apiRequest);
 
 	return apiRequest;
 }
@@ -61,9 +54,9 @@ UHttpRequest* UOsmManager::CreateRequest(FString inVerb, FString inUrlTail)
 void UOsmManager::Tick(float inDeltaTime)
 {
 	accumulatedDeltaTime += inDeltaTime;
-	if (accumulatedDeltaTime > deletingFrequency)
+	if (accumulatedDeltaTime > deletingPeriod)
 	{
-		accumulatedDeltaTime -= deletingFrequency;
+		accumulatedDeltaTime -= deletingPeriod;
 		DeleteFinishedRequests();
 	}
 }
@@ -107,7 +100,6 @@ void UOsmManager::DeleteFinishedRequests()
 	for (auto id : finishedRequestsIds)
 	{
 		auto request = *(currentRequests.Find(id));
-		request->request->OnProcessRequestComplete().Unbind();
 		request->OnReadyToDelete.RemoveAll(this);
 		currentRequests.Remove(id);
 	}
