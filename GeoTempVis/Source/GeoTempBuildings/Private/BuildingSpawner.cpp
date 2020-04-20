@@ -17,10 +17,13 @@ void UBuildingSpawner::SpawnBuildingActors(const TArray<FBuilding>& inBuildingDa
 
 		auto buildingActor = GetWorld()->SpawnActor<ABuildingActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 		buildingActor->SetActorLabel(SpawnInfo.Name.ToString());
+
 		buildingActor->WallMaterial = UMaterialInstanceDynamic::Create(inWallMaterial, buildingActor);
 		buildingActor->RoofMaterial = UMaterialInstanceDynamic::Create(inRoofMaterial, buildingActor);
 		buildingActor->RoofType = building.RoofType;
 		buildingActor->Initialize(building);
+
+		buildingActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 
 		Buildings.Add(buildingActor);
 	}
