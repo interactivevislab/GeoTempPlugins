@@ -21,15 +21,15 @@ class GEOTEMPLOADERS_API ULoaderBuildingsOsm : public UObject, public IParserOsm
 
 public:
 
-	//!@{
-	/** Implementation of IParserOsm */
+	/** @name Implementation of IParserOsm */
+	///@{
 	virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
-	//!@}
+	///@}
 
-	//!@{
-	/** Implementation of IProviderBuildings */
+	/** @name Implementation of IProviderBuildings */
+	///@{
 	virtual TArray<FBuilding> GetBuildings_Implementation() override;
-	//!@}
+	///@}
 
 private:
 

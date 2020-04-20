@@ -23,15 +23,15 @@ class GEOTEMPLOADERS_API ULoaderRoadsPostGis : public UObject, public IParserPos
 
 public:
 
-	//!@{
-	/** Implementation of IParserPostGis */
+	/** @name Implementation of IParserPostGis */
+	///@{
 	virtual void SetPostGisReader_Implementation(UPostGisReader* inPostGisReader) override;
-	//!@}
+	///@}
 
-	//!@{
-	/** Implementation of IProviderRoads */
+	/** @name Implementation of IProviderRoads */
+	///@{
 	virtual FRoadNetwork GetRoadNetwork_Implementation() override;
-	//!@}
+	///@}
 
 	/** Coordinates of the reference point in the scene space. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)

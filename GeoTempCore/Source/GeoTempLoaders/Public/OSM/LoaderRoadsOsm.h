@@ -25,15 +25,15 @@ class GEOTEMPLOADERS_API ULoaderRoadsOsm : public UObject, public IParserOsm, pu
 
 public:
 
-	//!@{
-	/** Implementation of IParserOsm */
+	/** @name Implementation of IParserOsm */
+	///@{
 	virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
-	//!@}
+	///@}
 
-	//!@{
-	/** Implementation of IProviderRoads */
+	/** @name Implementation of IProviderRoads */
+	///@{
 	virtual FRoadNetwork GetRoadNetwork_Implementation() override;
-	//!@}
+	///@}
 
 private:
 
