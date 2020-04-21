@@ -88,9 +88,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 			}
 			else
 			{
-				auto materialName		= FName(*(*TEXT("NewInstancedMaterial") + "_" + FString::FromInt(x)));
-				auto dynamicMaterial	= UMaterialInstanceDynamic::Create(material, meshInfo.Mesh, materialName);
-
+				auto dynamicMaterial = UMaterialInstanceDynamic::Create(material, this);
 				meshInfo.MaterialInstances.Add(x, dynamicMaterial);
 			}
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue	("InstancerWidth",	Width		);
