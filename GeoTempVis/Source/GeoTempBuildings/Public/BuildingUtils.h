@@ -152,6 +152,7 @@ public:
 	/**
 	 * \fn CalculateMeshData
 	 * \brief Create Mesh Data for building part
+	 * 
 	 * @param inBuilding building struct for building that owns that part
 	 * @param inBuildingPart building part struct for current part
 	 * @param inWallMaterial material for wall-type elements of building mesh
@@ -178,6 +179,7 @@ public:
 	/**
 	 * \fn ConstructRuntimeMesh
 	 * \brief Init Runtime Mesh Component with Mesh Data
+	 * 
 	 * @param inMeshComp mesh to init
 	 * @param inMeshData Mesh Data with which mesh will be init
 	 * @param inFirstSectionIndex initial section of mesh to start writing (in case of append)

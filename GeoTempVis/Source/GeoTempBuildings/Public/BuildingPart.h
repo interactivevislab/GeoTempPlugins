@@ -31,7 +31,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Default")
 	TArray<FContour> Outer;
 
-	/** List of inner contours (aka holes) of part footprint */
+	/** List of inner contours (a.k.a. holes) of part footprint */
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Default")
 	TArray<FContour> Inner;
 
@@ -98,6 +98,7 @@ public:
 
 	/** \fn Init *
 	 * \brief Initialize this part with data structure
+	 * 
 	 * @param inPart structure to initialize with
 	 * @see FBuildingPart
 	 */

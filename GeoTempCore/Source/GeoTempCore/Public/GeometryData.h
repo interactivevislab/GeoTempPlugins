@@ -52,7 +52,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 	TArray<FContour> Outer;
 
-	/** List of inner contours (aka holes) of multipolygon */
+	/** List of inner contours (a.k.a. holes) of multipolygon */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 	TArray<FContour> Holes;
 

@@ -7,6 +7,7 @@
 #include "LoaderHelper.Generated.h"
 
 
+/** Static class with utility functions for data loaders. */
 UCLASS()
 class GEOTEMPLOADERS_API ULoaderHelper : public UObject
 {
@@ -14,13 +15,18 @@ class GEOTEMPLOADERS_API ULoaderHelper : public UObject
 
 public:
 
+	/** Default value for number lines in highway. */
 	const static int DEFAULT_LANES;
+
+	/** Default value line width in highway. */
 	const static float DEFAULT_LANE_WIDTH;
 
+	/** Creates a complete road network structure based on data from road segments. */
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
 
 #pragma region Tags
 
+	/** Casts FString to another type. */
 	template<typename ValueType>
 	static ValueType ValueFromString(FString inString)
 	{
@@ -28,6 +34,7 @@ public:
 	}
 
 
+	/** Casts FString to FString (returns the same value). */
 	template<>
 	static FString ValueFromString<FString>(FString inString)
 	{
@@ -35,6 +42,7 @@ public:
 	}
 
 
+	/** Casts FString to int. */
 	template<>
 	static int ValueFromString<int>(FString inString)
 	{
@@ -42,6 +50,7 @@ public:
 	}
 
 
+	/** Casts FString to float. */
 	template<>
 	static float ValueFromString<float>(FString inString)
 	{
@@ -49,6 +58,14 @@ public:
 	}
 
 
+	/**
+	* \fn TryGetTag
+	* \brief Tries to read tag value from TMap.
+	*
+	* @param inTags		TMap of tags' names and values.
+	* @param inTag		Tag to find.
+	* @param inAltValue	Value to return if tag not found.
+	*/
 	template<typename ValueType>
 	static ValueType TryGetTag(TMap<FString, FString> inTags, FString inTag, ValueType inAltValue)
 	{

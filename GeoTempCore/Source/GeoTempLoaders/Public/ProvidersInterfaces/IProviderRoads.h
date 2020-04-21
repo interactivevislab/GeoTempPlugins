@@ -16,12 +16,19 @@ class GEOTEMPLOADERS_API UProviderRoads : public UInterface
 };
 
 
+/**
+* \class IProviderRoads
+* \brief Interface for providing roads data.
+*
+* @see FRoadNetwork
+*/
 class GEOTEMPLOADERS_API IProviderRoads
 {
 	GENERATED_BODY()
 
 public:
 
+	/** Provide roads data. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	FRoadNetwork GetRoadNetwork();
 };

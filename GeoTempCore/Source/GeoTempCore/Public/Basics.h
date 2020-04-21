@@ -14,9 +14,9 @@
 #define PI (3.1415926535897932)
 #endif
 
-/** routine to call libigl::tiangle with our data
+/** routine to call libigl-triangle with our data
  * @param inOuter				list of outer contours
- * @param inInner				list of inner contours aka holes
+ * @param inInner				list of inner contours a.k.a. holes
  * @param outPoints				out vertex list of generated triangulation
  * @param outTriangles			out index list of generated triangulation
  * @param inFlags				list of flags to configure triangulator
@@ -27,9 +27,9 @@ void GEOTEMPCORE_API  Triangulate(const TArray<FContour>& inOuter, const TArray<
 	TArray<int>& outTriangles, FString inFlags, const TArray<FContour>& inOtherLines, int& outContourPointsNum);
 
 
-/** routine to call libigl::tiangle with our data
+/** routine to call libigl-triangle with our data
  * @param inOuter				list of outer contours
- * @param inInner				list of inner contours aka holes
+ * @param inInner				list of inner contours a.k.a. holes
  * @param outPoints				out vertex list of generated triangulation
  * @param outTriangles			out index list of generated triangulation
  * @param inFlags				list of flags to configure triangulator

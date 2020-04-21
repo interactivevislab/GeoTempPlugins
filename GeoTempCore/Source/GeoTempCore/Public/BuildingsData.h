@@ -35,7 +35,7 @@ struct FContour;
 USTRUCT(BlueprintType)
 struct GEOTEMPCORE_API FBuildingPart
 {
-	/** Id */
+	/** Id of this part*/
 	GENERATED_BODY()
 	long Id;
 
@@ -66,7 +66,7 @@ struct GEOTEMPCORE_API FBuildingPart
 	/** List of Outer contours of part footprint */
 	TArray<FContour> OuterConts;
 
-	/** List of inner contours (aka holes) of part footprint */
+	/** List of inner contours (a.k.a. holes) of part footprint */
 	TArray<FContour> InnerConts;
 
 	/** Lines of roof apex*/
