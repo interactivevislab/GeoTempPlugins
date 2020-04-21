@@ -4,7 +4,6 @@
 #include "TextureResource.h"
 #include "Blueprint/AsyncTaskDownloadImage.h"
 #include "GameFramework/PlayerController.h"
-#include "RuntimeMeshComponent.h"
 #include "Tickable.h"
 #include "Engine/Texture2DDynamic.h"
 #include "TilesBasics.generated.h"
@@ -22,7 +21,7 @@ struct FTileCoordinates
 public:
 	/** X coordinate */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-		int X;
+		int X; 
 
 	/** Y coordinate */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
@@ -88,6 +87,11 @@ public:
 	void OnLoadFailed(UTexture2DDynamic* Texture);
 };
 
+
+class UTileData;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTileCompleteDownloadTexture, UTileData*, Container, FString, Channel);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTileCompleteDownloadAll, UTileData*, Container);
+
 /** Tile data container */
 UCLASS()
 class UTileData : public UObject
@@ -117,4 +121,22 @@ public:
 
 	UPROPERTY()
 	FTileCoordinates Meta;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnTileCompleteDownloadTexture OnTextureLoad;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnTileCompleteDownloadAll OnTileLoad;
+
+	UFUNCTION()
+	void CheckLoaded()
+	{
+		bool allLoaded = true;
+		for (auto& kv : IsLoaded)
+		{
+			allLoaded &= kv.Value;
+			if (kv.Value) OnTextureLoad.Broadcast(this, kv.Key);
+		}
+		if (allLoaded) OnTileLoad.Broadcast(this);
+	}
 };

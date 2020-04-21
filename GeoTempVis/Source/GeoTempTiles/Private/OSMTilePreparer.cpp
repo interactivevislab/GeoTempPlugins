@@ -12,6 +12,7 @@ void UUrlSourceTilePreparer::RequestTile_Implementation(UTileData* tileInfo, UMa
 	loader->Channel = channel;
 	tileInfo->IsLoaded.Add(channel, false);
 	loadingImages.Add(tileInfo->Meta, loader);
+	tileInfo->CheckLoaded();
 }
 
 void UUrlSourceTilePreparer::FreeLoader(FTileCoordinates meta)

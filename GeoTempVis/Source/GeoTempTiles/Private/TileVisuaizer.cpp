@@ -87,7 +87,7 @@ void UTilesController::TickComponent(float DeltaTime, enum ELevelTick TickType, 
 			}
 			if (!flag)
 			{
-				CreateTileMesh(parentMeta);
+				BeginCreateTileMesh(parentMeta);
 				SplitTiles.Remove(parentMeta);
 				for (int i = 0; i < 4; i++)
 				{
@@ -133,7 +133,7 @@ void UTilesController::CreateMesh()
 	{
 		for (int y = 0; y < BaseLevelSize; y++)
 		{
-			CreateTileMesh(x + x0 - BaseLevelSize/2, y + y0 - BaseLevelSize/2, z);
+			BeginCreateTileMesh(x + x0 - BaseLevelSize/2, y + y0 - BaseLevelSize/2, z);
 		}
 	}
 }
@@ -156,7 +156,7 @@ void UTilesController::CreateMeshAroundPoint(int z, int x0, int y0)
 		{
 			if (!SplitTiles.Contains(FTileCoordinates{ x + x0 - BaseLevelSize / 2, y + y0 - BaseLevelSize / 2, z }))
 			{
-				CreateTileMesh(x + x0 - BaseLevelSize / 2, y + y0 - BaseLevelSize / 2, z);
+				BeginCreateTileMesh(x + x0 - BaseLevelSize / 2, y + y0 - BaseLevelSize / 2, z);
 			}
 		}
 	}
@@ -193,19 +193,17 @@ FVector UTilesController::GetXYOffsetFromMercatorOffset(int z, int x, int y)
 	return FVector(fdx, fdy, 0) + GetOwner()->GetActorLocation();
 }
 
-int UTilesController::CreateTileMesh(int x, int y, int z)
-{
-	auto meta = FTileCoordinates{ x, y, z };
-	return CreateTileMesh(meta);
-}
-
-int UTilesController::CreateTileMesh(FTileCoordinates meta)
+void UTilesController::CreateTileMesh(UTileData* tile)
 {	
+	auto& meta = tile->Meta;
+	
+	int sectionIndex  = ReservedIndecies[meta];
 	if (TileIndecies.Contains(meta))
 	{
-		//mesh->SetMeshSectionVisible(TileIndecies[meta], true);
-		return TileIndecies[meta];
+		return;// TileIndecies[meta];
 	}
+	TileIndecies.Add(meta, sectionIndex);
+	ReservedIndecies.Remove(meta);
 	int x = meta.X;
 	int y = meta.Y;
 	int z = meta.Z;
@@ -217,32 +215,79 @@ int UTilesController::CreateTileMesh(FTileCoordinates meta)
 	float x0 = GetMercatorXFromDegrees(CenterLon) * (1 << z);
 	float y0 = GetMercatorYFromDegrees(CenterLat) * (1 << z);
 	float size = EarthOneDegreeLengthOnEquator / (1 << z) * 360 * FMath::Cos(CenterLat * PI / 180);
-	
-	FVector delta((x - x0) * size, (y - y0) * size, 0);
-	if (TileMeshResolution < 1) TileMeshResolution = 1;
-	for (int ix = 0; ix < TileMeshResolution + 1; ix++)
+
+	if (!ElevationChannel.IsEmpty())
 	{
-		for (int iy = 0; iy < TileMeshResolution + 1; iy++)
+		FVector delta((x - x0) * size, (y - y0) * size, 0);
+		if (TileMeshResolution < 1) TileMeshResolution = 1;
+		for (int ix = 0; ix < 2; ix++)
 		{
-			vertices.Add(delta + FVector(size * ix / TileMeshResolution, size * iy / TileMeshResolution, 0));
-			normals.Add(FVector::UpVector);
-			uvs.Add(FVector2D(1.0f * ix / TileMeshResolution, 1.0f * iy / TileMeshResolution));
-
-			if (ix != TileMeshResolution && iy != TileMeshResolution)
+			for (int iy = 0; iy < 2; iy++)
 			{
-				int w = TileMeshResolution + 1;
-				triangles.Add(iy * w + ix);				
-				triangles.Add(iy * w + ix + 1);
-				triangles.Add((iy + 1) * w + ix);
+				vertices.Add(delta + FVector(size * ix, size * iy, 0));
+				normals.Add(FVector::UpVector);
+				uvs.Add(FVector2D(1.0f * ix / TileMeshResolution, 1.0f * iy / TileMeshResolution));
 
-				triangles.Add(iy * w + ix + 1);
-				triangles.Add((iy + 1) * w + ix + 1);
-				triangles.Add((iy + 1) * w + ix);
-			}
-		}		
+				if (ix != TileMeshResolution && iy != TileMeshResolution)
+				{
+					int w = TileMeshResolution + 1;
+					triangles.Add(iy * w + ix);				
+					triangles.Add(iy * w + ix + 1);
+					triangles.Add((iy + 1) * w + ix);
+
+					triangles.Add(iy * w + ix + 1);
+					triangles.Add((iy + 1) * w + ix + 1);
+					triangles.Add((iy + 1) * w + ix);
+				}
+			}		
+		}
 	}
+	else
+	{
+		FVector delta((x - x0) * size, (y - y0) * size, 0);
+		if (TileMeshResolution < 1) TileMeshResolution = 1;
+		for (int ix = 0; ix < TileMeshResolution + 1; ix++)
+		{
+			for (int iy = 0; iy < TileMeshResolution + 1; iy++)
+			{
+				vertices.Add(delta + FVector(size * ix / TileMeshResolution, size * iy / TileMeshResolution, 0));
+				normals.Add(FVector::UpVector);
+				uvs.Add(FVector2D(1.0f * ix / TileMeshResolution, 1.0f * iy / TileMeshResolution));
+
+				if (ix != TileMeshResolution && iy != TileMeshResolution)
+				{
+					int w = TileMeshResolution + 1;
+					triangles.Add(iy * w + ix);				
+					triangles.Add(iy * w + ix + 1);
+					triangles.Add((iy + 1) * w + ix);
+
+					triangles.Add(iy * w + ix + 1);
+					triangles.Add((iy + 1) * w + ix + 1);
+					triangles.Add((iy + 1) * w + ix);
+				}
+			}		
+		}
+		GeometryGenerator->GenerateVertices(tile, ElevationChannel, TileMeshResolution, vertices);
+	}
+	
+	CreateMeshSection(sectionIndex, vertices, triangles, normals, uvs, TArray<FColor>(), TArray<FRuntimeMeshTangent>(), false);
+	SetMaterial(sectionIndex, tile->Material);
+
+}
 
 
+int UTilesController::BeginCreateTileMesh(int x, int y, int z)
+{
+	auto meta = FTileCoordinates{ x, y, z };
+	return BeginCreateTileMesh(meta);
+}
+
+int UTilesController::BeginCreateTileMesh(FTileCoordinates meta)
+{	
+	if (TileIndecies.Contains(meta))
+	{
+		return TileIndecies[meta];
+	}
 	int sectionIndex = -1;
 	if (freeIndices.Num() > 0)
 	{
@@ -250,18 +295,17 @@ int UTilesController::CreateTileMesh(FTileCoordinates meta)
 	}
 	else
 	{		
-		sectionIndex = GetNumSections();
+		sectionIndex = GetNumSections() + ReservedIndecies.Num();
 	}	
-	CreateMeshSection(sectionIndex, vertices, triangles, normals, uvs, TArray<FColor>(),
-	                       TArray<FRuntimeMeshTangent>(), false);
-	
+	ReservedIndecies.Add(meta, sectionIndex);
+	int x = meta.X;
+	int y = meta.Y;
+	int z = meta.Z;
 	auto tile = TileLoader->GetTileMaterial(x, y, z, TileMaterial, this->GetOwner());
-	SetMaterial(sectionIndex, tile->Material);
-	
-	TileLoader->SetTileActive(meta, true);	
-	TileIndecies.Add(meta, sectionIndex);
-	Tiles.Add(meta, tile);
-	return  sectionIndex;
+	tile->OnTileLoad.AddDynamic(this, &UTilesController::CreateTileMesh);
+	TileLoader->SetTileActive(meta, true);		
+	Tiles.Add(meta, tile);	
+	return sectionIndex;
 }
 
 void UTilesController::ClearTileMesh(FTileCoordinates meta)
@@ -308,10 +352,10 @@ void UTilesController::SplitTile(int x, int y, int z)
 	{
 		
 		
-		CreateTileMesh(childMeta1);
-		CreateTileMesh(childMeta2);
-		CreateTileMesh(childMeta3);
-		CreateTileMesh(childMeta4);
+		BeginCreateTileMesh(childMeta1);
+		BeginCreateTileMesh(childMeta2);
+		BeginCreateTileMesh(childMeta3);
+		BeginCreateTileMesh(childMeta4);
 		ClearTileMesh(parentMeta);
 		SplitTiles.Add(parentMeta);
 		TileIndecies.Remove(parentMeta);

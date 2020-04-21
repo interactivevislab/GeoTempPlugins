@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerController.h"
 #include "RuntimeMeshComponent.h"
 #include "Tickable.h"
+#include "TileGeometryGenerator.h"
 #include "TilesBasics.h"
 #include "TileVisualizer.generated.h"
 
@@ -90,6 +91,15 @@ public:
 	/** Max zoom level tiles will split to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
 	int MaxLevel = 18;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
+	int TileMeshResolution = 4;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
+	UTileGeometryGenerator* GeometryGenerator;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
+	FString ElevationChannel;
 	
 private: 
 
@@ -100,6 +110,9 @@ private:
 	/** Map of tile indices in array */
 	UPROPERTY(NoClear)
 	TMap<FTileCoordinates, int> TileIndecies;
+
+		UPROPERTY(NoClear)
+	TMap<FTileCoordinates, int> ReservedIndecies;
 
 	/** Tiles which are not currently present, but preserved in memory a them are parents of other tiles */
 	UPROPERTY()
@@ -134,13 +147,20 @@ private:
 	/** Const one degree on equator length */
 	static double EarthOneDegreeLengthOnEquator;// = 111152.8928;
 
-	/** create and mesh section for a tile */
-	int CreateTileMesh(int x, int y, int z);
+	
 
-	int TileMeshResolution = 4;
+
+	/** create and mesh section for a tile */
+	UFUNCTION()
+	void CreateTileMesh(UTileData* tile);
+	
+	
 	
 	/** create and mesh section for a tile */
-	int CreateTileMesh(FTileCoordinates meta);
+	int BeginCreateTileMesh(int x, int y, int z);
+	
+	/** create and mesh section for a tile */
+	int BeginCreateTileMesh(FTileCoordinates meta);
 
 	/** create mesh section of a tile */	
 	void ClearTileMesh(FTileCoordinates meta);

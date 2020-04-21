@@ -17,14 +17,17 @@ void UTextureDownloader::OnTextureLoaded(UTexture2DDynamic* Texture)
 	{
 		TilePreparer->FreeLoader(TextureCoords);
 		UE_LOG(LogTemp, Warning, TEXT("Loaded texture is corrupt"));
+		return;
 	}
 	if(!Material->IsValidLowLevel())
 	{
 		TilePreparer->FreeLoader(TextureCoords);
 		UE_LOG(LogTemp, Warning, TEXT("Texture loaded for already destroyed tile"));
+		return;
 	}
 	TileContainer->CacheTexture(TextureCoords, (UTexture*)(Texture), Channel);
-	Material->SetTextureParameterValue(FName(*Channel), (UTexture*)(Texture));
+	Material->SetTextureParameterValue(FName(*Channel), (UTexture*)(Texture));	
+	
 }
 
 void UTextureDownloader::OnLoadFailed(UTexture2DDynamic* Texture)

@@ -74,9 +74,8 @@ void UTileTextureContainer::CacheTexture(FTileCoordinates meta, UTexture* textur
 		{
 			CachedTiles[meta]->Textures.Add(channel, texture);
 			CachedTiles[meta]->IsLoaded[channel] = true;
+			CachedTiles[meta]->CheckLoaded();
 		}
-		
-		
 	}
 	
 }

@@ -18,5 +18,5 @@ public:
 	
 	void RequestTile_Implementation(UTileData* tileInfo, UMaterialInstanceDynamic* mat, UTileTextureContainer* owner, const FString& channel) override;
 
-	void FreeLoader(FTileCoordinates meta);
+	void FreeLoader(FTileCoordinates meta);	
 };
