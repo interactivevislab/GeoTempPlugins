@@ -5,6 +5,23 @@
 #include "Materials/MaterialInstanceDynamic.h"
 
 
+bool IsPointInPolygon(TArray<FVector> simPoly, FVector point)
+{
+	int j = simPoly.Num() - 1;
+	bool oddNodes = false;
+	for (int i = 0; i < simPoly.Num(); i++)
+	{
+		if ((simPoly[i].Y < point.Y && simPoly[j].Y >= point.Y || simPoly[j].Y < point.Y && simPoly[i].Y >= point.Y) && (simPoly[i].X <= point.X || simPoly[j].X <= point.X))
+		{
+			oddNodes ^= (simPoly[i].X + (point.Y - simPoly[i].Y) / (simPoly[j].Y - simPoly[i].Y) * (simPoly[j].X - simPoly[i].X) < point.X);
+		}
+		j = i;
+	}
+
+	return oddNodes;
+}
+
+
 UCustomFoliageInstancer::UCustomFoliageInstancer()
 {
 	Width				= 300;
@@ -61,20 +78,19 @@ void UCustomFoliageInstancer::InterpolateFoliageWithMaterial()
 }
 
 
-void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
+void UCustomFoliageInstancer::FillFoliageWithMask_BP(FVector4 inComponentRect)
 {
 	Width = Height = inComponentRect.Y - inComponentRect.X;
 
-	const int StartCullDistance	= 2000000000;
-	const int EndCullDistance	= 2100000000;
+
 	FVector componentOffset		= FVector(inComponentRect.X, inComponentRect.Z, 0);
 
-	TArray<FFoliageMeshInfo> ArrayOfMeshInfos;
-	TArray<UHierarchicalInstancedStaticMeshComponent*> ArrayOfInstancers;
+	TArray<FFoliageMeshInfo> arrayOfMeshInfos = {};
+	TArray<UHierarchicalInstancedStaticMeshComponent*> arrayOfInstancers = {};
 
 	UpdateBuffer();
-
-	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
+	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
+	/*for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 	{
 		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
 
@@ -169,7 +185,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 			meshInfo.MaterialInstances[x]->SetVectorParameterValue("MeshComponentPosition", InstancedMesh->GetComponentLocation());
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue("Interpolation", 0.0f);
 		}
-	}
+	}*/
 
 	switch (MeshLayersOption) 
 	{
@@ -189,12 +205,177 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 		}
 		case ELayersOption::MonoLayered: 
 		{
-			this->FillFoliageWithMeshes(ArrayOfMeshInfos, ArrayOfInstancers);
+			this->FillFoliageWithMeshes(arrayOfMeshInfos, arrayOfInstancers);
 			break;
 		}
 	}
 }
 
+
+void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FContourData> inPolygons)
+{
+
+	FVector componentOffset = FVector::ZeroVector;
+
+	TArray<FFoliageMeshInfo> arrayOfMeshInfos = {};
+	TArray<UHierarchicalInstancedStaticMeshComponent*> arrayOfInstancers = {};
+
+	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
+
+	//{
+		TArray<FContour> includePolys = {};
+		TArray<FContour> excludePolys = {};
+		for (auto poly: inPolygons)
+		{
+			if (poly.Tags.Find("typeRole"))
+			{
+				for (auto outer : poly.Outer)
+				{
+					includePolys.Add(outer);
+				}
+				for (auto inner : poly.Holes)
+				{
+					excludePolys.Add(inner);
+				}
+			}
+			else
+			{
+				for (auto outer : poly.Outer)
+				{
+					excludePolys.Add(outer);
+				}
+			}
+		}
+		//for (auto include : includePolys)
+		//{
+
+		//}
+
+	for (auto include : includePolys)
+	{
+		TArray<FContour> exclude = {};
+		for (auto excludePoly : excludePolys)
+		{
+			for (auto point : excludePoly.Points)
+			{
+				if (IsPointInPolygon(include.Points, point))
+				{
+					exclude.Add(excludePoly);
+					break;
+				}
+			}
+		}
+		this->FillFoliageByPolygon(include.Points, exclude, arrayOfMeshInfos, arrayOfInstancers);
+	}
+}
+
+
+void UCustomFoliageInstancer::PrepareInstancers(
+	FVector inComponentOffset, 
+	TArray<FFoliageMeshInfo>& outArrayOfMeshInfos, 
+	TArray<UHierarchicalInstancedStaticMeshComponent*>& outArrayOfInstancers
+)
+{
+	const int StartCullDistance	= 2000000000;
+	const int EndCullDistance	= 2100000000;
+
+	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
+	{
+		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
+
+		for (int x = 0; x < meshInfo.Mesh->StaticMaterials.Num(); ++x)
+		{
+			UMaterialInterface* material = meshInfo.Mesh->GetMaterial(x);
+
+			if (material->IsA(UMaterialInstanceDynamic::StaticClass()))
+			{
+				meshInfo.MaterialInstances.Add(x, Cast<UMaterialInstanceDynamic>(material));
+			}
+			else
+			{
+				auto dynamicMaterial = UMaterialInstanceDynamic::Create(material, this);
+				meshInfo.MaterialInstances.Add(x, dynamicMaterial);
+			}
+			meshInfo.MaterialInstances[x]->SetScalarParameterValue("InstancerWidth", Width);
+			meshInfo.MaterialInstances[x]->SetScalarParameterValue("InstancerHeight", Height);
+
+			if (IsValid(StartTarget))
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start", StartTarget);
+			}
+			else
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start", InitialTarget);
+			}
+
+			if (IsValid(EndTarget))
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", EndTarget);
+			}
+			else
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", InitialTarget);
+			}
+
+			if (IsValid(TypesTarget))
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", TypesTarget);
+			}
+			else
+			{
+				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", InitialTarget);
+			}
+		}
+		auto meshPtr = FoliageInstancers.Find(meshInfo.Mesh);
+
+		if (meshPtr && IsValid(*meshPtr))
+		{
+			InstancedMesh = *meshPtr;
+			InstancedMesh->SetWorldLocation(inComponentOffset);
+			InstancedMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+		else
+		{
+			if (!foliageActor)
+			{
+				FActorSpawnParameters SpawnInfo;
+				SpawnInfo.Owner = GetOwner();
+				SpawnInfo.Name = "FoliageActor";
+				foliageActor = GetWorld()->SpawnActor<AActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+			}
+
+
+			auto instancerName = FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
+			AActor* owner = this->GetOwner();
+
+			InstancedMesh = NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
+			foliageActor->AddInstanceComponent(InstancedMesh);
+			InstancedMesh->RegisterComponent();
+
+			InstancedMesh->SetStaticMesh(meshInfo.Mesh);
+			InstancedMesh->SetWorldLocation(inComponentOffset);
+			InstancedMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+			FoliageInstancers.Add(meshInfo.Mesh, InstancedMesh);
+			outArrayOfInstancers.Add(InstancedMesh);
+			outArrayOfMeshInfos.Add(meshInfo);
+		}
+		InstancedMesh->SetCastShadow(true);
+		InstancedMesh->SetCullDistances(StartCullDistance, EndCullDistance);
+
+		for (int x = 0; x < meshInfo.MaterialInstances.Num(); ++x)
+		{
+			UMaterialInterface* material = meshInfo.Mesh->GetMaterial(x);
+			InstancedMesh->SetMaterial(x, meshInfo.MaterialInstances[x]);
+		}
+
+		for (int x = 0; x < meshInfo.MaterialInstances.Num(); ++x)
+		{
+			meshInfo.MaterialInstances[x]->SetVectorParameterValue("MeshComponentPosition", InstancedMesh->GetComponentLocation());
+			meshInfo.MaterialInstances[x]->SetScalarParameterValue("Interpolation", 0.0f);
+		}
+	}
+}
 
 void UCustomFoliageInstancer::FillFoliageWithMeshes(
 	TArray<FFoliageMeshInfo>& inInfos, 
@@ -291,6 +472,131 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 		cellX += CellSize.X; 
 		cellY = 0;
 	}
+}
+
+
+void UCustomFoliageInstancer::FillFoliageByPolygon(
+	TArray<FVector> inPolygon,
+	TArray<FContour> inExcludePolygons,
+	TArray<FFoliageMeshInfo>& inInfos,
+	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers
+)
+{
+	float minX, maxX, minY, maxY;
+
+	int AttemptTries = 30;
+
+	float cellX = 0;
+	float cellY = 0;
+	float density = 0;
+	float X = 0;
+	float Y = 0;
+	int totalAdded = 0;
+	float instancerAngle = (SpawnAngle) * (PI / 180);
+
+	FVector2D originPoint = FVector2D(Width / 2, Height / 2);
+	FFoliageMeshInfo meshInfo;
+	UHierarchicalInstancedStaticMeshComponent* instancedMesh = nullptr;
+
+	FRandomStream rs(InstancerSeed);
+
+	float helper1 = 0.0f, helper2 = 0.0f;
+
+		cellX = 0;
+		cellY = 0;
+
+		minX = minY = MAX_FLT;
+		maxX = maxY = MAX_FLT * -1.0f;
+
+		TArray<FVector2D> correctedPolygon;
+		X =0;
+		Y =0;
+		for (int i = 0; i < inPolygon.Num(); i++)
+		{
+
+			X = inPolygon[i].X;
+			Y = inPolygon[i].Y;
+			correctedPolygon.Add(FVector2D(X, Y));
+			if (X < minX)
+				minX = X;
+			if (Y < minY)
+				minY = Y;
+			if (X > maxX)
+				maxX = X;
+			if (Y > maxY)
+				maxY = Y;
+		}
+		cellX = minX;
+		cellY = minY;
+		while (cellX < maxX)
+		{
+			while (cellY < maxY)
+			{
+				int index = FMath::RandRange(0, inInfos.Num() - 1);
+				meshInfo = inInfos[index];
+				instancedMesh = inInstancers[index];
+				density = 0;
+
+
+				helper1 = 0.0f, helper2 = 0.0f;
+
+				helper1 = FMath::FRandRange(0.0f, FMath::Clamp(CellSize.X, 0.0f, (maxX - cellX)));
+				helper2 = FMath::FRandRange(0.0f, FMath::Clamp(CellSize.Y, 0.0f, (maxY - cellY)));
+
+				X = cellX + helper1;
+				Y = cellY + helper2;
+
+				bool treeSupressed = false;
+				for (auto exclude : inExcludePolygons)
+				{
+					if (IsPointInPolygon(exclude.Points, FVector(X, Y, 0)))
+					{
+						treeSupressed = true;
+						break;
+					}
+				}
+
+				if (!treeSupressed && IsPointInPolygon(inPolygon, FVector(X, Y, 0)))
+				{
+
+					FVector vHelper1, vHelper2;
+
+					vHelper1 = FVector(X, Y,  10000) + instancedMesh->GetComponentLocation();
+					vHelper2 = FVector(X, Y, -10000) + instancedMesh->GetComponentLocation();
+
+					FHitResult hitResult;
+
+					//UKismetSystemLibrary::LineTraceSingleForObjects(
+					//	this->GetWorld(),
+					//	vHelper1,
+					//	vHelper2,
+					//	ObjectQuery,
+					//	true,
+					//	TArray<AActor*>(),
+					//	Test ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
+					//	hitResult,
+					//	true);
+					if (true/*hitResult.Location.Z <= -4 || !checkForCollisions*/)
+					{
+						auto meshScale = rs.FRandRange(meshInfo.MinScale, meshInfo.MaxScale);
+
+						auto rotation = FQuat::MakeFromEuler(FVector(0.0f, 0.0f, FMath::FRandRange(0.0f, 360.0f)));
+
+						instancedMesh->AddInstance(
+							FTransform(
+								rotation,
+								FVector(X, Y, -2),
+								FVector(meshScale)
+							)
+						);
+					}
+				}
+				cellY += CellSize.Y;
+			}
+			cellX += CellSize.X;
+			cellY = minY;
+		}
+	
 }
 
 

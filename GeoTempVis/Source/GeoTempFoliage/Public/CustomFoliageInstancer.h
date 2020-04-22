@@ -157,7 +157,7 @@ public:
 	float CurrentInterpolation;
 
 	/**
-	* \fn FillFoliage_BP
+	* \fn FillFoliageWithMask_BP
 	* \brief Blueprint function to initiate mesh instancing.
 	*
 	* Generates instancer components, buffers InitialTarget pixels, creates dynamic materials and sets material parameters for consequent mesh instancing.
@@ -165,7 +165,17 @@ public:
 	* @see UCustomFoliageInstancer.FillFoliageWithMeshes 
 	*/
 	UFUNCTION(BlueprintCallable)
-	void FillFoliage_BP(FVector4 inComponentRect);
+	void FillFoliageWithMask_BP(FVector4 inComponentRect);
+
+	UFUNCTION(BlueprintCallable)
+	void FillFoliageWithPolygons_BP(TArray<FContourData> inPolygons);
+
+	UFUNCTION()
+	void PrepareInstancers(
+		FVector inComponentOffset,
+		TArray<FFoliageMeshInfo>& outArrayOfMeshInfos,
+		TArray<UHierarchicalInstancedStaticMeshComponent*>& outArrayOfInstancers
+	);
 
 	/**
 	* \fn ClearFoliage_BP
@@ -189,6 +199,14 @@ public:
 		TArray<FFoliageMeshInfo>& inInfos, 
 		TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers
 	);
+
+	UFUNCTION()
+		void FillFoliageByPolygon(
+			TArray<FVector> inPolygon, 
+			TArray<FContour> inExcludePolygons, 
+			TArray<FFoliageMeshInfo>& inInfos,
+			TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers
+		);
 	
 	/**
 	* \fn InterpolateFoliageWithMaterial
