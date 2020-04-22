@@ -80,8 +80,11 @@ public:
 	FLinearColor Color;	
 
 private:
+	UPROPERTY()
 	bool _isInit = false;
+
 	static TArray<FLinearColor> AllColors;
+
 	static float SimplifyDistance;
 
 public:
@@ -94,7 +97,10 @@ public:
 
 	void ReInit();
 
+	UPROPERTY()
 	FBuildingPart PartData;
+
+	UPROPERTY()
 	ABuildingActor* Parent;
 
 

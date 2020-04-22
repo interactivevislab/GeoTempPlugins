@@ -40,6 +40,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Default")
 	TArray<UBuildingPartComponent*> Parts;
  
+	UPROPERTY()
 	FBuilding Building;
 
 	void OnConstruction(const FTransform& Transform) override;
