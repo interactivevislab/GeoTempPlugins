@@ -15,6 +15,7 @@ class BasePolygonPreparer;
 
 /** \class UMaskLoader
  * \brief Utility object for making raster masks from polygons
+ * 
  * This class creating raster from input polygons and writes them to render target. The polygons are prepared by PolygonPreparer or its overrides.
  * The polygons after rendered into raster mask with additive color blending (i. e. them are not occluding each other)
  * The polygons can also specify dates of existence, which controls their appearance (you can pass current year into RenderMaskForTime to filter polygons or draw them with interpolation)

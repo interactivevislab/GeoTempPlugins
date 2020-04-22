@@ -8,8 +8,8 @@ UOsmReader::UOsmReader() : UObject()
 
 void UOsmReader::InitWithXML(FString inXmlString)
 {	
-	XmlDocument.Parse(TCHAR_TO_UTF8(*inXmlString));
-	if (XmlDocument.FirstChild()) {
+	xmlDocument.Parse(TCHAR_TO_UTF8(*inXmlString));
+	if (xmlDocument.FirstChild()) {
 		ReadData();
 	}
 }
@@ -17,8 +17,8 @@ void UOsmReader::InitWithXML(FString inXmlString)
 
 void UOsmReader::InitWithFile(FString inFilename)
 {
-	XmlDocument.LoadFile(TCHAR_TO_UTF8(*inFilename));
-	if (XmlDocument.FirstChild()) {
+	xmlDocument.LoadFile(TCHAR_TO_UTF8(*inFilename));
+	if (xmlDocument.FirstChild()) {
 		ReadData();
 	}
 }
@@ -29,7 +29,7 @@ void UOsmReader::ReadData()
 #pragma region Parse Nodes
 	std::vector<tinyxml2::XMLElement*> nodes;
 
-	tinyxml2::XMLNode* root = XmlDocument.FirstChild()->NextSibling();
+	tinyxml2::XMLNode* root = xmlDocument.FirstChild()->NextSibling();
 
 	tinyxml2::XMLElement* bounds = root->FirstChildElement("bounds");
 
@@ -81,7 +81,7 @@ void UOsmReader::ReadData()
 		if (tag == nullptr)
 		{
 			auto nodeObj = new OsmNode(id, lon, lat, GeoCoords);
-			Nodes.insert_or_assign(id, nodeObj);
+			Nodes.Add(id, nodeObj);
 		}
 		else
 		{
@@ -93,7 +93,7 @@ void UOsmReader::ReadData()
 				nodeObj->Tags.Add(key.c_str(), tag->Attribute("v"));
 				tag = tag->NextSiblingElement("tag");
 			}
-			Nodes.insert_or_assign(id, nodeObj);
+			Nodes.Add(id, nodeObj);
 		}
 	}
 
@@ -119,11 +119,11 @@ void UOsmReader::ReadData()
 			tag = tag->NextSiblingElement("tag");
 		}
 
-		Ways.insert_or_assign(id, wayObj);
+		Ways.Add(id, wayObj);
 
 		while (node != nullptr)
 		{
-			wayObj->Nodes.push_back(Nodes[node->Int64Attribute("ref")]);
+			wayObj->Nodes.Add(Nodes[node->Int64Attribute("ref")]);
 			node = node->NextSiblingElement("nd");
 		}
 	}
@@ -158,15 +158,15 @@ void UOsmReader::ReadData()
 
 			if (!std::strcmp(type, "node"))
 			{
-				relObj->NodeRoles[memberId] = role;
+				relObj->NodeRoles.Add(memberId, role);
 			}
 			else if (!std::strcmp(type, "way"))
 			{
-				relObj->WayRoles[memberId] = role;
+				relObj->WayRoles.Add(memberId, role);
 			}
 			else if (!std::strcmp(type, "relation"))
 			{
-				relObj->RelRoles[memberId] = role;
+				relObj->RelRoles.Add(memberId, role);
 			}
 
 			node = node->NextSiblingElement("member");
@@ -181,37 +181,37 @@ void UOsmReader::ReadData()
 			tag = tag->NextSiblingElement("tag");
 		}
 
-		Relations.insert_or_assign(id, relObj);
+		Relations.Add(id, relObj);
 	}
 
 	//add relation subelements 
 	for (auto rel : Relations)
 	{
-		auto relObj = rel.second;
+		auto relObj = rel.Value;
 		for (auto memberNode : relObj->NodeRoles)
 		{
-			auto iter = Nodes.find(memberNode.first);
-			if (iter != Nodes.end())
+			auto iter = Nodes.Find(memberNode.Key);
+			if (iter != nullptr)
 			{
-				relObj->Nodes.insert_or_assign(memberNode.first, (*iter).second);
+				relObj->Nodes.Add(memberNode.Key, *iter);
 			}
 		}
 
 		for (auto memberWay : relObj->WayRoles)
 		{
-			auto iter = Ways.find(memberWay.first);
-			if (iter != Ways.end())
+			auto iter = Ways.Find(memberWay.Key);
+			if (iter != nullptr)
 			{
-				relObj->Ways.insert_or_assign(memberWay.first, (*iter).second);
+				relObj->Ways.Add(memberWay.Key, *iter);
 			}
 		}
 
 		for (auto memberRelation : relObj->RelRoles)
 		{
-			auto iter = Relations.find(memberRelation.first);
-			if (iter != Relations.end())
+			auto iter = Relations.Find(memberRelation.Key);
+			if (iter != nullptr)
 			{
-				relObj->Relations.insert_or_assign(memberRelation.first, (*iter).second);
+				relObj->Relations.Add(memberRelation.Key, *iter);
 			}
 		}
 	}

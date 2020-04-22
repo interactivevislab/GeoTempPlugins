@@ -1,8 +1,28 @@
 #include "HttpRequest.h"
 
 
-UHttpRequest::UHttpRequest()
+int UHttpRequest::nextId = 0;
+
+
+UHttpRequest::UHttpRequest() : id(nextId++)
 {
+}
+
+
+int UHttpRequest::GetId()
+{
+	return id;
+}
+
+
+void UHttpRequest::Init(TSharedPtr<IHttpRequest> inRequest)
+{
+	request = inRequest;
+	request->OnProcessRequestComplete().BindLambda(
+		[this](FHttpRequestPtr inHttpRequest, FHttpResponsePtr inHttpResponse, bool inSucceeded)
+	{
+		OnHttpRequestCompleted(inHttpRequest, inHttpResponse, inSucceeded);
+	});
 }
 
 
@@ -17,8 +37,7 @@ void UHttpRequest::StartRequest()
 
 void UHttpRequest::OnHttpRequestCompleted(FHttpRequestPtr inRequest, FHttpResponsePtr inResponse, bool inSucceeded)
 {
-	FString content = inResponse->GetContentAsString();
-	OnCompleted.Broadcast(content);
-
-	OnReadyToDelete.Broadcast(Id);
+	OnCompleted.Broadcast(inResponse->GetContentAsString());
+	OnReadyToDelete.Broadcast(id);
+	request->OnProcessRequestComplete().Unbind();
 }

@@ -12,9 +12,9 @@ class POLYGONMASKSGENERATOR_API UTreeTypesPolygonPreparer : public UBasePolygonP
 {
 	GENERATED_BODY()
 	
-	//!@{
-	/** Overload of UBasePolygonPreparer */
+	/** @name Implementation of UBasePolygonPreparer */
+	///@{
 	void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FMultipolygonData> inPolygonData, 
 		TMap<FString, FString> inTags) override;
-	//!@}
+	///@}
 };

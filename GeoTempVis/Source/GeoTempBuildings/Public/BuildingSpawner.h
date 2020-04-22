@@ -26,6 +26,7 @@ public:
 	/**
 	 * \var Buildings
 	 * \brief Array of Building Actors representing currently spawned buildings
+	 * 
 	 * @see ABuildingActor
 	 */
 	UPROPERTY(BlueprintReadWrite, Category = "Default")
@@ -34,6 +35,7 @@ public:
 	/**
 	 * \fn SpawnBuildingActors
 	 * \brief Process building structures and spawn building actors
+	 * 
 	 * @param inBuildingData	array of building structures containing information about buildings
 	 * @param inWallMaterial	material that will be assigned to building walls (and wall-type decorations)
 	 * @param inRoofMaterial	material that will be assigned to building roofs (and roof-type decorations)

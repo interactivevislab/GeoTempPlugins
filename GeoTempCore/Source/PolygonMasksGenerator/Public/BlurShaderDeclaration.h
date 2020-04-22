@@ -37,11 +37,11 @@ class FVertexDeclarationBlur : public FRenderResource
 {
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRhi;
-	//!@{
-	/** Overload of FRenderResource */
+	/** @name Implementation of FRenderResource */
+	///@{
 	virtual void InitRHI() override;
 	virtual void ReleaseRHI() override;
-	//!@}
+	///@}
 };
 
 

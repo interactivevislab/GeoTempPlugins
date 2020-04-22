@@ -16,12 +16,19 @@ class GEOTEMPLOADERS_API UParserJson : public UInterface
 };
 
 
+/**
+* \class IParserJson
+* \brief Interface for parsing JSON data.
+*
+* @see UJsonReader
+*/
 class GEOTEMPLOADERS_API IParserJson
 {
 	GENERATED_BODY()
 
 public:
 
+	/** Sets UJsonReader as data source. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void SetJsonReader(UJsonReader* inJsonReader);
 };

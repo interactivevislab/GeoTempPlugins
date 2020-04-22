@@ -15,7 +15,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 	//find all building and building parts through ways
 	for (auto wayP : osmReader->Ways)
 	{
-		auto way = wayP.second;
+		auto way = wayP.Value;
 		auto FoliageIterNatural = way->Tags.Find("natural");
 		auto FoliageIterLanduse = way->Tags.Find("landuse");
 		auto FoliageIterLeisure = way->Tags.Find("leisure");
@@ -30,7 +30,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 			//get all points of this way
 			TArray<FVector> points;
-			points.Reserve(way->Nodes.size());
+			points.Reserve(way->Nodes.Num());
 			for (auto node : way->Nodes)
 			{
 				points.Add(node->Point);
@@ -48,7 +48,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 	for (auto relationP : osmReader->Relations)
 	{
-		auto relation = relationP.second;
+		auto relation = relationP.Value;
 		auto FoliageIterNatural = relation->Tags.Find("natural");
 		auto FoliageIterLanduse = relation->Tags.Find("landuse");
 		auto FoliageIterLeisure = relation->Tags.Find("leisure");
@@ -64,24 +64,24 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			//now iterate over the ways in this relation
 			for (auto element : relation->WayRoles)
 			{
-				auto way = relation->Ways[element.first];
+				auto way = relation->Ways.Find(element.Key);
 				if (!way)
 				{
 					continue;
 				}
 
 				auto contour = FContour();
-				for (auto node : way->Nodes)
+				for (auto node : (*way)->Nodes)
 				{
 					contour.Points.Add(node->Point);
 				}
 
-				if (element.second == "outer")
+				if (element.Value == "outer")
 				{
 					contour.FixClockwise();
 					polygon.Outer.Add(contour);
 				}
-				else if (element.second == "inner")
+				else if (element.Value == "inner")
 				{
 					contour.FixClockwise(true);
 					polygon.Holes.Add(contour);
