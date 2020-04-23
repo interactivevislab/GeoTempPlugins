@@ -21,12 +21,10 @@
 UENUM(BlueprintType)		
 enum class ELayersOption : uint8
 {
-	MonoLayered		UMETA(DisplayName = "MonoLayered"), /**
-														* < Place meshes from multiple FoliageMeshes as one layer. 
+	MonoLayered		UMETA(DisplayName = "MonoLayered"), /** < Place meshes from multiple FoliageMeshes as one layer. 
 														* Results in using one FoliageMesh per cell. 
 														*/  
-	PolyLayered		UMETA(DisplayName = "PolyLayered"), /**
-														* < Place meshes from multiple FoliageMeshes as multiple layers. 
+	PolyLayered		UMETA(DisplayName = "PolyLayered"), /** < Place meshes from multiple FoliageMeshes as multiple layers. 
 														* Results in using all FoliageMeshes per cell. 
 														*/ 
 };

@@ -261,29 +261,19 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 						contour.Points.Add(node->Point);
 					}
 
-					if (element.Value == "outer")
+					bool isOuter		= element.Value == "outer";
+					auto& conts			= isOuter ? part.OuterConts			: part.InnerConts;
+					auto& unclosedConts	= isOuter ? UnclosedOuterContours	: UnclosedInnerContours;
+
+					if (contour.IsClosed())
 					{
-						if (contour.IsClosed())
-						{
-							contour.FixClockwise();
-							part.OuterConts.Add(contour);
-						}
-						else
-						{
-							UnclosedOuterContours.Add(contour);
-						}
+						contour.FixClockwise(isOuter);
+						conts.Add(contour);
 					}
-					else if (element.Value == "inner")
+					else
 					{
-						if (contour.IsClosed())
-						{
-							contour.FixClockwise(false);
-							part.InnerConts.Add(contour);
-						}
-						else
-						{
-							UnclosedInnerContours.Add(contour);
-						}
+
+						unclosedConts.Add(contour);
 					}
 				} else {
 					if (wayParts.Contains(element.Key)) 
@@ -358,29 +348,19 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 						contour.Points.Add(node->Point);
 					}
 
-					if (element.Value == "outer")
+					bool isOuter = element.Value == "outer";
+					auto& conts = isOuter ? part.OuterConts : part.InnerConts;
+					auto& unclosedConts = isOuter ? UnclosedOuterContours : UnclosedInnerContours;
+
+					if (contour.IsClosed())
 					{
-						if (contour.IsClosed())
-						{
-							contour.FixClockwise();
-							part.OuterConts.Add(contour);
-						}
-						else
-						{
-							UnclosedOuterContours.Add(contour);
-						}
+						contour.FixClockwise(isOuter);
+						conts.Add(contour);
 					}
-					else if (element.Value == "inner")
+					else
 					{
-						if (contour.IsClosed())
-						{
-							contour.FixClockwise(true);
-							part.InnerConts.Add(contour);
-						}
-						else
-						{
-							UnclosedInnerContours.Add(contour);
-						}
+
+						unclosedConts.Add(contour);
 					}
 				}
 			}

@@ -61,14 +61,13 @@ FRoadNetwork ULoaderHelper::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegm
 TArray<FContour> ULoaderHelper::FixRelationContours(TArray<FContour>& inUnclosedContours)
 {
 	TArray<FContour> closedContours = {};
+	if (inUnclosedContours.Num() > 0)
+	{
+		closedContours.Add(inUnclosedContours[0]);
+		inUnclosedContours.RemoveAt(0);
+	}
 	while (inUnclosedContours.Num() > 0)
 	{
-		if (closedContours.Num() == 0)
-		{
-			closedContours.Add(inUnclosedContours[0]);
-			inUnclosedContours.RemoveAt(0);
-			continue;
-		}
 		bool hasConnections = false;
 
 		for (auto& contour : closedContours)

@@ -92,8 +92,6 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				const int capDensity = 8;
 				auto yDelta = FVector::CrossProduct(pointDelta, FVector::UpVector);
 
-				FVector radiusDeltas[capDensity + 1];
-
 				for (int j = 1; j < capDensity; j++)
 				{
 					float angle = PI / capDensity * j;
@@ -168,29 +166,19 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 					contour.Points.Add(node->Point);
 				}
 
-				if (element.Value == "outer")
+				bool isOuter = element.Value == "outer";
+				auto& conts = isOuter ? polygon.Outer : polygon.Holes;
+				auto& unclosedConts = isOuter ? UnclosedOuterContours : UnclosedInnerContours;
+
+				if (contour.IsClosed())
 				{
-					if (contour.IsClosed())
-					{
-						contour.FixClockwise();
-						polygon.Outer.Add(contour);
-					}
-					else
-					{
-						UnclosedOuterContours.Add(contour);
-					}
+					contour.FixClockwise(isOuter);
+					conts.Add(contour);
 				}
-				else if (element.Value == "inner")
+				else
 				{
-					if (contour.IsClosed())
-					{
-						contour.FixClockwise(true);
-						polygon.Holes.Add(contour);
-					}
-					else
-					{
-						UnclosedInnerContours.Add(contour);
-					}
+
+					unclosedConts.Add(contour);
 				}
 			}
 
