@@ -73,7 +73,7 @@ public:
 
 	/** Read contours data from WKB entity, converting coordinates to local. */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Connection")
-	static FContourData CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords);
+	static FMultipolygonData CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords);
 
 	/** Read curves from WKB entity, converting coordinates to local. */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")

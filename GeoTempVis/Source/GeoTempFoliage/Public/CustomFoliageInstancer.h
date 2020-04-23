@@ -230,7 +230,7 @@ public:
 	* @param inContours		Contours with dates to parse.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseDates(TArray<FContourData>& inContours);
+	void ParseDates(TArray<FMultipolygonData>& inContours);
 
 	/**
 	* \fn ParseTimeTags
@@ -240,7 +240,7 @@ public:
 	* @param outDates		A set of unique dates accosiated with polygons changes events.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseTimeTags(const FContourData& inContour, TSet<int>& outDates);
+	void ParseTimeTags(const FMultipolygonData& inContour, TSet<int>& outDates);
 
 	/**
 	* \fn SortDatesByAscend

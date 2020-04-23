@@ -1,7 +1,7 @@
 #include "ZonesPolygonPreparer.h"
 
 
-void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FContourData> inPolygonData,
+void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FMultipolygonData> inPolygonData,
 	TMap<FString, FString> inTags)
 {
 	if (inPolygonData.Num() == 0)
@@ -85,7 +85,7 @@ void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FCon
 			minY = FMath::Min(minY, points[i].Y);
 			maxY = FMath::Max(maxY, points[i].Y);
 
-			FMyTextureVertex vert;
+			FMaskPolygonVertex vert;
 			vert.Position = points[i];
 			vert.Color = color;
 			vert.YearData = FVector4(startAppearYear, endAppearYear, startDemolishYear, endDemolishYear);
@@ -96,14 +96,7 @@ void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FCon
 		{
 			inTarget->Triangles.Add(triangles[i] + zeroInd);
 		}
-
-		inTarget->Years.AddUnique(startAppearYear);
-		inTarget->Years.AddUnique(endAppearYear);
-		inTarget->Years.AddUnique(startDemolishYear);
-		inTarget->Years.AddUnique(endDemolishYear);
 	}
-
-	inTarget->Years.Sort();
 
 	auto dX = maxX - minX;
 	auto dY = maxY - minY;
@@ -117,6 +110,5 @@ void UZonesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FCon
 	}
 
 	inTarget->Rect = FVector4(minX, maxX, minY, maxY);
-	inTarget->UpdateRect();
-	inTarget->Dirty = true;
+	inTarget->IsDirty = true;
 }

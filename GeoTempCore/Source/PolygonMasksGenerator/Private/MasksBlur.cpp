@@ -10,6 +10,7 @@
 
 //It seems to be the convention to expose all vertex declarations as globals, and then reference them as externs in the headers where they are needed.
 //It kind of makes sense since they do not contain any parameters that change and are purely used as their names suggest, as declarations :)
+
 TGlobalResource<FVertexDeclarationBlur> GTextureVertexDeclarationBlur;
 
 
@@ -28,7 +29,7 @@ UMaskBlurer::UMaskBlurer()
 	isUnloading				= false;
 
 	currentTex			= nullptr;
-	currentRenderTarget = nullptr;	
+	outputRenderTarget = nullptr;	
 	texParamSrv			= nullptr;
 }
 
@@ -50,7 +51,7 @@ void UMaskBlurer::ExecutePixelShader(UTextureRenderTarget2D* inTarget, UTextureR
 
 	isPixelShaderExecuting = true;
 			
-	currentRenderTarget = inTarget;
+	outputRenderTarget = inTarget;
 	inputTarget = inTexture;
 
 	//This macro sends the function we declare inside to be run on the render thread. What we do is essentially just send this class and tell the render thread to run the internal render function as soon as it can.
@@ -70,7 +71,7 @@ void UMaskBlurer::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 {
 	check(IsInRenderingThread());
 
-	if (!currentRenderTarget || !currentRenderTarget->GetRenderTargetResource())
+	if (!outputRenderTarget || !outputRenderTarget->GetRenderTargetResource())
 	{
 		return;
 	}
@@ -164,7 +165,7 @@ void UMaskBlurer::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 	
 #pragma region Horizontal
 	
-	currentTex = currentRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+	currentTex = outputRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
 	
 	if (texParamSrv != nullptr)
 	{
@@ -213,11 +214,11 @@ void UMaskBlurer::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 }
 
 
-void UMaskBlurer::BlurMask(UTextureRenderTarget2D* inTexTarget, UTextureRenderTarget2D* inTempTarget,
+void UMaskBlurer::BlurMask(UTextureRenderTarget2D* inTargetToWrite, UTextureRenderTarget2D* inTempTarget,
 	UTextureRenderTarget2D* inInputTexture, float inDistance, int inSteps)
 {
 	varParams.Steps = inSteps;
 	varParams.Distance = inDistance;
 	innerRenderTarget = inTempTarget;
-	ExecutePixelShader(inTexTarget, inInputTexture);
+	ExecutePixelShader(inTargetToWrite, inInputTexture);
 }

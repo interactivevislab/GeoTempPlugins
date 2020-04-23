@@ -318,7 +318,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			//create building entry
 			auto building = FBuilding(relation->Id);
 			building.Parts.Empty();
-			building.Type = TCHAR_TO_UTF8(**buildIter);
+			building.Type = FString(TCHAR_TO_UTF8(**buildIter));
 
 
 			//create building part data from relation (it will be the footprint)

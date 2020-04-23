@@ -55,8 +55,8 @@ void ABuildingActor::Initialize(const FBuilding& inBuilding, bool inInitPartsImm
 			FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
 			part->WallMaterial = WallMaterial;
 			part->RoofMaterial = RoofMaterial;
-			part->Init(Building.MainPart, Building.Tags);
-			if (inInitPartsImmideately) part->ReInit();
+			part->Init(Building.MainPart);
+			if (inInitPartsImmideately) part->ForceRecalc();
 			part->StylePalette = Building.MainPart.StylePalette;
 			Parts.Add(part);
 		}
@@ -75,9 +75,9 @@ void ABuildingActor::Initialize(const FBuilding& inBuilding, bool inInitPartsImm
 			FAttachmentTransformRules rules(EAttachmentRule::KeepRelative, false);
 			part->WallMaterial = WallMaterial;
 			part->RoofMaterial = RoofMaterial;
-			part->Init(partData, Building.Tags);
+			part->Init(partData);
 			
-			if (inInitPartsImmideately) part->ReInit();
+			if (inInitPartsImmideately) part->ForceRecalc();
 			part->StylePalette = partData.StylePalette;
 			Parts.Add(part);
 		}
