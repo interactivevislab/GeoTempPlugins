@@ -6,13 +6,7 @@ UBuildingPartComponent::UBuildingPartComponent(const FObjectInitializer& ObjectI
 {
 }
 
-void UBuildingPartComponent::Actualize()
-{
-}
-
-float UBuildingPartComponent::SimplifyDistance = 250000;
-
-void UBuildingPartComponent::Init(const FBuildingPart& inPart, const TMap<FString, FString>& inTags/*, UBuildingsLoaderBase2* owner*/) {
+void UBuildingPartComponent::Init(const FBuildingPart& inPart) {
 
 
 	Parent = Cast<ABuildingActor>(GetOwner());
@@ -29,10 +23,10 @@ void UBuildingPartComponent::Init(const FBuildingPart& inPart, const TMap<FStrin
 	
 	Id = inPart.Id;
 	PartData = inPart;
-	Tags = inTags;
+	Tags = inPart.Tags;
 }
 
-void UBuildingPartComponent::ReInit()
+void UBuildingPartComponent::ForceRecalc()
 {
 	_isInit = false;
 	Recalc();
@@ -59,7 +53,7 @@ void UBuildingPartComponent::Recalc() {
 void UBuildingPartComponent::CreateSimpleStructure(float inZeroHeight)
 {	
 
-	auto meshData = MeshHelpers::CalculateMeshData(Parent->Building, PartData, 0, WallMaterial, RoofMaterial);
+	auto meshData = MeshHelpers::CalculateMeshData(Parent->Building, PartData, WallMaterial, RoofMaterial);
 	MeshHelpers::ConstructRuntimeMesh(this, meshData);
 	for (int i = 0; i < GetNumSections(); i++)
 	{
@@ -84,12 +78,4 @@ void UBuildingPartComponent::ApplyCurrentTime(FDateTime inCurrentTime, bool inMu
 	bool isVisible = !inMustHide && !isDemolished && (daysFromBuildStart >= -100);
 	SetVisibility(isVisible, true);
 	SetCollisionEnabled(isVisible ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
-}
-
-
-TArray<FLinearColor> UBuildingPartComponent::AllColors = TArray<FLinearColor>{};
-
-void UBuildingPartComponent::SetAllColors(TArray<FLinearColor>& inColors)
-{
-	AllColors = inColors;
 }

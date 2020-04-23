@@ -23,15 +23,33 @@ class GEOTEMPJSON_API UJsonReader : public UObject
 public:
 
 	/** Read contours data from JSON file, converting coordinates to local. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TMap<FString, FString> JSONTags;
+
+	
+	UPROPERTY(BlueprintReadWrite)
+	FString JsonString;
+
+	FString TabString;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FGeoCoords GeoCoords;
+
+	TArray<FMultipolygonData> GlobalContoursWithData;
+
+	typedef TSharedPtr<FJsonValue> JsonValuesPtr;
+
+	/** Read contours data from JSON file, converting coordinates to local. */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<FContourData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);
+	TArray<FMultipolygonData> ReadContoursFromFile(FString inFilepath, FGeoCoords inGeoCoords);
 
 	/** Read contours data from JSON string, converting coordinates to local. */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<FContourData> ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords);
+	TArray<FMultipolygonData> ReadContoursFromString(FString inJsonString, FGeoCoords inGeoCoords);
 
 	/** Read contours data from JSON object, converting coordinates to local. */
-	TArray<FContourData> ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords);
+	TArray<FMultipolygonData> ReadContoursFromJSON(TSharedPtr<FJsonObject> inJsonObject, FGeoCoords inGeoCoords);
+		
 
 private:
 
@@ -52,14 +70,14 @@ private:
 	/** Parses data array. */
 	void ParseArray(TArray<JsonValuesPtr> inValues);
 
+	void ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FMultipolygonData>& outContoursWithData);
 	/** Parses features into countour data. */
-	void ParseFeatures(TArray<JsonValuesPtr> inFeatureArray, TArray<FContourData>& outContoursWithData);
 
 	/** Parses polygon into countour data. */
-	void ParsePolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData);
+	void ParsePolygon(TArray<JsonValuesPtr> inGeometry, FMultipolygonData& outContourData);
 
 	/** Parses multipolygon into countour data. */
-	void ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FContourData& outContourData);
+	void ParseMultiPolygon(TArray<JsonValuesPtr> inGeometry, FMultipolygonData& outContourData);
 
 	/** Converts string to enum. */
 	template <typename EnumType>

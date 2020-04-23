@@ -20,7 +20,7 @@ class ULoaderFoliageOsm : public UObject, public IParserOsm, public IProviderFol
 public:
 
 	virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
-	virtual TArray<FContourData> GetFolliage_Implementation() override;
+	virtual TArray<FMultipolygonData> GetFolliage_Implementation() override;
 
 private:
 
