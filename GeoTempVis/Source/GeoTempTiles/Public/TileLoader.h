@@ -78,6 +78,8 @@ public:
 	bool tickEnabled = false;
 
 	void BeginPlay() override;
+
+	void PostLoad() override;
 	
 	void TickComponent(float DeltaTime,enum ELevelTick TickType,FActorComponentTickFunction * ThisTickFunction) override;
 
@@ -167,6 +169,9 @@ private:
 	void SplitTile(FTileTextureMeta meta);
 	
 	void SplitTile(int x, int y, int z);
+
+	UPROPERTY()
+	bool areTilesLoaded;
 };
 
 

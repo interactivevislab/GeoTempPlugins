@@ -127,6 +127,17 @@ float UTilesController::GetPixelSize(FTileTextureMeta meta)
 }
 
 
+void UTilesController::PostLoad()
+{
+	Super::PostLoad();
+	if (areTilesLoaded)
+	{
+		ClearMesh();
+		CreateMesh();
+	}
+}
+
+
 void UTilesController::CreateMesh()
 {
 	if (!TileLoader) TileLoader = NewObject<UTileTextureContainer>(this);
@@ -143,12 +154,16 @@ void UTilesController::CreateMesh()
 			CreateTileMesh(x + x0 - BaseLevelSize/2, y + y0 - BaseLevelSize/2, z);
 		}
 	}
+
+	areTilesLoaded = true;
 }
 
 void UTilesController::ClearMesh()
 {
 	ClearAllMeshSections();
 	TileIndecies.Empty();
+
+	areTilesLoaded = false;
 }
 
 
