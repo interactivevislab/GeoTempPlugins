@@ -97,7 +97,7 @@ public:
 	 * @param inArray binary array of geometry data
 	 * @param outOffset current position of cursor in the array
 	 * @param inGeoCoords Scene-projection matching structure
-	 * @param inSkipBOM should the data contain Bite-Order mark under cursor
+	 * @param inSkipBOM should the data contain Byte-Order mark under cursor
 	 * @param inHeight elevation with which initialize the point
 	 *
 	 * @return result array of points
@@ -108,7 +108,7 @@ public:
 	/** Parse polygon from binary array, starting with offset. Uses geoCoordinates of this contour
 	 * @param inArray binary array of geometry data
 	 * @param outOffset current position of cursor in the array
-	 * @param inSkipBOM should the data contain Bite-Order mark under cursor
+	 * @param inSkipBOM should the data contain Byte-Order mark under cursor
 	 * @param inHeight elevation with which initialize the point
 	 *
 	 * @return result multipolygon
@@ -120,7 +120,7 @@ public:
 	 * @param inArray binary array of geometry data
 	 * @param outOffset current position of cursor in the array
 	 * @param inGeoCoords Scene-projection matching structure
-	 * @param inSkipBOM should the data contain Bite-Order mark under cursor
+	 * @param inSkipBOM should the data contain Byte-Order mark under cursor
 	 * @param inHeight elevation with which initialize the point
 	 *
 	 * @return result multipolygon
