@@ -223,16 +223,16 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FContourData> in
 	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
 
 	//{
-		TArray<FContour> includePolys = {};
+		TArray<FContourData> includePolys = {};
 		TArray<FContour> excludePolys = {};
 		for (auto poly: inPolygons)
 		{
 			if (poly.Tags.Find("typeRole"))
 			{
-				for (auto outer : poly.Outer)
-				{
-					includePolys.Add(outer);
-				}
+				//for (auto outer : poly.Outer)
+				//{
+					includePolys.Add(poly);
+				//}
 				for (auto inner : poly.Holes)
 				{
 					excludePolys.Add(inner);
@@ -253,19 +253,48 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FContourData> in
 
 	for (auto include : includePolys)
 	{
-		TArray<FContour> exclude = {};
-		for (auto excludePoly : excludePolys)
+		for (auto outer : include.Outer)
 		{
-			for (auto point : excludePoly.Points)
+			TArray<FContour> exclude = {};
+
+			for (auto excludePoly : excludePolys)
 			{
-				if (IsPointInPolygon(include.Points, point))
+				for (auto point : excludePoly.Points)
 				{
-					exclude.Add(excludePoly);
-					break;
+					if (IsPointInPolygon(outer.Points, point))
+					{
+						exclude.Add(excludePoly);
+						break;
+					}
 				}
 			}
+
+
+			TArray<FFoliageMeshInfo> infos;
+			TArray<UHierarchicalInstancedStaticMeshComponent*> instancers;
+
+			auto leafTag = include.Tags.Find("leaf_type");
+
+			if (!leafTag || leafTag->Equals("mixed"))
+			{
+				infos = arrayOfMeshInfos;
+				instancers = arrayOfInstancers;
+			}
+			else
+			{
+				auto leafType = leafTag->Equals("broadleaved") ? ELeafType::Broadleaved : ELeafType::Needleleaved;
+				for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
+				{
+					if (meshInfo.LeafType == leafType)
+					{
+						infos.Add(meshInfo);
+						instancers.Add(*FoliageInstancers.Find(meshInfo.Mesh));
+					}
+				}
+			}
+
+			this->FillFoliageByPolygon(outer.Points, exclude, infos, instancers);
 		}
-		this->FillFoliageByPolygon(include.Points, exclude, arrayOfMeshInfos, arrayOfInstancers);
 	}
 }
 

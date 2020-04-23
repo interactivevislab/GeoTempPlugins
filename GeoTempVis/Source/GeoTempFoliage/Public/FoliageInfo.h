@@ -8,6 +8,19 @@
 
 
 /**
+ * \enum ELeafType
+ *
+ * What type of leaves mesh represents.
+ */
+UENUM(BlueprintType)
+enum class ELeafType : uint8
+{
+	Broadleaved			UMETA(DisplayName = "Broadleaved"),		/** < Mesh represents broadleaved foliage. */
+	Needleleaved		UMETA(DisplayName = "Needleleaved"),	/** < Mesh represents needleleaved foliage. */
+};
+
+
+/**
 * \struct FFoliageMeshInfo
 *
 * Describes mesh instancing parameters.
@@ -24,6 +37,10 @@ public:
 	/** Mesh to be instanced. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	UStaticMesh* Mesh = nullptr;
+
+	/** Type of leaves mesh represents. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	ELeafType LeafType;
 
 	/** Minimum scale value to apply to mesh. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MeshTransform")

@@ -64,6 +64,15 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				{
 					polygon.Tags.Add(TPair<FString, FString>("typeRole", "forest"));
 				}
+				auto leafTag = way->Tags.Find("leaf_type");
+				if (leafTag)
+				{
+					polygon.Tags.Add(TPair<FString, FString>("leaf_type", *leafTag));
+				}
+				else
+				{
+					polygon.Tags.Add(TPair<FString, FString>("leaf_type", "mixed"));
+				}
 			}
 
 			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
@@ -225,6 +234,15 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				else
 				{
 					polygon.Tags.Add(TPair<FString, FString>("typeRole", "forest"));
+				}
+				auto leafTag = relation->Tags.Find("leaf_type");
+				if (leafTag)
+				{
+					polygon.Tags.Add(TPair<FString, FString>("leaf_type", *leafTag));
+				}
+				else
+				{
+					polygon.Tags.Add(TPair<FString, FString>("leaf_type", "mixed"));
 				}
 			}
 
