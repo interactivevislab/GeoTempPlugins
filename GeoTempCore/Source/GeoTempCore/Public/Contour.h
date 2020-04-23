@@ -42,6 +42,9 @@ struct GEOTEMPCORE_API FContour
 	 */
 	bool IsNotClockwise(bool reverse = false);
 
+	//returns true if the first and the last points are equal
+	bool IsClosed();
+
 	/** Removes all duplicate points and performs other cleaning */
 	void Cleanup();	
 

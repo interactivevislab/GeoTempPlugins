@@ -61,7 +61,7 @@ void UCustomFoliageInstancer::InterpolateFoliageWithMaterial()
 }
 
 
-void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUpdateMaskBuffer)
+void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 {
 	Width = Height = inComponentRect.Y - inComponentRect.X;
 
@@ -176,13 +176,13 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 				infos		.Add(meshInfo); 
 				instancers	.Add(*FoliageInstancers.Find(meshInfo.Mesh));
 
-				this->FillFoliageWithMeshes(infos, instancers, inUpdateMaskBuffer);
+				this->FillFoliageWithMeshes(infos, instancers);
 			}
 			break;
 		}
 		case ELayersOption::MonoLayered: 
 		{
-			this->FillFoliageWithMeshes(ArrayOfMeshInfos, ArrayOfInstancers, inUpdateMaskBuffer);
+			this->FillFoliageWithMeshes(ArrayOfMeshInfos, ArrayOfInstancers);
 			break;
 		}
 	}
@@ -191,8 +191,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 
 void UCustomFoliageInstancer::FillFoliageWithMeshes(
 	TArray<FFoliageMeshInfo>& inInfos, 
-	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers, 
-	bool inUpdateMaskBuffer)
+	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers)
 {
 	float cellX				= 0;
 	float cellY				= 0;
