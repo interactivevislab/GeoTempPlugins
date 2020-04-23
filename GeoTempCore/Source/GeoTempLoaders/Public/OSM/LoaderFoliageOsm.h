@@ -31,7 +31,7 @@ public:
 	
 	/** @name Implementation of IProviderFolliage. */
 	///@{
-	virtual TArray<FContourData> GetFolliage_Implementation() override;
+	virtual TArray<FMultipolygonData> GetFolliage_Implementation() override;
 	///@}
 
 private:

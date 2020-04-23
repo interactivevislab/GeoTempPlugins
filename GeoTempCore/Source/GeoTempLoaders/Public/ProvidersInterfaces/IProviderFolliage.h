@@ -30,5 +30,5 @@ public:
 
 	/** Provide folliage data. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	TArray<FContourData> GetFolliage();
+	TArray<FMultipolygonData> GetFolliage();
 };

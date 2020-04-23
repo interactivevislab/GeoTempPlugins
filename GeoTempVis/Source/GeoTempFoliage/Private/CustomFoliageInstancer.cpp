@@ -371,7 +371,7 @@ void UCustomFoliageInstancer::GetDatesNearCurrent(FDateTime inCurrentTime)
 }
 
 
-void UCustomFoliageInstancer::ParseDates(TArray<FContourData>& inContours)
+void UCustomFoliageInstancer::ParseDates(TArray<FMultipolygonData>& inContours)
 {
 	TSet<int> maskDates = TSet<int>();
 
@@ -383,7 +383,7 @@ void UCustomFoliageInstancer::ParseDates(TArray<FContourData>& inContours)
 }
 
 
-void UCustomFoliageInstancer::ParseTimeTags(const FContourData& inContour, TSet<int>& outDates)
+void UCustomFoliageInstancer::ParseTimeTags(const FMultipolygonData& inContour, TSet<int>& outDates)
 {
 	int date	= inContour.Tags.Find("AppearStart")	? FCString::Atoi(**inContour.Tags.Find("AppearStart")		):0;
 	outDates.Add(date);

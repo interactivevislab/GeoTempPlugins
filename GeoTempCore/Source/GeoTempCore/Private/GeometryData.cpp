@@ -1,21 +1,21 @@
 #include "GeometryData.h"
 
 
-void FContourData::Append(const FContourData& inOther)
+void FMultipolygonData::Append(const FMultipolygonData& inOther)
 {
 	Outer.Append(inOther.Outer);
 	Holes.Append(inOther.Holes);
 }
 
 
-FVector FContourData::BinaryParsePoint(uint8* inArray, int& outOffset, ProjectionType inProjection,
+FVector FMultipolygonData::BinaryParsePoint(uint8* inArray, int& outOffset,
 	float inHeight)
 {
-	return BinaryParsePoint(inArray, outOffset, FGeoCoords(inProjection, ZeroLon, ZeroLat), inHeight);
+	return BinaryParsePoint(inArray, outOffset, Origin, inHeight);
 }
 
 
-FVector FContourData::BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight)
+FVector FMultipolygonData::BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight)
 {
 	double* arr = reinterpret_cast<double*>(inArray + outOffset * sizeof(uint8));
 	double lon = arr[0];
@@ -27,14 +27,14 @@ FVector FContourData::BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoord
 }
 
 
-TArray<FVector> FContourData::BinaryParseCurve(uint8* inArray, int& outOffset, ProjectionType inProjection,
+TArray<FVector> FMultipolygonData::BinaryParseCurve(uint8* inArray, int& outOffset,
 	bool skipBOM, float inHeight)
 {
-	return BinaryParseCurve(inArray, outOffset, FGeoCoords(inProjection, ZeroLon, ZeroLat), skipBOM, inHeight);
+	return BinaryParseCurve(inArray, outOffset, Origin, skipBOM, inHeight);
 }
 
 
-TArray<FVector> FContourData::BinaryParseCurve(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
+TArray<FVector> FMultipolygonData::BinaryParseCurve(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 	bool skipBOM, float inHeight)
 {
 	if (skipBOM) {
@@ -54,14 +54,14 @@ TArray<FVector> FContourData::BinaryParseCurve(uint8* inArray, int& outOffset, F
 }
 
 
-FContourData FContourData::BinaryParsePolygon(uint8* inArray, int& outOffset,
-	ProjectionType inProjection, bool skipBOM, float inHeight)
+FMultipolygonData FMultipolygonData::BinaryParsePolygon(uint8* inArray, int& outOffset,
+	bool skipBOM, float inHeight)
 {
-	return BinaryParsePolygon(inArray, outOffset, FGeoCoords(inProjection, ZeroLon, ZeroLat), skipBOM, inHeight);
+	return BinaryParsePolygon(inArray, outOffset, Origin, skipBOM, inHeight);
 }
 
 
-FContourData FContourData::BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
+FMultipolygonData FMultipolygonData::BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 	bool skipBOM, float inHeight)
 {
 	if (skipBOM) {
@@ -71,9 +71,8 @@ FContourData FContourData::BinaryParsePolygon(uint8* inArray, int& outOffset, FG
 	uint32 count = *(reinterpret_cast<uint32*>(inArray + outOffset * sizeof(uint8)));
 	outOffset += 4;
 
-	FContourData poly;
-	poly.ZeroLat = inGeoCoords.ZeroLat;
-	poly.ZeroLon = inGeoCoords.ZeroLon;
+	FMultipolygonData poly;
+	poly.Origin = inGeoCoords;	
 
 	for (uint32 i = 0; i < count; i++)
 	{

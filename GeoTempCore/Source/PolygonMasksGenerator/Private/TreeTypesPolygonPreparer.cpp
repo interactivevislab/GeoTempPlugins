@@ -1,7 +1,7 @@
 #include "TreeTypesPolygonPreparer.h"
 
 
-void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FContourData> inPolygonData,
+void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FMultipolygonData> inPolygonData,
 	TMap<FString, FString> inTags)
 {
 	if (inPolygonData.Num() == 0)
@@ -98,7 +98,7 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<
 			minY = FMath::Min(minY, points[i].Y);
 			maxY = FMath::Max(maxY, points[i].Y);
 
-			FMyTextureVertex vert;
+			FMaskPolygonVertex vert;
 
 			vert.Position = points[i] + (isExclude ? FVector::UpVector * 1 : FVector::ZeroVector);
 
@@ -119,14 +119,7 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<
 		{
 			inTarget->Triangles.Add(triangles[i] + zeroInd);
 		}
-
-		inTarget->Years.AddUnique(startAppearYear);
-		inTarget->Years.AddUnique(endAppearYear);
-		inTarget->Years.AddUnique(startDemolishYear);
-		inTarget->Years.AddUnique(endDemolishYear);
 	}
-
-	inTarget->Years.Sort();
 
 	auto dX = maxX - minX;
 	auto dY = maxY - minY;
@@ -140,6 +133,5 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<
 	}
 
 	inTarget->Rect = FVector4(minX, maxX, minY, maxY);
-	inTarget->UpdateRect();
-	inTarget->Dirty = true;
+	inTarget->IsDirty = true;
 }
