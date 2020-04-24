@@ -141,6 +141,9 @@ void UTilesController::CreateMesh()
 void UTilesController::ClearMesh()
 {
 	ClearAllMeshSections();
+	freeIndices.Empty();
+	SplitTiles.Empty();
+	ReservedIndecies.Empty();
 	TileIndecies.Empty();
 }
 
@@ -216,7 +219,7 @@ void UTilesController::CreateTileMesh(UTileData* tile)
 	float y0 = GetMercatorYFromDegrees(CenterLat) * (1 << z);
 	float size = EarthOneDegreeLengthOnEquator / (1 << z) * 360 * FMath::Cos(CenterLat * PI / 180);
 
-	if (!ElevationChannel.IsEmpty())
+	if (ElevationChannel.IsEmpty())
 	{
 		FVector delta((x - x0) * size, (y - y0) * size, 0);
 		if (TileMeshResolution < 1) TileMeshResolution = 1;
@@ -267,7 +270,7 @@ void UTilesController::CreateTileMesh(UTileData* tile)
 				}
 			}		
 		}
-		GeometryGenerator->GenerateVertices(tile, ElevationChannel, TileMeshResolution, vertices);
+		GeometryGenerator->GenerateVertices(tile, ElevationChannel, TileMeshResolution, vertices, normals);
 	}
 	
 	CreateMeshSection(sectionIndex, vertices, triangles, normals, uvs, TArray<FColor>(), TArray<FRuntimeMeshTangent>(), false);
@@ -276,17 +279,21 @@ void UTilesController::CreateTileMesh(UTileData* tile)
 }
 
 
-int UTilesController::BeginCreateTileMesh(int x, int y, int z)
+int UTilesController::BeginCreateTileMesh(int inX, int inY, int inZ)
 {
-	auto meta = FTileCoordinates{ x, y, z };
+	auto meta = FTileCoordinates{ inX, inY, inZ };
 	return BeginCreateTileMesh(meta);
 }
 
-int UTilesController::BeginCreateTileMesh(FTileCoordinates meta)
+int UTilesController::BeginCreateTileMesh(FTileCoordinates inMeta, bool inInitNeighbours)
 {	
-	if (TileIndecies.Contains(meta))
+	if (TileIndecies.Contains(inMeta))
 	{
-		return TileIndecies[meta];
+		return TileIndecies[inMeta];
+	}
+	else if (ReservedIndecies.Contains(inMeta))
+	{
+		return ReservedIndecies[inMeta];
 	}
 	int sectionIndex = -1;
 	if (freeIndices.Num() > 0)
@@ -296,15 +303,30 @@ int UTilesController::BeginCreateTileMesh(FTileCoordinates meta)
 	else
 	{		
 		sectionIndex = GetNumSections() + ReservedIndecies.Num();
-	}	
-	ReservedIndecies.Add(meta, sectionIndex);
-	int x = meta.X;
-	int y = meta.Y;
-	int z = meta.Z;
-	auto tile = TileLoader->GetTileMaterial(x, y, z, TileMaterial, this->GetOwner());
-	tile->OnTileLoad.AddDynamic(this, &UTilesController::CreateTileMesh);
-	TileLoader->SetTileActive(meta, true);		
-	Tiles.Add(meta, tile);	
+	}
+	UTileData* tile;
+	if (ReservedIndecies.Contains(inMeta))
+	{		
+		tile = Tiles[inMeta];		
+		tile->Container = TileLoader;
+	} else
+	{
+		ReservedIndecies.Add(inMeta, sectionIndex);
+		int x = inMeta.X;
+		int y = inMeta.Y;
+		int z = inMeta.Z;
+		tile = TileLoader->GetTileMaterial(x, y, z, TileMaterial, this->GetOwner());
+	}
+	if (inInitNeighbours)
+	{
+		BeginCreateTileMesh(FTileCoordinates{inMeta.X + 1, inMeta.Y    , inMeta.Z}, false);
+		BeginCreateTileMesh(FTileCoordinates{inMeta.X    , inMeta.Y + 1, inMeta.Z}, false);
+		BeginCreateTileMesh(FTileCoordinates{inMeta.X + 1, inMeta.Y + 1, inMeta.Z}, false);
+	}
+	tile->OnTileLoadWithNeighbors.AddDynamic(this, &UTilesController::CreateTileMesh);
+	tile->CheckLoaded();
+	TileLoader->SetTileActive(inMeta, true);		
+	Tiles.Add(inMeta, tile);	
 	return sectionIndex;
 }
 

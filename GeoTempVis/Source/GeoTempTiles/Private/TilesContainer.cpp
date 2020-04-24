@@ -1,6 +1,7 @@
 #include "TilesContainer.h"
-
 #include "Engine/Engine.h"
+#include "CoreMinimal.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 UTileData* UTileTextureContainer::GetTileMaterial(int x, int y, int z, UMaterialInterface* mat, AActor* owner)
 {
@@ -11,41 +12,36 @@ UTileData* UTileTextureContainer::GetTileMaterial(int x, int y, int z, UMaterial
 UTileData* UTileTextureContainer::GetTileMaterial(FTileCoordinates meta, UMaterialInterface* mat, AActor* owner)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Total cached textures: %i"), CachedTiles.Num());
-
-	if (CachedTiles.Num() > 512)
-	{
-		TArray<FTileCoordinates> pendingDelete;		
-		for (auto cached : CachedTiles)
-		{
-			//if (!cached.Value)
-			//{
-			//	//all gone wrong. Probably we somehow lost all cache on engine reload or something like that
-			//	CachedTiles.Empty();
-			//	break;
-			//}
-			if (!cached.Value || !cached.Value->IsActive && (cached.Value->lastAcessTime - FDateTime::Now()).GetTotalSeconds() > 60)
-			{
-				pendingDelete.Add(cached.Key);
-			}
-		}
-		for (auto tile : pendingDelete)
-		{
-			auto t = CachedTiles[tile];
-			if (t) {
-				t->IsLoaded.Empty();
-			}
-			CachedTiles.Remove(tile);			 
-		}
-	}
 	auto cached = CachedTiles.Find(meta);
 	if (!cached || !*cached)
 	{
+		if (CachedTiles.Num() > 512)
+		{
+			TArray<FTileCoordinates> pendingDelete;		
+			for (auto cachedTile : CachedTiles)
+			{
+				if (!cachedTile.Value || !cachedTile.Value->IsActive && (cachedTile.Value->lastAcessTime - FDateTime::Now()).GetTotalSeconds() > 60)
+				{
+					pendingDelete.Add(cachedTile.Key);
+				}
+			}
+			for (auto tile : pendingDelete)
+			{
+				auto t = CachedTiles[tile];
+				if (t) {
+					t->IsLoaded.Empty();
+				}
+				CachedTiles.Remove(tile);			 
+			}
+		}
+		
 		UMaterialInstanceDynamic* matInstance = UMaterialInstanceDynamic::Create(mat, owner);
 		
 		auto TileInfo = NewObject<UTileData>();
 		TileInfo->Meta = meta;
 		TileInfo->Material = matInstance;
 		TileInfo->lastAcessTime = FDateTime::Now();
+		TileInfo->Container = this;
 
 		
 		CachedTiles.Add(meta, TileInfo);

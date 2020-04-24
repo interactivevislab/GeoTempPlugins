@@ -11,7 +11,7 @@ class UTileTextureContainer : public UObject
 {
 	GENERATED_BODY()
 	
-private: 
+protected: 
 
 
 	/** Map of currently loaded and cached tiles */
@@ -22,7 +22,7 @@ private:
 	
 public:
 	friend class UTextureDownloader;
-	
+	friend class UTileData;
 	
 
 	UFUNCTION(BlueprintCallable, Category = "Default")

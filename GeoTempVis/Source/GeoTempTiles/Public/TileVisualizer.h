@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "TextureResource.h"
 #include "ProceduralMeshComponent.h"
-#include "Blueprint/AsyncTaskDownloadImage.h"
 #include "GameFramework/PlayerController.h"
 #include "RuntimeMeshComponent.h"
 #include "Tickable.h"
@@ -111,7 +110,8 @@ private:
 	UPROPERTY(NoClear)
 	TMap<FTileCoordinates, int> TileIndecies;
 
-		UPROPERTY(NoClear)
+	/** indices of reserved, but not loaded, tiles */
+	UPROPERTY(NoClear)
 	TMap<FTileCoordinates, int> ReservedIndecies;
 
 	/** Tiles which are not currently present, but preserved in memory a them are parents of other tiles */
@@ -157,10 +157,10 @@ private:
 	
 	
 	/** create and mesh section for a tile */
-	int BeginCreateTileMesh(int x, int y, int z);
+	int BeginCreateTileMesh(int inX, int inY, int inZ);
 	
 	/** create and mesh section for a tile */
-	int BeginCreateTileMesh(FTileCoordinates meta);
+	int BeginCreateTileMesh(FTileCoordinates inMeta, bool inInitNeighbours = true);
 
 	/** create mesh section of a tile */	
 	void ClearTileMesh(FTileCoordinates meta);

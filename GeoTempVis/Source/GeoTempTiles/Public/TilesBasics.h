@@ -126,17 +126,40 @@ public:
 	FOnTileCompleteDownloadTexture OnTextureLoad;
 
 	UPROPERTY(BlueprintAssignable)
+	FOnTileCompleteDownloadTexture OnTextureLoadWithNeighbours;
+
+	UPROPERTY(BlueprintAssignable)
 	FOnTileCompleteDownloadAll OnTileLoad;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnTileCompleteDownloadAll OnTileLoadWithNeighbors;
+
+	UPROPERTY()
+	UTileTextureContainer* Container;
+	
+	UPROPERTY()
+	TMap<FString, bool> IsRightLoaded;
+	
+	UPROPERTY()
+	TMap<FString, bool> IsBottomLoaded;	
+	
+	UPROPERTY()
+	TMap<FString, bool> IsBottomRightLoaded;
 
 	UFUNCTION()
-	void CheckLoaded()
-	{
-		bool allLoaded = true;
-		for (auto& kv : IsLoaded)
-		{
-			allLoaded &= kv.Value;
-			if (kv.Value) OnTextureLoad.Broadcast(this, kv.Key);
-		}
-		if (allLoaded) OnTileLoad.Broadcast(this);
-	}
+	void CheckLoaded();
+
+	UFUNCTION()
+	void CheckNeighborLoaded();
+
+	UTileData* GetRightNeighbor();
+	UTileData* GetLeftNeighbor();
+	UTileData* GetTopNeighbor();
+	UTileData* GetBottomNeighbor();
+
+	UTileData* GetTopLeftNeighbor();
+	UTileData* GetBottomRightNeighbor();
+
+	UTileData* GetBottomLeftNeighbor();
+	UTileData* GetTopRightNeighbor();
 };

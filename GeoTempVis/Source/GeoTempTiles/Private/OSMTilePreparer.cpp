@@ -7,9 +7,9 @@ void UUrlSourceTilePreparer::RequestTile_Implementation(UTileData* tileInfo, UMa
 	UTextureDownloader* loader = NewObject<UTextureDownloader>();
 	loader->TileContainer = owner;
 	loader->TilePreparer = this;
-	loader->StartDownloadingTile(tileInfo->Meta, url);
 	loader->Material = mat;
 	loader->Channel = channel;
+	loader->StartDownloadingTile(tileInfo->Meta, url);	
 	tileInfo->IsLoaded.Add(channel, false);
 	loadingImages.Add(tileInfo->Meta, loader);
 	tileInfo->CheckLoaded();
