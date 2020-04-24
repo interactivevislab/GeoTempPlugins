@@ -57,7 +57,7 @@ public:
 
 	/** Loaded and processed foliage data. */
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
-	TArray<FContourData> LoadedFoliageContours;
+	TArray<FMultipolygonData> LoadedFoliageContours;
 
 	/** Delegate type for reporting completion of data loading. */
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataLoadedDelegate, bool, isSuccess);

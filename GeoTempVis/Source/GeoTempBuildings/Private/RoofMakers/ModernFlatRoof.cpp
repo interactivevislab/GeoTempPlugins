@@ -6,11 +6,9 @@
 #define FOUR_TIMES(something) something; something; something; something;
 
 
-FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, int inFirstSectionIndex,
-                                                       UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial)
+FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial)
 {
 	FBuildingMeshData meshData;
-	meshData.LastFreeIndex = inFirstSectionIndex;
 
 	TArray<FVector>			vertices;
 	TArray<int>				triangles;
@@ -136,8 +134,7 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 		}
 	}
 
-	meshData.Segments.Add(FMeshSegmentData{
-		meshData.LastFreeIndex,
+	meshData.Sections.Add(FMeshSectionData{
 		vertices,
 		triangles,
 		normals,
@@ -148,8 +145,6 @@ FBuildingMeshData UModernFlatRoofMaker::GenerateRoof_Implementation(const FBuild
 		vertexColors,
 		inWallMaterial
 	});
-
-	meshData.LastFreeIndex++;
 
 	return meshData;
 }

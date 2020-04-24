@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 
 #include "RoadsData.h"
+#include "GeometryData.h"
 
 #include "RuntimeMeshComponent.h"
 
@@ -27,6 +28,9 @@ class GEOTEMPROADS_API	URoadBuilder : public UActorComponent
 	GENERATED_BODY()
 
 public:
+
+	/** Number of points used to create round road edges. */
+	static const int capDensity = 8;
 
 	/** Material that be used in creating road network actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -59,6 +63,22 @@ public:
 	/** Destroy spawned RoadNetworkActor. */
 	UFUNCTION(BlueprintCallable)
 	void RemoveRoadNetworkActor();
+
+	/** Calculate perpendicular vector represented with start and end points. */
+	UFUNCTION(BlueprintCallable)
+	static FVector CalculatePerpendicularToLine(FVector inStartPoint, FVector inEndPoint);
+
+	/** Create rectangle from a line represented with specified thickness. */
+	UFUNCTION(BlueprintCallable)
+	static TArray<FVector> ConvertLineToRect(FVector inStartPoint, FVector inEndPoint, FVector inPerpendicularToLine);
+
+	/** Calculate direction vectors for road segment round edges. Used in UVs and calculating points for edges cups. */
+	UFUNCTION(BlueprintCallable)
+	static TArray<FVector2D> GetRoadCupsPointsDirections();
+
+	/** Calculate points for edges cups. */
+	UFUNCTION(BlueprintCallable)
+	static TArray<FVector> GetCupsPointsOffsets(TArray<FVector2D> inPointsDirections, FVector inPerpendicularToLine, bool inIsReversedCup);
 
 private:
 

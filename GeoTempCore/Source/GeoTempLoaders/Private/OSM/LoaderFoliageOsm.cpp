@@ -9,9 +9,9 @@ void ULoaderFoliageOsm::SetOsmReader_Implementation(UOsmReader* inOsmReader)
 }
 
 
-TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
+TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 {
-	TArray<FContourData> polygons;
+	TArray<FMultipolygonData> polygons;
 
 	TArray<FContour> UnclosedOuterContours;
 	TArray<FContour> UnclosedInnerContours;
@@ -28,7 +28,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 		auto buildIter = way->Tags.Find("building");
 		auto partIter = way->Tags.Find("building:part");
 
-		FContourData polygon;
+		FMultipolygonData polygon;
 		//if this is building or part
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
 			||	FoliageIterLanduse && FoliageIterLanduse->Equals("forest")
@@ -75,8 +75,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				}
 			}
 
-			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
-			polygon.ZeroLon = osmReader->GeoCoords.ZeroLon;
+			polygon.Origin = osmReader->GeoCoords;
 
 			polygons.Add(polygon);
 		}
@@ -90,7 +89,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 			for (int i = 0; i < way->Nodes.Num() - 1; i++)
 			{
-				FContourData roadPolygon;
+				FMultipolygonData roadPolygon;
 				auto startPoint = way->Nodes[i]->Point;
 				auto endPoint = way->Nodes[i + 1]->Point;
 
@@ -111,8 +110,6 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 				const int capDensity = 8;
 				auto yDelta = FVector::CrossProduct(pointDelta, FVector::UpVector);
-
-				FVector radiusDeltas[capDensity + 1];
 
 				for (int j = 1; j < capDensity; j++)
 				{
@@ -168,7 +165,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			||	partIter
 			)
 		{
-			FContourData polygon;
+			FMultipolygonData polygon;
 
 			UnclosedOuterContours.Empty();
 			UnclosedInnerContours.Empty();
@@ -188,29 +185,19 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 					contour.Points.Add(node->Point);
 				}
 
-				if (element.Value == "outer")
+				bool isOuter = element.Value == "outer";
+				auto& conts = isOuter ? polygon.Outer : polygon.Holes;
+				auto& unclosedConts = isOuter ? UnclosedOuterContours : UnclosedInnerContours;
+
+				if (contour.IsClosed())
 				{
-					if (contour.IsClosed())
-					{
-						contour.FixClockwise();
-						polygon.Outer.Add(contour);
-					}
-					else
-					{
-						UnclosedOuterContours.Add(contour);
-					}
+					contour.FixClockwise(isOuter);
+					conts.Add(contour);
 				}
-				else if (element.Value == "inner")
+				else
 				{
-					if (contour.IsClosed())
-					{
-						contour.FixClockwise(true);
-						polygon.Holes.Add(contour);
-					}
-					else
-					{
-						UnclosedInnerContours.Add(contour);
-					}
+
+					unclosedConts.Add(contour);
 				}
 			}
 
@@ -218,8 +205,7 @@ TArray<FContourData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			polygon.Holes.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours));
 
 			polygon.Tags = relation->Tags;
-			polygon.ZeroLat = osmReader->GeoCoords.ZeroLat;
-			polygon.ZeroLon = osmReader->GeoCoords.ZeroLon;
+			polygon.Origin = osmReader->GeoCoords;
 
 			if (partIter)
 			{

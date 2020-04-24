@@ -21,12 +21,10 @@
 UENUM(BlueprintType)		
 enum class ELayersOption : uint8
 {
-	MonoLayered		UMETA(DisplayName = "MonoLayered"), /**
-														* < Place meshes from multiple FoliageMeshes as one layer. 
+	MonoLayered		UMETA(DisplayName = "MonoLayered"), /** < Place meshes from multiple FoliageMeshes as one layer. 
 														* Results in using one FoliageMesh per cell. 
 														*/  
-	PolyLayered		UMETA(DisplayName = "PolyLayered"), /**
-														* < Place meshes from multiple FoliageMeshes as multiple layers. 
+	PolyLayered		UMETA(DisplayName = "PolyLayered"), /** < Place meshes from multiple FoliageMeshes as multiple layers. 
 														* Results in using all FoliageMeshes per cell. 
 														*/ 
 };
@@ -168,7 +166,7 @@ public:
 	void FillFoliageWithMask_BP(FVector4 inComponentRect);
 
 	UFUNCTION(BlueprintCallable)
-	void FillFoliageWithPolygons_BP(TArray<FContourData> inPolygons);
+	void FillFoliageWithPolygons_BP(TArray<FMultipolygonData> inPolygons);
 
 	UFUNCTION()
 	void PrepareInstancers(
@@ -254,7 +252,7 @@ public:
 	* @param inContours		Contours with dates to parse.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseDates(TArray<FContourData>& inContours);
+	void ParseDates(TArray<FMultipolygonData>& inContours);
 
 	/**
 	* \fn ParseTimeTags
@@ -264,7 +262,7 @@ public:
 	* @param outDates		A set of unique dates accosiated with polygons changes events.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseTimeTags(const FContourData& inContour, TSet<int>& outDates);
+	void ParseTimeTags(const FMultipolygonData& inContour, TSet<int>& outDates);
 
 	/**
 	* \fn SortDatesByAscend
