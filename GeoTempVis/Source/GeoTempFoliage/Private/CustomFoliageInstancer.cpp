@@ -79,14 +79,10 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 		ClearFoliage_BP();
 	}
 
-	//if (!foliageActor)
-	//{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.Owner = GetOwner();
-		SpawnInfo.Name = "FoliageActor";
-		foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
-		foliageActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
-	//}
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = GetOwner();
+	SpawnInfo.Name = "FoliageActor";
+	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 
 	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 	{
@@ -302,20 +298,6 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 
 void UCustomFoliageInstancer::ClearFoliage_BP()
 {
-	//AActor* owner = this->GetOwner();
-	//if (!foliageActor)
-	//{
-	//	return;
-	//}
-	//for (auto& FoliageInstance : FoliageInstancers)
-	//{
-	//	FoliageInstance.Value->ClearInstances();
-	//	FoliageInstance.Value->UnregisterComponent();
-	//	foliageActor->RemoveInstanceComponent(FoliageInstance.Value);
-	//	FoliageInstance.Value->DestroyComponent();
-	//}
-	//FoliageInstancers.Empty();
-
 	if (foliageActor)
 	{
 		foliageActor->Destroy();
