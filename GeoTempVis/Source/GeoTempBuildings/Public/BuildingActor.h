@@ -21,7 +21,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Default")
 	TArray<FContour> Outer;
 
-	/** List of inner contours (aka holes) of building footprint */
+	/** List of inner contours (a.k.a. holes) of building footprint */
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category="Default")
 	TArray<FContour> Inner;
 
@@ -44,6 +44,7 @@ public:
 	/**
 	 * \var Parts
 	 * \brief List of all parts this building consists of
+	 * 
 	 * @see UBuildingPartComponent	 
 	 */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Default")
@@ -59,6 +60,7 @@ public:
 
 	/** \fn Initialize
 	 * \brief Initialize with building data
+	 * 
 	 * @param inBuilding data to initialize with
 	 * @param inInitPartsImmideately should this function also call mesh initializing for created parts
 	 * @see FBuilding

@@ -10,8 +10,9 @@ class FPolygonMasksGeneratorModule : public IModuleInterface
 {
 public:
 
-	/** IModuleInterface implementation */
-	virtual void StartupModule() override;
-	/** IModuleInterface implementation */
+	/** @name Implementation of IModuleInterface*/
+	///@{
+	virtual void StartupModule() override;	
 	virtual void ShutdownModule() override;
+	///@}
 };
