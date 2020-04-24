@@ -9,6 +9,7 @@
 #include "Engine/StaticMesh.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "FoliageInfo.h"
+#include "FoliageActor.h"
 #include "GeometryData.h"
 #include "CustomFoliageInstancer.generated.h"
 
@@ -63,6 +64,10 @@ private:
 
 	/** Array of dates accociated with foliage areas to render to masks. */
 	TArray<int> polygonDates;
+
+	/** An actor to contain foliage instancer component. */
+	UPROPERTY()
+	AFoliageActor* foliageActor = nullptr;
 
 protected:
 	virtual void BeginPlay() override;

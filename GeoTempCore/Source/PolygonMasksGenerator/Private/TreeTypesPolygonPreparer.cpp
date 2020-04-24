@@ -13,6 +13,10 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<
 	FString endAppearTag		= *inTags.Find("AppearEnd");
 	FString startDemolishTag	= *inTags.Find("DemolishStart");
 	FString endDemolishTag		= *inTags.Find("DemolishEnd");
+	FString excludeTag			= *inTags.Find("Exclude");
+	FString excludeValueTag		= *inTags.Find("ExcludeValue");
+	FString altTag				= *inTags.Find("Alt");
+	FString altValueTag			= *inTags.Find("AltValue");
 	FString categoryTag			= *inTags.Find("Category");
 	FString mask1Tag			= *inTags.Find("CategoryForest");
 	FString mask2Tag			= *inTags.Find("CategoryPark");
@@ -20,7 +24,7 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<
 	//FString mask4Tag			= *inTags.Find("CategoryProm");
 
 	float DensityForest = 1.0f;
-	float DensityPark = 0.5f;
+	float DensityPark = 0.3f;
 	float DensityYard = 0.45f;
 
 	float minX, maxX, minY, maxY;
@@ -39,28 +43,36 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<
 
 		FColor color = FColor::Black;
 
-		if (CatValue->Equals(mask1Tag))
+		if (CatValue)
 		{
-			color = FColor(255 * DensityForest, 0, 0, 0);
-		}
-		else if (CatValue->Equals(mask2Tag))
-		{
-			color = FColor(255 * DensityPark, 0, 0, 0);
-		}
-		else if (CatValue->Equals(mask3Tag))
-		{
-			color = FColor(255 * DensityYard, 0, 0, 0);
-		}
-		else
-		{
-			color = FColor(128, 128, 128, 0);
+			if (CatValue->Equals(mask1Tag))
+			{
+				color = FColor(255 * DensityForest, 0, 0, 0);
+			}
+			else if (CatValue->Equals(mask2Tag))
+			{
+				color = FColor(255 * DensityPark, 0, 0, 0);
+			}
+			else if (CatValue->Equals(mask3Tag))
+			{
+				color = FColor(255 * DensityYard, 0, 0, 0);
+			}
+			else
+			{
+				color = FColor(128, 128, 128, 0);
+			}
 		}
 		//else if (CatValue->Equals(mask4Tag)) Color = FColor(0, 0, 0, 255);
 
+		auto excludeValue = polygon.Tags.Find(excludeTag);
+		auto altValue = polygon.Tags.Find(altTag);
 		auto startAppearValue	= polygon.Tags.Find(startAppearTag);
 		auto endAppearValue		= polygon.Tags.Find(endAppearTag);
 		auto startDemolishValue	= polygon.Tags.Find(startDemolishTag);
 		auto endDemolishValue	= polygon.Tags.Find(endDemolishTag);
+
+		bool isExclude = excludeValue && excludeValueTag.Equals(*excludeValue);
+		bool isAlt = altValue && altValueTag.Equals(*altValue);
 
 		const int LAST_YEAR = 3000;
 		int startAppearYear		= startAppearValue		? FCString::Atoi(**startAppearValue)	: 0;
@@ -87,8 +99,18 @@ void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<
 			maxY = FMath::Max(maxY, points[i].Y);
 
 			FMaskPolygonVertex vert;
-			vert.Position = points[i];
-			vert.Color = color;
+
+			vert.Position = points[i] + (isExclude ? FVector::UpVector * 1 : FVector::ZeroVector);
+
+			if (isExclude)
+			{
+				vert.Color = isAlt ? FColor(0, 0, 0, 255) : FColor(0, 255, 0, 0);
+			}
+			else
+			{
+				vert.Color = isAlt ? FColor(0, 0, 255, 0) : color;
+			}
+
 			vert.YearData = FVector4(startAppearYear, endAppearYear, startDemolishYear, endDemolishYear);
 			inTarget->Vertices.Add(vert);
 		}
