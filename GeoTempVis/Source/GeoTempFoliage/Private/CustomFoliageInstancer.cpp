@@ -74,9 +74,24 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 
 	UpdateBuffer();
 
+	if (foliageActor)
+	{
+		ClearFoliage_BP();
+	}
+
+	//if (!foliageActor)
+	//{
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.Owner = GetOwner();
+		SpawnInfo.Name = "FoliageActor";
+		foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+		foliageActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
+	//}
+
 	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 	{
 		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
+		meshInfo.MaterialInstances.Empty();
 
 		for (int x = 0; x < meshInfo.Mesh->StaticMaterials.Num(); ++x)
 		{
@@ -131,15 +146,6 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 		}
 		else 
 		{
-			if (!foliageActor)
-			{
-				FActorSpawnParameters SpawnInfo;
-				SpawnInfo.Owner = GetOwner();
-				SpawnInfo.Name = "FoliageActor";
-				foliageActor = GetWorld()->SpawnActor<AActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
-			}
-
-
 			auto instancerName	= FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
 			AActor* owner = this->GetOwner();
 
@@ -296,19 +302,39 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 
 void UCustomFoliageInstancer::ClearFoliage_BP()
 {
-	AActor* owner = this->GetOwner();
-	if (!foliageActor)
+	//AActor* owner = this->GetOwner();
+	//if (!foliageActor)
+	//{
+	//	return;
+	//}
+	//for (auto& FoliageInstance : FoliageInstancers)
+	//{
+	//	FoliageInstance.Value->ClearInstances();
+	//	FoliageInstance.Value->UnregisterComponent();
+	//	foliageActor->RemoveInstanceComponent(FoliageInstance.Value);
+	//	FoliageInstance.Value->DestroyComponent();
+	//}
+	//FoliageInstancers.Empty();
+
+	if (foliageActor)
 	{
-		return;
+		foliageActor->Destroy();
+		foliageActor = nullptr;
 	}
-	for (auto& FoliageInstance : FoliageInstancers)
+
+	TArray<AFoliageActor*> toDestroy;
+	for (auto child : GetOwner()->Children)
 	{
-		FoliageInstance.Value->ClearInstances();
-		FoliageInstance.Value->UnregisterComponent();
-		foliageActor->RemoveInstanceComponent(FoliageInstance.Value);
-		FoliageInstance.Value->DestroyComponent();
+		auto castChild = Cast<AFoliageActor>(child);
+		if (castChild)
+		{
+			toDestroy.Add(castChild);
+		}
 	}
-	FoliageInstancers.Empty();
+	for (auto child : toDestroy)
+	{
+		child->Destroy();
+	}
 }
 
 

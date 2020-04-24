@@ -9,6 +9,7 @@
 #include "Engine/StaticMesh.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "FoliageInfo.h"
+#include "FoliageActor.h"
 #include "GeometryData.h"
 #include "CustomFoliageInstancer.generated.h"
 
@@ -66,7 +67,7 @@ private:
 
 	/** An actor to contain foliage instancer component. */
 	UPROPERTY()
-	AActor* foliageActor = nullptr;
+	AFoliageActor* foliageActor = nullptr;
 
 protected:
 	virtual void BeginPlay() override;
