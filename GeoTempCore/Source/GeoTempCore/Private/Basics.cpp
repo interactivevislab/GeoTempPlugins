@@ -230,7 +230,7 @@ FGeoCoords::FGeoCoords() {};
 
 
 FGeoCoords::FGeoCoords(ProjectionType projection, float zeroLon, float zeroLat) : Projection(projection), 
-	ZeroLon(zeroLon), ZeroLat(zeroLat) {}
+	OriginLon(zeroLon), OriginLat(zeroLat) {}
 
 
 #pragma region UGeoHelpers
@@ -261,16 +261,16 @@ FVector UGeoHelpers::GetLocalCoordinates(double inX, double inY, double inZ, FGe
 
 		case ProjectionType::WGS84_PsevdoMerkator:
 		{
-			double ox = DegreesToRadians(inGeoCoords.ZeroLon) * EARTH_RADIUS;
-			double oy = log(tan(DegreesToRadians(inGeoCoords.ZeroLat) / 2 + PI / 4)) * EARTH_RADIUS;
+			double ox = DegreesToRadians(inGeoCoords.OriginLon) * EARTH_RADIUS;
+			double oy = log(tan(DegreesToRadians(inGeoCoords.OriginLat) / 2 + PI / 4)) * EARTH_RADIUS;
 			return (FVector(float((inX - ox) * SCALE_MULT), float((inY - oy) * SCALE_MULT), inZ * SCALE_MULT));
 		}
 
 		case ProjectionType::WGS84:
 		{
-			double ox = DegreesToRadians(inGeoCoords.ZeroLon) * EARTH_RADIUS;
-			double oy = log(tan(DegreesToRadians(inGeoCoords.ZeroLat) / 2 + PI / 4)) * EARTH_RADIUS;
-			double s = cos(DegreesToRadians(inGeoCoords.ZeroLat));
+			double ox = DegreesToRadians(inGeoCoords.OriginLon) * EARTH_RADIUS;
+			double oy = log(tan(DegreesToRadians(inGeoCoords.OriginLat) / 2 + PI / 4)) * EARTH_RADIUS;
+			double s = cos(DegreesToRadians(inGeoCoords.OriginLat));
 			double x1 = DegreesToRadians(inX) * EARTH_RADIUS;
 			double y1 = log(tan(DegreesToRadians(inY) / 2 + PI / 4)) * EARTH_RADIUS;
 
@@ -292,8 +292,8 @@ FVector2D UGeoHelpers::ConvertToLonLat(float inX, float inY, FGeoCoords inGeoCoo
 
 		case ProjectionType::WGS84_PsevdoMerkator:
 		{
-			double ox = DegreesToRadians(inGeoCoords.ZeroLon) * EARTH_RADIUS;
-			double oy = log(tan(DegreesToRadians(inGeoCoords.ZeroLat) / 2 + PI / 4)) * EARTH_RADIUS;
+			double ox = DegreesToRadians(inGeoCoords.OriginLon) * EARTH_RADIUS;
+			double oy = log(tan(DegreesToRadians(inGeoCoords.OriginLat) / 2 + PI / 4)) * EARTH_RADIUS;
 
 			double posX = ox + inX / SCALE_MULT;
 			double posY = oy + inY / SCALE_MULT;
@@ -303,10 +303,10 @@ FVector2D UGeoHelpers::ConvertToLonLat(float inX, float inY, FGeoCoords inGeoCoo
 
 		case ProjectionType::WGS84:
 		{
-			double ox = DegreesToRadians(inGeoCoords.ZeroLon) * EARTH_RADIUS;
-			double oy = log(tan(DegreesToRadians(inGeoCoords.ZeroLat) / 2 + PI / 4)) * EARTH_RADIUS;
+			double ox = DegreesToRadians(inGeoCoords.OriginLon) * EARTH_RADIUS;
+			double oy = log(tan(DegreesToRadians(inGeoCoords.OriginLat) / 2 + PI / 4)) * EARTH_RADIUS;
 
-			double s = cos(DegreesToRadians(inGeoCoords.ZeroLat));
+			double s = cos(DegreesToRadians(inGeoCoords.OriginLat));
 			double posX1 = inX / SCALE_MULT / s + ox;
 			double posY1 = -inY / SCALE_MULT / s + oy;
 

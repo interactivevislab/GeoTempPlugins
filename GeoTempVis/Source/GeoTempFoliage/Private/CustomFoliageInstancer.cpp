@@ -61,7 +61,7 @@ void UCustomFoliageInstancer::InterpolateFoliageWithMaterial()
 }
 
 
-void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUpdateMaskBuffer)
+void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 {
 	Width = Height = inComponentRect.Y - inComponentRect.X;
 
@@ -74,9 +74,20 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 
 	UpdateBuffer();
 
-	for (FFoliageMeshInfo meshInfo : FoliageMeshes)
+	if (foliageActor)
+	{
+		ClearFoliage_BP();
+	}
+
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = GetOwner();
+	SpawnInfo.Name = "FoliageActor";
+	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+
+	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 	{
 		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
+		meshInfo.MaterialInstances.Empty();
 
 		for (int x = 0; x < meshInfo.Mesh->StaticMaterials.Num(); ++x)
 		{
@@ -134,8 +145,8 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 			auto instancerName	= FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
 			AActor* owner = this->GetOwner();
 
-			InstancedMesh	= NewObject<UHierarchicalInstancedStaticMeshComponent>(owner, instancerName);
-			owner			->AddInstanceComponent(InstancedMesh);
+			InstancedMesh	= NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
+			foliageActor	->AddInstanceComponent(InstancedMesh);
 			InstancedMesh	->RegisterComponent();
 
 			InstancedMesh->SetStaticMesh(meshInfo.Mesh);
@@ -166,7 +177,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 	{
 		case ELayersOption::PolyLayered: 
 		{
-			for (FFoliageMeshInfo meshInfo : FoliageMeshes)
+			for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 			{
 				TArray<FFoliageMeshInfo> infos;
 				TArray<UHierarchicalInstancedStaticMeshComponent*> instancers;
@@ -174,13 +185,13 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 				infos		.Add(meshInfo); 
 				instancers	.Add(*FoliageInstancers.Find(meshInfo.Mesh));
 
-				this->FillFoliageWithMeshes(infos, instancers, inUpdateMaskBuffer);
+				this->FillFoliageWithMeshes(infos, instancers);
 			}
 			break;
 		}
 		case ELayersOption::MonoLayered: 
 		{
-			this->FillFoliageWithMeshes(ArrayOfMeshInfos, ArrayOfInstancers, inUpdateMaskBuffer);
+			this->FillFoliageWithMeshes(ArrayOfMeshInfos, ArrayOfInstancers);
 			break;
 		}
 	}
@@ -189,8 +200,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect, bool inUp
 
 void UCustomFoliageInstancer::FillFoliageWithMeshes(
 	TArray<FFoliageMeshInfo>& inInfos, 
-	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers, 
-	bool inUpdateMaskBuffer)
+	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers)
 {
 	float cellX				= 0;
 	float cellY				= 0;
@@ -245,7 +255,11 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 				int px = X / Width	* (InitialTarget->GetSurfaceWidth()	-1);
 				int py = Y / Height	* (InitialTarget->GetSurfaceHeight()-1);
 
-				if (colorBuffer[(int)(py * InitialTarget->GetSurfaceWidth() + px)].R>0)
+				float spawnRandomValue	= rs.FRandRange(0.0f, 1.0f);
+				float presenceChance	= colorBuffer[(int)(py * InitialTarget->GetSurfaceWidth() + px)].R/255.0f;
+				bool presenceSuppressed	= colorBuffer[(int)(py * InitialTarget->GetSurfaceWidth() + px)].G > 0;
+
+				if	(!presenceSuppressed && presenceChance > 0 && spawnRandomValue <= presenceChance)
 				{
 					totalAdded++;
 
@@ -284,15 +298,25 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 
 void UCustomFoliageInstancer::ClearFoliage_BP()
 {
-	AActor* owner = this->GetOwner();
-	for (auto& FoliageInstance : FoliageInstancers)
+	if (foliageActor)
 	{
-		FoliageInstance.Value->ClearInstances();
-		FoliageInstance.Value->UnregisterComponent();
-		owner->RemoveInstanceComponent(FoliageInstance.Value);
-		FoliageInstance.Value->DestroyComponent();
+		foliageActor->Destroy();
+		foliageActor = nullptr;
 	}
-	FoliageInstancers.Empty();
+
+	TArray<AFoliageActor*> toDestroy;
+	for (auto child : GetOwner()->Children)
+	{
+		auto castChild = Cast<AFoliageActor>(child);
+		if (castChild)
+		{
+			toDestroy.Add(castChild);
+		}
+	}
+	for (auto child : toDestroy)
+	{
+		child->Destroy();
+	}
 }
 
 
@@ -355,7 +379,7 @@ void UCustomFoliageInstancer::GetDatesNearCurrent(FDateTime inCurrentTime)
 }
 
 
-void UCustomFoliageInstancer::ParseDates(TArray<FContourData>& inContours)
+void UCustomFoliageInstancer::ParseDates(TArray<FMultipolygonData>& inContours)
 {
 	TSet<int> maskDates = TSet<int>();
 
@@ -367,7 +391,7 @@ void UCustomFoliageInstancer::ParseDates(TArray<FContourData>& inContours)
 }
 
 
-void UCustomFoliageInstancer::ParseTimeTags(const FContourData& inContour, TSet<int>& outDates)
+void UCustomFoliageInstancer::ParseTimeTags(const FMultipolygonData& inContour, TSet<int>& outDates)
 {
 	int date	= inContour.Tags.Find("AppearStart")	? FCString::Atoi(**inContour.Tags.Find("AppearStart")		):0;
 	outDates.Add(date);
@@ -402,7 +426,9 @@ void UCustomFoliageInstancer::UpdateBuffer()
 
 	if (InitialTarget != NULL)
 	{
-		FTextureRenderTarget2DResource* textureResource = (FTextureRenderTarget2DResource*)InitialTarget->Resource;
-		textureResource->ReadPixels(colorBuffer);
+		auto textureResource = InitialTarget->GameThread_GetRenderTargetResource();
+		FReadSurfaceDataFlags flags;
+		flags.SetLinearToGamma(false);
+		textureResource->ReadPixels(colorBuffer,flags);
 	}
 }

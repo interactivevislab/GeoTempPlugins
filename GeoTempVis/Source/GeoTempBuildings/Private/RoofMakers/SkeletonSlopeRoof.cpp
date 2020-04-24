@@ -7,8 +7,7 @@
 
 
 
-FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, int inFirstSectionIndex, UMaterialInterface* inWallMaterial,
-	UMaterialInterface* inRoofMaterial)
+FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial)
 {
 	TArray<FVector> nodes;
 	TArray<int> triangles;
@@ -90,10 +89,8 @@ FBuildingMeshData USlopeRoofMaker::GenerateRoof_Implementation(const FBuildingPa
 
 	//Generating geometry
 	FBuildingMeshData meshData;
-	meshData.LastFreeIndex = inFirstSectionIndex;
 
-	meshData.Segments.Add(FMeshSegmentData{
-		meshData.LastFreeIndex,
+	meshData.Sections.Add(FMeshSectionData{
 		Vertices,
 		Triangles,
 		Normals,

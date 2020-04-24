@@ -8,16 +8,15 @@
 TMap<FString, TScriptInterface<IRoofMaker>> MeshHelpers::RoofMakers = TMap<FString, TScriptInterface<IRoofMaker>>();
 
 const float FLOOR_HEIGHT = 350;
-FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, const FBuildingPart& inBuildingPart,  int inFirstSectionIndex,
-                                                 UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, FString inFlags)
+FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, const FBuildingPart& inBuildingPart,
+                                                 UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, FString inTriangulationFlags)
 {
 	FBuildingMeshData meshData;
-	meshData.LastFreeIndex = inFirstSectionIndex;
 
 	TArray<FVector> nodes;
 	TArray<int> triangles;	
 
-	Triangulate(inBuildingPart.OuterConts, inBuildingPart.InnerConts, nodes, triangles, inFlags);
+	Triangulate(inBuildingPart.OuterConts, inBuildingPart.InnerConts, nodes, triangles, inTriangulationFlags);
 
 	TArray<FVector>			Vertices;
 	TArray<int>				Triangles;
@@ -93,8 +92,7 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, co
 		isInner = true;
 	}
 
-	meshData.Segments.Add(FMeshSegmentData {
-		meshData.LastFreeIndex,
+	meshData.Sections.Add(FMeshSectionData {
 		Vertices,
 		Triangles,
 		Normals,
@@ -105,8 +103,6 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, co
 		VertexColors,
 		inWallMaterial
 	});
-
-	meshData.LastFreeIndex++;
 
 	Vertices		.Empty();
 	Triangles		.Empty();
@@ -147,8 +143,7 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, co
 		Triangles.Add(z + ind);
 	}
 
-	meshData.Segments.Add(FMeshSegmentData{
-		meshData.LastFreeIndex,
+	meshData.Sections.Add(FMeshSectionData{
 		Vertices,
 		Triangles,
 		Normals,
@@ -159,18 +154,16 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, co
 		VertexColors,
 		inRoofMaterial
 	});
-
-	meshData.LastFreeIndex++;
-
-	if (RoofMakers.Contains(inBuilding.RoofType))
+	auto RoofType = inBuildingPart.RoofType.IsEmpty() ? inBuilding.RoofType : inBuildingPart.RoofType;
+	if (RoofMakers.Contains(RoofType))
 	{
-		auto val = RoofMakers.FindRef(inBuilding.RoofType);
-		val->GenerateRoof(inBuildingPart, meshData.LastFreeIndex, inWallMaterial, inRoofMaterial);
+		auto val = RoofMakers.FindRef(RoofType);
+		val->GenerateRoof(inBuildingPart, inWallMaterial, inRoofMaterial);
 	}
 	else if (RoofMakers.Contains("Default"))
 	{
 		auto val = RoofMakers.FindRef("Default");
-		val->GenerateRoof(inBuildingPart, meshData.LastFreeIndex, inWallMaterial, inRoofMaterial);	
+		val->GenerateRoof(inBuildingPart, inWallMaterial, inRoofMaterial);	
 	}
 	
 	return meshData;
@@ -178,12 +171,12 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, co
 
 
 
-void MeshHelpers::ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, FBuildingMeshData inMeshData)
-{
-	for (auto& segmentData : inMeshData.Segments) 
+void MeshHelpers::ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, FBuildingMeshData inMeshData, int inFirstSectionIndex)
+{	
+	for (auto& segmentData : inMeshData.Sections) 
 	{
 		inProcMesh->CreateMeshSection_LinearColor(
-			segmentData.SectionIndex, 
+			inFirstSectionIndex, 
 			segmentData.Vertices,
 			segmentData.Triangles,
 			segmentData.Normals,
@@ -195,14 +188,15 @@ void MeshHelpers::ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, 
 			TArray<FProcMeshTangent>(), 
 			true
 		);
-		inProcMesh->SetMaterial(segmentData.SectionIndex, segmentData.Material);
+		inProcMesh->SetMaterial(inFirstSectionIndex, segmentData.Material);
+		inFirstSectionIndex++;
 	}
 }
 
 
-void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, FBuildingMeshData inMeshData)
+void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, FBuildingMeshData inMeshData, int inFirstSectionIndex)
 {
-	for (auto& segmentData : inMeshData.Segments)
+	for (auto& segmentData : inMeshData.Sections)
 	{
 		TArray<FColor> vertexColors;
 		for (auto& linearColor : segmentData.VertexColors) 
@@ -211,7 +205,7 @@ void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, FBuil
 		}
 
 		runtimeMesh->CreateMeshSection(
-			segmentData.SectionIndex,
+			inFirstSectionIndex,
 			segmentData.Vertices,
 			segmentData.Triangles,
 			segmentData.Normals,
@@ -221,7 +215,8 @@ void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, FBuil
 			TArray<FRuntimeMeshTangent>(),
 			true
 		);
-		runtimeMesh->SetSectionMaterial(segmentData.SectionIndex, segmentData.Material);
+		runtimeMesh->SetSectionMaterial(inFirstSectionIndex, segmentData.Material);
+		inFirstSectionIndex++;
 	}
 }
 

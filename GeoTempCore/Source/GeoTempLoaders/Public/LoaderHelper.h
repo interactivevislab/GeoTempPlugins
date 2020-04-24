@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 
 #include "RoadsData.h"
+#include "GeometryData.h"
 
 #include "LoaderHelper.Generated.h"
 
@@ -23,6 +24,8 @@ public:
 
 	/** Creates a complete road network structure based on data from road segments. */
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
+
+	static TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours);
 
 #pragma region Tags
 

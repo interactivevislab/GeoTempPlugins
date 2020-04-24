@@ -35,24 +35,16 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 			startPoint.Z	= roadZ;
 			endPoint.Z		= roadZ - 1;
 
-			auto pointDelta = FVector::CrossProduct((startPoint - endPoint).GetSafeNormal(), FVector(0, 0, 1));
+			auto pointDelta = URoadBuilder::CalculatePerpendicularToLine(startPoint, endPoint);
 			auto curtainsDelta1 =	 pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
 			auto curtainsDelta2 =	-pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
 			
 			pointDelta *= (segment.Width * 50);
 			
-			auto point0 = startPoint	+ pointDelta;
-			auto point1 = startPoint	- pointDelta;
-			auto point2 = endPoint		+ pointDelta;
-			auto point3 = endPoint		- pointDelta;
+			auto roadRectangle = URoadBuilder::ConvertLineToRect(startPoint, endPoint, pointDelta);
 
 			auto indicesDelta = sectionData.Vertices.Num();
-			sectionData.Vertices.Append({
-				point0,
-				point1,
-				point2,
-				point3,
-			});
+			sectionData.Vertices.Append(roadRectangle);
 
 			sectionData.Indices.Append({
 				0 + indicesDelta,
@@ -65,15 +57,15 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 
 			indicesDelta = outCurtainsMeshData.Vertices.Num();
 			outCurtainsMeshData.Vertices.Append({
-				point0 + curtainsDelta1,
-				point0,
-				point2 + curtainsDelta1,
-				point2,
+				roadRectangle[0] + curtainsDelta1,
+				roadRectangle[0],
+				roadRectangle[2] + curtainsDelta1,
+				roadRectangle[2],
 
-				point1,
-				point1 + curtainsDelta2,
-				point3,
-				point3 + curtainsDelta2
+				roadRectangle[1],
+				roadRectangle[1] + curtainsDelta2,
+				roadRectangle[3],
+				roadRectangle[3] + curtainsDelta2
 			});
 
 			outCurtainsMeshData.Indices.Append({
@@ -109,7 +101,7 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 
 			sectionData.Uv0					.Append({ uv00, uv01, uv02, uv03 });			
 			sectionData.Uv1					.Append({ LIST_4_TIMES(FVector2D()) });
-			sectionData.Normals			.Append({ LIST_4_TIMES(FVector::UpVector) });
+			sectionData.Normals				.Append({ LIST_4_TIMES(FVector::UpVector) });
 			sectionData.VertexColors		.Append({ LIST_4_TIMES(FColor(1, 1, 1, 1)) });
 			sectionData.Tangents			.Append({ LIST_4_TIMES(FRuntimeMeshTangent()) });
 			
@@ -119,11 +111,10 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 			outCurtainsMeshData.VertexColors.Append({ LIST_8_TIMES(FColor(1, 1, 1, 1)) });			
 			outCurtainsMeshData.Tangents	.Append({ LIST_8_TIMES(FRuntimeMeshTangent()) });
 
-			for (auto point : { startPoint, endPoint })
+			for (auto point : { endPoint, startPoint })
 			{
 				bool isReversedCup = (point == endPoint);
-				const int capDensity = 8;
-				auto yDelta = FVector::CrossProduct(pointDelta, FVector::UpVector);
+
 				point -= FVector(0, 0, 2);
 				
 				indicesDelta				= sectionData.Vertices.Num();
@@ -136,24 +127,15 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 				sectionData.VertexColors.Add(FColor::White);
 				sectionData.Tangents	.Add(FRuntimeMeshTangent());
 
-				FVector radiusDeltas	[capDensity + 1];
-				FVector2D uvs			[capDensity + 1];
-				FVector2D uvs_curtains	[capDensity + 1];
+				
+				TArray<FVector2D>	uvs;		
+				TArray<FVector2D>	uvs_curtains = URoadBuilder::GetRoadCupsPointsDirections();
+				TArray<FVector>		radiusDeltas = URoadBuilder::GetCupsPointsOffsets(uvs_curtains, pointDelta, isReversedCup);
 
-				for (int j = 0; j <= capDensity; j++)
+				for (int j = 0; j <= URoadBuilder::capDensity; j++)
 				{
-					float angle = PI / capDensity * j;
+					uvs.Add(FVector2D(0, static_cast<float>(j) / URoadBuilder::capDensity * segment.Lanes));
 
-					float x = FMath::Cos(angle);
-					float y = FMath::Sin(angle);
-
-					radiusDeltas[j]	= (isReversedCup ? 1 : -1) * (pointDelta * x + yDelta * y);
-					uvs[j]			= FVector2D(0, static_cast<float>(j) / capDensity * segment.Lanes);
-					uvs_curtains[j]	= FVector2D(x, y);
-				}
-
-				for (int j = 0; j <= capDensity; j++)
-				{
 					auto radiusDelta	= radiusDeltas[j];
 					auto size			= radiusDelta.Size();
 					auto curtainsDelta	= radiusDelta / size * inCurtainsWidth - FVector(0, 0, inRoadHeight);
@@ -200,7 +182,6 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 			}
 		}
 	}
-
 	return sectionData;
 }
 
@@ -300,4 +281,49 @@ void URoadBuilder::RemoveRoadNetworkActor()
 	{
 		child->Destroy();
 	}
+}
+
+
+FVector URoadBuilder::CalculatePerpendicularToLine(FVector inStartPoint, FVector inEndPoint)
+{
+	return FVector::CrossProduct((inStartPoint - inEndPoint).GetSafeNormal(), FVector::UpVector);
+}
+
+
+TArray<FVector> URoadBuilder::ConvertLineToRect(FVector inStartPoint, FVector inEndPoint, FVector inPerpendicularToLine)
+{
+	return {
+		inStartPoint	+ inPerpendicularToLine,
+		inStartPoint	- inPerpendicularToLine,
+		inEndPoint		+ inPerpendicularToLine,
+		inEndPoint		- inPerpendicularToLine
+	};
+}
+
+
+TArray<FVector2D> URoadBuilder::GetRoadCupsPointsDirections()
+{
+	TArray<FVector2D> pointsDirections = {};
+	for (int j = 0; j <= URoadBuilder::capDensity; j++)
+	{
+		float angle = PI / URoadBuilder::capDensity * j;
+
+		float x = FMath::Cos(angle);
+		float y = FMath::Sin(angle);
+
+		pointsDirections.Add(FVector2D(x, y));
+	}
+	return pointsDirections;
+}
+
+
+TArray<FVector> URoadBuilder::GetCupsPointsOffsets(TArray<FVector2D> inPointsDirections, FVector inPerpendicularToLine, bool inIsReversedCup)
+{
+	TArray<FVector> radiusDeltas = {};
+	auto yDelta = FVector::CrossProduct(inPerpendicularToLine, FVector::UpVector);
+	for (auto& pointDirection: inPointsDirections)
+	{
+		radiusDeltas.Add((inIsReversedCup ? 1 : -1) * (inPerpendicularToLine * pointDirection.X + yDelta * pointDirection.Y));
+	}
+	return radiusDeltas;
 }
