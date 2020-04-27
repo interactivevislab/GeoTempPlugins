@@ -22,6 +22,6 @@ class POLYGONMASKSGENERATOR_API UBasePolygonPreparer : public UObject
 
 	/** Prepare mask loader with polygons and tag mapping*/
 	UFUNCTION(BlueprintCallable)
-	virtual void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FMultipolygonData> inPolygonData,
-		TMap<FString, FString> inTags);
+	virtual void PrepareMaskLoader(UMaskLoader* inTarget, const TArray<FMultipolygonData>& inPolygonData,
+		const TMap<FString, FString>& inTags);
 };

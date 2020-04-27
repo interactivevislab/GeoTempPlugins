@@ -18,7 +18,7 @@ struct GEOTEMPCORE_API FContour
 
 	FContour();
 	/** Initializes this contour from Unreal array */
-	FContour(TArray<FVector> initPoints);
+	FContour(const TArray<FVector>& initPoints);
 
 	/** returns index of point with minimal X */
 	int LeftmostIndex()		const;

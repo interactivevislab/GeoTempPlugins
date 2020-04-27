@@ -14,7 +14,7 @@ class POLYGONMASKSGENERATOR_API UZonesPolygonPreparer : public UBasePolygonPrepa
 	
 	/** @name Implementation of UBasePolygonPreparer */
 	///@{
-	void PrepareMaskLoader(UMaskLoader* inTarget, TArray<FMultipolygonData> inPolygonData, 
-		TMap<FString, FString> inTags) override;
+	void PrepareMaskLoader(UMaskLoader* inTarget, const TArray<FMultipolygonData>& inPolygonData,
+			const TMap<FString, FString>& inTags) override;
 	///@}
 };
