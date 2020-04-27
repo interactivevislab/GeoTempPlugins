@@ -89,10 +89,23 @@ void UCustomFoliageInstancer::FillFoliageWithMask_BP(FVector4 inComponentRect)
 	TArray<UHierarchicalInstancedStaticMeshComponent*> arrayOfInstancers = {};
 
 	UpdateBuffer();
+
+
+
+	if (foliageActor)
+	{
+		ClearFoliage_BP();
+	}
+
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = GetOwner();
+	SpawnInfo.Name = "FoliageActor";
+	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
 	/*for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 	{
 		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
+		meshInfo.MaterialInstances.Empty();
 
 		for (int x = 0; x < meshInfo.Mesh->StaticMaterials.Num(); ++x)
 		{
@@ -147,15 +160,6 @@ void UCustomFoliageInstancer::FillFoliageWithMask_BP(FVector4 inComponentRect)
 		}
 		else 
 		{
-			if (!foliageActor)
-			{
-				FActorSpawnParameters SpawnInfo;
-				SpawnInfo.Owner = GetOwner();
-				SpawnInfo.Name = "FoliageActor";
-				foliageActor = GetWorld()->SpawnActor<AActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
-			}
-
-
 			auto instancerName	= FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
 			AActor* owner = this->GetOwner();
 
@@ -220,6 +224,16 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 	TArray<FFoliageMeshInfo> arrayOfMeshInfos = {};
 	TArray<UHierarchicalInstancedStaticMeshComponent*> arrayOfInstancers = {};
 
+	if (foliageActor)
+	{
+		ClearFoliage_BP();
+	}
+
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = GetOwner();
+	SpawnInfo.Name = "FoliageActor";
+	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+
 	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
 
 	//{
@@ -253,6 +267,8 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 
 	for (auto include : includePolys)
 	{
+		float presenceChance = include.Tags.Find("leisure") ? 0.5f : 1.0f;
+
 		for (auto outer : include.Outer)
 		{
 			TArray<FContour> exclude = {};
@@ -293,7 +309,7 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 				}
 			}
 
-			this->FillFoliageByPolygon(outer.Points, exclude, infos, instancers);
+			this->FillFoliageByPolygon(outer.Points, exclude, infos, instancers, presenceChance);
 		}
 	}
 }
@@ -365,17 +381,17 @@ void UCustomFoliageInstancer::PrepareInstancers(
 		}
 		else
 		{
-			if (!foliageActor)
-			{
-				FActorSpawnParameters SpawnInfo;
-				SpawnInfo.Owner = GetOwner();
-				SpawnInfo.Name = "FoliageActor";
-				foliageActor = GetWorld()->SpawnActor<AActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
-			}
+			//if (!foliageActor)
+			//{
+			//	FActorSpawnParameters SpawnInfo;
+			//	SpawnInfo.Owner = GetOwner();
+			//	SpawnInfo.Name = "FoliageActor";
+			//	foliageActor = GetWorld()->SpawnActor<AActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+			//}
 
 
 			auto instancerName = FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
-			AActor* owner = this->GetOwner();
+			//AActor* owner = this->GetOwner();
 
 			InstancedMesh = NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
 			foliageActor->AddInstanceComponent(InstancedMesh);
@@ -508,7 +524,8 @@ void UCustomFoliageInstancer::FillFoliageByPolygon(
 	TArray<FVector> inPolygon,
 	TArray<FContour> inExcludePolygons,
 	TArray<FFoliageMeshInfo>& inInfos,
-	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers
+	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers,
+	float inPresenceChance
 )
 {
 	float minX, maxX, minY, maxY;
@@ -585,7 +602,11 @@ void UCustomFoliageInstancer::FillFoliageByPolygon(
 					}
 				}
 
-				if (!treeSupressed && IsPointInPolygon(inPolygon, FVector(X, Y, 0)))
+				float spawnRandomValue = rs.FRandRange(0.0f, 1.0f);
+				bool presenceSuppressed = treeSupressed || !IsPointInPolygon(inPolygon, FVector(X, Y, 0));
+
+				if (!presenceSuppressed && inPresenceChance > 0 && spawnRandomValue <= inPresenceChance)
+				//if (!treeSupressed && IsPointInPolygon(inPolygon, FVector(X, Y, 0)))
 				{
 
 					FVector vHelper1, vHelper2;
@@ -631,19 +652,25 @@ void UCustomFoliageInstancer::FillFoliageByPolygon(
 
 void UCustomFoliageInstancer::ClearFoliage_BP()
 {
-	AActor* owner = this->GetOwner();
-	if (!foliageActor)
+	if (foliageActor)
 	{
-		return;
+		foliageActor->Destroy();
+		foliageActor = nullptr;
 	}
-	for (auto& FoliageInstance : FoliageInstancers)
+
+	TArray<AFoliageActor*> toDestroy;
+	for (auto child : GetOwner()->Children)
 	{
-		FoliageInstance.Value->ClearInstances();
-		FoliageInstance.Value->UnregisterComponent();
-		foliageActor->RemoveInstanceComponent(FoliageInstance.Value);
-		FoliageInstance.Value->DestroyComponent();
+		auto castChild = Cast<AFoliageActor>(child);
+		if (castChild)
+		{
+			toDestroy.Add(castChild);
+		}
 	}
-	FoliageInstancers.Empty();
+	for (auto child : toDestroy)
+	{
+		child->Destroy();
+	}
 }
 
 
