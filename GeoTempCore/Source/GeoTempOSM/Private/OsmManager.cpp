@@ -19,7 +19,7 @@ void UOsmManager::Init(FString inOsmApiVersion)
 UHttpRequest* UOsmManager::CreateRequest(FString inVerb, FString inUrlTail, 
 	ParametersSet inParameters, FString inContent)
 {
-	auto* apiRequest = NewObject<UHttpRequest>(this);
+	auto* apiRequest = NewObject<UHttpRequest>(this, UHttpRequest::StaticClass());
 	auto innerRequest = client->CreateRequest(apiVersion, inVerb, inUrlTail, inParameters, inContent);
 	apiRequest->Init(innerRequest);
 

@@ -88,6 +88,7 @@ public:
 	FLinearColor Color;	
 
 private:
+	UPROPERTY()
 	bool _isInit = false;
 
 public:
@@ -110,9 +111,11 @@ public:
 	/** Container with data of this part
 	 * @see FBuildingPart
 	 */
+	UPROPERTY()
 	FBuildingPart PartData;
 
 	/** Parent Building Actor */
+	UPROPERTY()
 	ABuildingActor* Parent;
 
 	/** \fn CreateSimpleStructure

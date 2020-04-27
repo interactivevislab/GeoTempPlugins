@@ -24,5 +24,4 @@ public:
 
 	UPROPERTY()
 	USceneComponent* Root;
-
 };

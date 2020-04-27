@@ -53,6 +53,7 @@ public:
 	/**
 	 * Building structure contains parameters of this building
 	 */
+	UPROPERTY()
 	FBuilding Building;
 
 	/** Construction initialize function */
