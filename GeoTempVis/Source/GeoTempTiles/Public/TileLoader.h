@@ -139,6 +139,10 @@ public:
 	/** Max zoom level tiles will split to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
 	int MaxLevel = 18;
+
+	/** Flag to check if files were loaded */
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	bool AreTilesLoaded;
 	
 private: 
 
@@ -200,9 +204,6 @@ private:
 
 	/** split tile */
 	void SplitTile(int x, int y, int z);
-
-	UPROPERTY()
-	bool areTilesLoaded;
 };
 
 /** Handle for tile web loading delegates */

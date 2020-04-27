@@ -120,7 +120,7 @@ float UTilesController::GetPixelSize(FTileCoordinates meta)
 void UTilesController::PostLoad()
 {
 	Super::PostLoad();
-	if (areTilesLoaded)
+	if (AreTilesLoaded)
 	{
 		ClearMesh();
 		CreateMesh();
@@ -145,7 +145,7 @@ void UTilesController::CreateMesh()
 		}
 	}
 
-	areTilesLoaded = true;
+	AreTilesLoaded = true;
 }
 
 void UTilesController::ClearMesh()
@@ -153,7 +153,7 @@ void UTilesController::ClearMesh()
 	ClearAllMeshSections();
 	TileIndecies.Empty();
 
-	areTilesLoaded = false;
+	AreTilesLoaded = false;
 }
 
 
