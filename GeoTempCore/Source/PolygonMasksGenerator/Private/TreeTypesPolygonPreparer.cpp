@@ -1,8 +1,8 @@
 #include "TreeTypesPolygonPreparer.h"
 
 
-void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, TArray<FMultipolygonData> inPolygonData,
-	TMap<FString, FString> inTags)
+void UTreeTypesPolygonPreparer::PrepareMaskLoader(UMaskLoader* inTarget, const TArray<FMultipolygonData>& inPolygonData,
+	const TMap<FString, FString>& inTags)
 {
 	if (inPolygonData.Num() == 0)
 	{

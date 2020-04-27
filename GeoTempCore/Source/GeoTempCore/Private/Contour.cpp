@@ -4,12 +4,9 @@
 FContour::FContour() {}
 
 
-FContour::FContour(TArray<FVector> initPoints)
+FContour::FContour(const TArray<FVector>& initPoints)
 {
-	for (auto point : initPoints)
-	{
-		Points.Add(point);
-	}
+	Points.Append(initPoints);
 }
 
 

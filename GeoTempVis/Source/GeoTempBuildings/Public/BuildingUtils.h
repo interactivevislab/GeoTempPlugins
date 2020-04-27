@@ -118,7 +118,7 @@ public:
 	 * @see IRoofMaker
 	 * @see CheckRoofMaker
 	 */
-	inline static void AddRoofMaker(FString inType, TScriptInterface<IRoofMaker> inMaker)
+	inline static void AddRoofMaker(const FString& inType, TScriptInterface<IRoofMaker> inMaker)
 	{
 		RoofMakers.Add(inType, inMaker);
 	}
@@ -131,7 +131,7 @@ public:
 	 * @return Ture if there are already some Roof Marker for that roof type, false otherwise
 	 * @see AddRoofMaker
 	 */
-	inline static bool CheckRoofMaker(FString inType)
+	inline static bool CheckRoofMaker(const FString& inType)
 	{
 		return RoofMakers.Contains(inType);
 	}
@@ -163,7 +163,7 @@ public:
 	 * @see FBuildingPart
 	 */
 	static FBuildingMeshData CalculateMeshData(const FBuilding& inBuilding, const FBuildingPart& inBuildingPart, 
-		UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, FString inTriangulationFlags = "");
+		UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, const FString& inTriangulationFlags = "");
 
 	/**
 	 * \fn ConstructProceduralMesh
