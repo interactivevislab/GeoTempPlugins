@@ -146,12 +146,16 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 			AActor* owner = this->GetOwner();
 
 			InstancedMesh	= NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
+			InstancedMesh->OnComponentCreated();
+			InstancedMesh->SetupAttachment(foliageActor->Root);
+			InstancedMesh->RegisterComponent();
 			foliageActor	->AddInstanceComponent(InstancedMesh);
 			InstancedMesh	->RegisterComponent();
 
 			InstancedMesh->SetStaticMesh(meshInfo.Mesh);
 			InstancedMesh->SetWorldLocation(componentOffset);
 			InstancedMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			InstancedMesh->SetMobility(EComponentMobility::Movable);
 
 			FoliageInstancers	.Add(meshInfo.Mesh, InstancedMesh);
 			ArrayOfInstancers	.Add(InstancedMesh);
@@ -195,6 +199,9 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 			break;
 		}
 	}
+
+	foliageActor->SetActorLabel(SpawnInfo.Name.ToString());
+	foliageActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 
