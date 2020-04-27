@@ -174,7 +174,7 @@ public:
 	 * @see UProceduralMeshComponent
 	 * @see FBuildingMeshData
 	 */
-	static void ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, FBuildingMeshData inMeshData, int inFirstSectionIndex = 0);
+	static void ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, const FBuildingMeshData& inMeshData, int inFirstSectionIndex = 0);
 
 	/**
 	 * \fn ConstructRuntimeMesh
@@ -186,5 +186,5 @@ public:
 	 * @see URuntimeMeshComponent
 	 * @see FBuildingMeshData
 	 */
-	static void ConstructRuntimeMesh(URuntimeMeshComponent* inMeshComp, FBuildingMeshData inMeshData, int inFirstSectionIndex = 0);
+	static void ConstructRuntimeMesh(URuntimeMeshComponent* inMeshComp, const FBuildingMeshData& inMeshData, int inFirstSectionIndex = 0);
 };
