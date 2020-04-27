@@ -13,6 +13,6 @@ public:
 	GENERATED_BODY()	
 	float CalcHeight_Implementation(FColor color) override
 	{
-		return 100 * (-10000 + color.R * 256 * 256 + color.G * 256 + color.B);
+		return 100 * (-10000 + (color.R * 256 * 256 + color.G * 256 + color.B) * 0.1f);
 	}
 };

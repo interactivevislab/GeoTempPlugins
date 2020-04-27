@@ -62,7 +62,7 @@ UTileData* UTileTextureContainer::GetTileMaterial(FTileCoordinates meta, UMateri
 }
 
 
-void UTileTextureContainer::CacheTexture(FTileCoordinates meta, UTexture* texture, FString channel)
+void UTileTextureContainer::CacheTexture(FTileCoordinates meta, UTexture* texture, FString channel, TArray<uint8> data)
 {
 	if (CachedTiles.Contains(meta))
 	{
@@ -70,8 +70,19 @@ void UTileTextureContainer::CacheTexture(FTileCoordinates meta, UTexture* textur
 		{
 			CachedTiles[meta]->Textures.Add(channel, texture);
 			CachedTiles[meta]->IsLoaded[channel] = true;
-			CachedTiles[meta]->CheckLoaded();
+			
 		}
+		if (channel.Equals(ElevationChannel))
+		{
+			auto& heightmap = CachedTiles[meta]->HeightMap;
+			heightmap.Empty();
+			for (int i = 0; i < data.Num() / 4; i++)
+			{
+				heightmap.Add(FColor(data[i * 4 + 2], data[i * 4 + 1], data[i * 4], data[i * 4 + 3]));
+			}
+			CachedTiles[meta]->HeightMap = heightmap;
+		}
+		CachedTiles[meta]->CheckLoaded();
 	}
 	
 }

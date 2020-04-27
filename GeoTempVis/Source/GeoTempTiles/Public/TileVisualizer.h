@@ -40,7 +40,6 @@ public:
 	void BeginPlay() override;
 	
 	void TickComponent(float DeltaTime,enum ELevelTick TickType,FActorComponentTickFunction * ThisTickFunction) override;
-	//!@}
 
 	/** Calculate tile screen size in pixels */
 	float GetPixelSize(FTileCoordinates meta);
@@ -153,8 +152,9 @@ private:
 	/** create and mesh section for a tile */
 	UFUNCTION()
 	void CreateTileMesh(UTileData* tile);
-	
-	
+
+	UPROPERTY()
+	TArray<UTileData*> ReadyTiles;
 	
 	/** create and mesh section for a tile */
 	int BeginCreateTileMesh(int inX, int inY, int inZ);

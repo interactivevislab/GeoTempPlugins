@@ -16,16 +16,15 @@ UTilesController::UTilesController(const FObjectInitializer& ObjectInitializer) 
 void UTilesController::BeginPlay()
 {
 	Super::BeginPlay();
-	ClearMesh();
-	CreateMesh();	
 }
 
 
 // Called every frame
 void UTilesController::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)
 {
+	
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);	
-
+	return;
 	int x0, y0;
 	GetMercatorXYFromOffset(FVector::ZeroVector, BaseLevel, x0, y0);
 	
@@ -125,7 +124,7 @@ void UTilesController::CreateMesh()
 	}
 
 	int z = BaseLevel;
-
+	TileLoader->ElevationChannel = ElevationChannel;
 	int x0 = GetMercatorXFromDegrees(CenterLon) * (1 << z);
 	int y0 = GetMercatorYFromDegrees(CenterLat) * (1 << z);
 	
@@ -197,9 +196,9 @@ FVector UTilesController::GetXYOffsetFromMercatorOffset(int z, int x, int y)
 }
 
 void UTilesController::CreateTileMesh(UTileData* tile)
-{	
+{
 	auto& meta = tile->Meta;
-	
+				
 	int sectionIndex  = ReservedIndecies[meta];
 	if (TileIndecies.Contains(meta))
 	{
@@ -275,7 +274,6 @@ void UTilesController::CreateTileMesh(UTileData* tile)
 	
 	CreateMeshSection(sectionIndex, vertices, triangles, normals, uvs, TArray<FColor>(), TArray<FRuntimeMeshTangent>(), false);
 	SetMaterial(sectionIndex, tile->Material);
-
 }
 
 

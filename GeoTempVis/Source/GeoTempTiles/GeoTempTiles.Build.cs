@@ -15,7 +15,7 @@ public class GeoTempTiles : ModuleRules
 			);
         PrivateDependencyModuleNames.AddRange(new string[] { 
             "ProceduralMeshComponent", "Json", "GeoTempCore", "UMG",
-            "RenderCore", "RHI", "RuntimeMeshComponent"
+            "RenderCore", "RHI", "RuntimeMeshComponent", "GeoTempLoaders"
         });
 
         PrivateIncludePaths.AddRange(

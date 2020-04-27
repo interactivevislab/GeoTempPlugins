@@ -40,8 +40,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category= "Default")
 	TScriptInterface<IHeightCalculator> HeightCalculator;
 
-
-
+	UFUNCTION(BlueprintCallable, Category = "Default")
+	void SetHeightCalculator(TScriptInterface<IHeightCalculator> inCalculator)
+	{
+		HeightCalculator = inCalculator;
+	}
 
 	/** Path to where store cached tiles for further load*/
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category= "Default")
@@ -51,93 +54,85 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category= "Default")
 	FString CacheNameFormat = "z{2}x{0}y{1}.tile";	
 	
-	void GenerateVertices(UTileData* tile, FString channel, int resolution, TArray<FVector>& outVerticesWithoutElevation, TArray<FVector>& outNormals)
+	void GenerateVertices(UTileData* tile, FString channel, int resolution, TArray<FVector>& inoutVertices, TArray<FVector>& outNormals)
 	{
 		auto right = tile->GetRightNeighbor();
-		auto top = tile->GetBottomNeighbor();
-		auto topright = tile->GetBottomRightNeighbor();
+		auto bottom = tile->GetBottomNeighbor();
+		auto bottomRight = tile->GetBottomRightNeighbor();
+				
+		int h = (int)tile->Textures[channel]->GetSurfaceHeight();
+		int w = (int)tile->Textures[channel]->GetSurfaceWidth();
+
 		
-		auto tex			= tile		->Textures.FindRef(channel);
-		
-		auto texFix = Cast<UTexture2DDynamic>(tex);
+		auto& tileData		= tile		->HeightMap;
+		auto& rightData		= right		->HeightMap;
+		auto& bottomData		= bottom		->HeightMap;
+		auto& brData			= bottomRight	->HeightMap;
 
-		//DEBUG: step by step try of loading texture to check if everything is correct. Delete that after it works
-		auto texData = texFix->GetRunningPlatformData();
-		if (!texData) return;
-		auto& mip = (*texData)->Mips[0];
-		auto w = mip.SizeX;
-		auto h = mip.SizeY;
+		auto delta = inoutVertices[2 + resolution] - inoutVertices[0];
 
-
-		//Actual way I plan to load the textures in one string
-		auto rightTex		= right		->Textures.FindRef(channel);
-		auto topTex	= top	->Textures.FindRef(channel);
-		auto trTex		= topright->Textures.FindRef(channel);
-		
-		auto tileData	= static_cast<const FColor*>((*Cast<UTexture2DDynamic>(tex)			->GetRunningPlatformData())->Mips[0].BulkData.LockReadOnly());
-		auto rightData	= static_cast<const FColor*>((*Cast<UTexture2DDynamic>(rightTex)	->GetRunningPlatformData())->Mips[0].BulkData.LockReadOnly());
-		auto topData	= static_cast<const FColor*>((*Cast<UTexture2DDynamic>(topTex)		->GetRunningPlatformData())->Mips[0].BulkData.LockReadOnly());
-		auto trData		= static_cast<const FColor*>((*Cast<UTexture2DDynamic>(trTex)		->GetRunningPlatformData())->Mips[0].BulkData.LockReadOnly());
-
-		auto delta = outVerticesWithoutElevation[1 + resolution] - outVerticesWithoutElevation[0];
+		auto object = HeightCalculator.GetObject();
+		auto interface = Cast<IHeightCalculator>(object);
 		
 		if (resolution < 1) resolution = 1;
-		int i = 0;
 		for (int ix = 0; ix < resolution + 1; ix++)
 		{
 			for (int iy = 0; iy < resolution + 1; iy++)
 			{
+				int xNorm = (ix / resolution);
+				int yNorm = (iy / resolution);
 				if (ix < resolution && iy < resolution)
 				{
-					outVerticesWithoutElevation[i].Z = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), tileData[h * (w * ix / resolution) *  + (h * iy / resolution)]);
+					inoutVertices[ix * (resolution + 1) + iy].Z = interface->Execute_CalcHeight(object, tileData[((w-1) * ix / resolution) + w*((h-1) * iy / resolution)]);
 				}
 				else if (ix < resolution)
 				{
-					outVerticesWithoutElevation[i].Z = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), topData[h * (w * ix / resolution) + 0]);
+					inoutVertices[ix * (resolution + 1) + iy].Z = interface->Execute_CalcHeight(object, bottomData[((w-1) * ix / resolution) + 0]);
 				}
 				else if (iy < resolution)
 				{
-					outVerticesWithoutElevation[i].Z = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), rightData[(h * iy / resolution)]);
+					inoutVertices[ix * (resolution + 1) + iy].Z = interface->Execute_CalcHeight(object, rightData[0 + w*((h-1) * iy / resolution)]);
 				}
 				else
 				{
-					outVerticesWithoutElevation[i].Z = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), trData[0]);
+					inoutVertices[ix * (resolution + 1) + iy].Z = interface->Execute_CalcHeight(object, brData[0]);
 				}
 			}
 		}
-
 		for (int ix = 0; ix < resolution + 1; ix++)
 		{
 			for (int iy = 0; iy < resolution + 1; iy++)
-			{
+			{				
 				if (ix < resolution - 1 && iy < resolution - 1)
 				{
-					outNormals[i] = FVector::CrossProduct(outVerticesWithoutElevation[iy * resolution + ix + 1] - outVerticesWithoutElevation[i], outVerticesWithoutElevation[(iy + 1) * resolution + ix] - outVerticesWithoutElevation[i]).GetSafeNormal();
+					FVector r = inoutVertices[(ix + 1) * (resolution + 1) + iy] - inoutVertices[ix * (resolution + 1) + iy];
+					FVector b = inoutVertices[ix * (resolution + 1) + iy + 1] - inoutVertices[ix * (resolution + 1) + iy];
+					outNormals[ix * (resolution + 1) + iy] = FVector::CrossProduct(r, b).GetSafeNormal();
 				}
 				else if (ix < resolution - 1)
 				{
-					float hr =  Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), rightData[h / resolution]);
-					outNormals[i] = FVector::CrossProduct(outVerticesWithoutElevation[iy * resolution + ix + 1] - outVerticesWithoutElevation[i], FVector(0, delta.Y, hr - outVerticesWithoutElevation[i].Z)).GetSafeNormal();
+					float hr =  Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), bottomData[((w-1) * ix / resolution) + w*((h-1) * 1 / resolution)]);
+					FVector r = inoutVertices[(ix + 1) * (resolution + 1) + iy] - inoutVertices[ix * (resolution + 1) + iy];
+					FVector b = FVector(0, delta.Y, hr - inoutVertices[ix * (resolution + 1) + iy].Z);
+					outNormals[ix * (resolution + 1) + iy] = FVector::CrossProduct(r, b).GetSafeNormal();
 				}
 				else if (iy < resolution - 1)
 				{
-					float hb =  Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), topData[h / resolution]);
-					outNormals[i] = FVector::CrossProduct(outVerticesWithoutElevation[(iy + 1) * resolution + ix] - outVerticesWithoutElevation[i], FVector(delta.X, 0, hb - outVerticesWithoutElevation[i].Z)).GetSafeNormal();
+					float hb =  Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), rightData[((w-1) * 1 / resolution) + w*((h-1) * iy / resolution)]);
+					FVector r = FVector(delta.X, 0, hb - inoutVertices[ix * (resolution + 1) + iy].Z);
+					FVector b = inoutVertices[ix * (resolution + 1) + iy + 1] - inoutVertices[ix * (resolution + 1) + iy];
+					outNormals[ix * (resolution + 1) + iy] = FVector::CrossProduct(r, b).GetSafeNormal();
 				}
 				else
 				{
-					float hr =  Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), trData[h / resolution]);
-					float hb =  Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), trData[h * (w / resolution)]);
-					outNormals[i] = FVector::CrossProduct(FVector(delta.X, 0, hr - outVerticesWithoutElevation[i].Z), FVector(0, delta.Y, hb - outVerticesWithoutElevation[i].Z)).GetSafeNormal();
+					float hr =  Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), bottomData[((w-1) * ix / resolution) + w*((h-1) * 1 / resolution)]);
+					float hb =  Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), rightData[((w-1) * 1 / resolution) + w*((h-1) * iy / resolution)]);
+					FVector r = FVector(delta.X, 0, hb - inoutVertices[ix * (resolution + 1) + iy].Z);
+					FVector b = FVector(0, delta.Y, hr - inoutVertices[ix * (resolution + 1) + iy].Z);
+					outNormals[ix * (resolution + 1) + iy] = FVector::CrossProduct(r, b).GetSafeNormal();
 				}
-
 			}
 		}
-
-		(*((UTexture2DDynamic*)tex)		->GetRunningPlatformData())->Mips[0].BulkData.Unlock();
-		(*((UTexture2DDynamic*)rightTex)	->GetRunningPlatformData())->Mips[0].BulkData.Unlock();
-		(*((UTexture2DDynamic*)topTex)	->GetRunningPlatformData())->Mips[0].BulkData.Unlock();
-		(*((UTexture2DDynamic*)trTex)		->GetRunningPlatformData())->Mips[0].BulkData.Unlock();
 	}
 
 private:

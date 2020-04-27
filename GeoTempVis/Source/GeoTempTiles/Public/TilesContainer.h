@@ -23,7 +23,8 @@ protected:
 public:
 	friend class UTextureDownloader;
 	friend class UTileData;
-	
+
+	FString ElevationChannel;
 
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	void AddTextureGetter(FString channel, TScriptInterface<ITilePreparer> getter)
@@ -63,5 +64,5 @@ public:
 	
 private:
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void CacheTexture(FTileCoordinates meta, UTexture* texture, FString channel);
+	void CacheTexture(FTileCoordinates meta, UTexture* texture, FString channel, TArray<uint8> data);
 };

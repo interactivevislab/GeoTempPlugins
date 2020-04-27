@@ -1,4 +1,6 @@
 #include "TilesBasics.h"
+
+
 #include "TilesContainer.h"
 #include "OSMTilePreparer.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -6,12 +8,12 @@
 void UTextureDownloader::StartDownloadingTile(FTileCoordinates meta, FString url)
 {
 	TextureCoords = meta;	
-	Loader = UAsyncTaskDownloadImage::DownloadImage(url);
+	Loader = UImageDownloadOverride::DownloadImage(url);
 	Loader->OnSuccess.AddDynamic(this, &UTextureDownloader::OnTextureLoaded);
 	Loader->OnFail.AddDynamic(this, &UTextureDownloader::OnLoadFailed);
 }
 
-void UTextureDownloader::OnTextureLoaded(UTexture2DDynamic* Texture)
+void UTextureDownloader::OnTextureLoaded(UTexture2DDynamic* Texture, TArray<uint8> data)
 {
 	if (!Texture->IsValidLowLevel())
 	{
@@ -26,12 +28,12 @@ void UTextureDownloader::OnTextureLoaded(UTexture2DDynamic* Texture)
 		return;
 	}
 	Material->SetTextureParameterValue(FName(*Channel), Texture);	
-	TileContainer->CacheTexture(TextureCoords, Texture, Channel);
+	TileContainer->CacheTexture(TextureCoords, Texture, Channel, data);
 	
 	
 }
 
-void UTextureDownloader::OnLoadFailed(UTexture2DDynamic* Texture)
+void UTextureDownloader::OnLoadFailed(UTexture2DDynamic* Texture, TArray<uint8> data)
 {
 	TilePreparer->FreeLoader(TextureCoords);
 	UE_LOG(LogTemp, Warning, TEXT("Load failed"));

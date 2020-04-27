@@ -12,13 +12,13 @@ public class GeoTempLoaders : ModuleRules
 			"GeoTempCore",
 			"GeoTempOsm",
 			"GeoTempPostGis",
-			"GeoTempJson"
+			"GeoTempJson",
 		});
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"GeoTempCore",
 			"GeoTempOsm",
 			"GeoTempPostGis",
-			"GeoTempJson"
+			"GeoTempJson",
 		});
 		PublicIncludePaths.AddRange(
 			new string[] {
@@ -50,6 +50,10 @@ public class GeoTempLoaders : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"UMG",
+				"RenderCore", 
+				"RHI",
+				"HTTP",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

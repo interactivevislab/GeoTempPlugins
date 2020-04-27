@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "TextureResource.h"
-#include "Blueprint/AsyncTaskDownloadImage.h"
 #include "GameFramework/PlayerController.h"
 #include "Tickable.h"
 #include "Engine/Texture2DDynamic.h"
+#include "ImageDownloadOverride.h"
 #include "TilesBasics.generated.h"
 
 
@@ -58,7 +58,7 @@ public:
 
 	/** Pointer to web loading task*/
 	UPROPERTY()
-	UAsyncTaskDownloadImage* Loader;
+	UImageDownloadOverride* Loader;
 
 	/** Initializer for beginning of tile download */
 	UFUNCTION(BlueprintCallable, Category = "Default")
@@ -80,11 +80,11 @@ public:
 	
 	/** Event to call when tile sucessfully loaded */
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void OnTextureLoaded(UTexture2DDynamic* Texture);
+	void OnTextureLoaded(UTexture2DDynamic* Texture, TArray<uint8> data);
 
 	/** Event to call when tile download has failed */
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void OnLoadFailed(UTexture2DDynamic* Texture);
+	void OnLoadFailed(UTexture2DDynamic* Texture, TArray<uint8> data);
 };
 
 
@@ -115,6 +115,9 @@ public:
 	UPROPERTY()
 	TMap<FString, UTexture*> Textures;
 
+	UPROPERTY()
+	TArray<FColor> HeightMap;
+	
 	/** Pointer to material generated for the tile loading */
 	UPROPERTY()
 	UMaterialInstanceDynamic* Material;
