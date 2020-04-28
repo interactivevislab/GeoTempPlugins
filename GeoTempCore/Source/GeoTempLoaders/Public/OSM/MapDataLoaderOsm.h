@@ -46,6 +46,10 @@ public:
 	/** Load all OSM data from map bounding box. */
 	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
 	void LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees);
+
+	/** Clear all loaded OSM data. */
+	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
+	void ClearLoadedData();
 	
 	/** Loaded and processed buildings data. */
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
