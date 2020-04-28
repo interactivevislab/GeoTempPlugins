@@ -21,6 +21,143 @@ bool IsPointInPolygon(TArray<FVector> simPoly, FVector point)
 	return oddNodes;
 }
 
+FVector LineIntersection(FVector A, FVector B, FVector C, FVector D)
+{
+	// Line AB represented as a1x + b1y = c1 
+	double a1 = B.Y - A.Y;
+	double b1 = A.X - B.X;
+	double c1 = a1 * (A.X) + b1 * (A.Y);
+
+	// Line CD represented as a2x + b2y = c2 
+	double a2 = D.Y - C.Y;
+	double b2 = C.X - D.X;
+	double c2 = a2 * (C.X) + b2 * (C.Y);
+
+	double determinant = a1 * b2 - a2 * b1;
+
+	if (determinant == 0)
+	{
+		// The lines are parallel. This is simplified 
+		// by returning a pair of FLT_MAX 
+		return FVector(FLT_MAX, FLT_MAX, 0);
+	}
+	else
+	{
+		double x = (b2*c1 - b1 * c2) / determinant;
+		double y = (a1*c2 - a2 * c1) / determinant;
+		return FVector(x, y, 0);
+	}
+}
+
+// Returns true if two rectangles (l1, r1) and (l2, r2) overlap 
+bool DoRectanglesOverlap(FVector l1, FVector r1, FVector l2, FVector r2)
+{
+	// If one rectangle is on left side of other 
+	if (l1.X >= r2.X || l2.X >= r1.X)
+		return false;
+
+	// If one rectangle is above other 
+	if (l1.Y <= r2.Y || l2.Y <= r1.Y)
+		return false;
+
+	return true;
+}
+
+TArray<FContour> GetIntersectedPolygons(FContour inMainPolygon, TArray<FContour>& inPolygonsTocheck)
+{
+	TArray<FContour> exclude = {};
+	TArray<FContour> firstIter = {};
+	TArray<FContour> SecondIter = {};
+	TArray<FContour> ThirdIter = {};
+	
+	FVector l1, r1, l2, r2;
+	l1 = FVector(inMainPolygon.Points[inMainPolygon.LeftmostIndex()].X, inMainPolygon.Points[inMainPolygon.BottommostIndex()].Y, 0);
+	r1 = FVector(inMainPolygon.Points[inMainPolygon.RightmostIndex()].X, inMainPolygon.Points[inMainPolygon.TopmostIndex()].Y, 0);
+
+
+	for (auto excludePoly : inPolygonsTocheck)
+	{
+		l2 = FVector(excludePoly.Points[excludePoly.LeftmostIndex()].X, excludePoly.Points[excludePoly.BottommostIndex()].Y, 0);
+		r2 = FVector(excludePoly.Points[excludePoly.RightmostIndex()].X, excludePoly.Points[excludePoly.TopmostIndex()].Y, 0);
+
+		if (DoRectanglesOverlap(l1, r1, l2, r2))
+			firstIter.Add(excludePoly);
+	}
+	for (auto excludePoly : firstIter)
+	{
+		bool foundIntersection = false;
+		for (auto point : excludePoly.Points)
+		{
+			if (IsPointInPolygon(inMainPolygon.Points, point))
+			{
+				foundIntersection = true;
+				exclude.Add(excludePoly);
+				break;
+			}
+		}
+		if(!foundIntersection)
+		{
+			SecondIter.Add(excludePoly);
+		}
+	}
+	for (auto excludePoly : SecondIter)
+	{
+		bool foundIntersection = false;
+		for (auto point : inMainPolygon.Points)
+		{
+			if (IsPointInPolygon(excludePoly.Points, point))
+			{
+				foundIntersection = true;
+				exclude.Add(excludePoly);
+				break;
+			}
+		}
+		if (!foundIntersection)
+		{
+			ThirdIter.Add(excludePoly);
+		}
+	}
+	for (auto excludePoly : ThirdIter)
+	{
+		for (int i = 0; i < excludePoly.Points.Num()-1; i++)
+		{
+			bool foundIntersection = false;
+			for (int j = 0; j < inMainPolygon.Points.Num() - 1; j++)
+			{
+				auto firstLineStart = inMainPolygon.Points[j];
+				auto firstLineEnd = inMainPolygon.Points[j+1];
+				auto secondLineStart = excludePoly.Points[i];
+				auto secondLineEnd = excludePoly.Points[i+1];
+
+				auto intersection = LineIntersection(firstLineStart, firstLineEnd, secondLineStart, secondLineEnd);
+				if (intersection.X == FLT_MAX &&
+					intersection.Y == FLT_MAX)
+				{
+					continue;
+				}
+				auto minX = FMath::Min(firstLineStart.X, firstLineEnd.X);
+				auto maxX = FMath::Max(firstLineStart.X, firstLineEnd.X);
+				auto minY = FMath::Min(firstLineStart.Y, firstLineEnd.Y);
+				auto maxY = FMath::Max(firstLineStart.Y, firstLineEnd.Y);
+				if ((intersection.X >= minX && intersection.X <= maxX) && (intersection.Y >= minY && intersection.Y <= maxY))
+				{
+					foundIntersection = true;
+					exclude.Add(excludePoly);
+					break;
+				}
+			}
+			if (foundIntersection)
+			{
+				break;
+			}
+		}
+	}
+	return exclude;
+}
+
+
+
+
 
 UCustomFoliageInstancer::UCustomFoliageInstancer()
 {
@@ -102,94 +239,6 @@ void UCustomFoliageInstancer::FillFoliageWithMask_BP(FVector4 inComponentRect)
 	SpawnInfo.Name = "FoliageActor";
 	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
-	/*for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
-	{
-		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
-		meshInfo.MaterialInstances.Empty();
-
-		for (int x = 0; x < meshInfo.Mesh->StaticMaterials.Num(); ++x)
-		{
-			UMaterialInterface* material = meshInfo.Mesh->GetMaterial(x);
-
-			if (material->IsA(UMaterialInstanceDynamic::StaticClass()))
-			{
-				meshInfo.MaterialInstances.Add(x, Cast<UMaterialInstanceDynamic>(material));
-			}
-			else
-			{
-				auto dynamicMaterial = UMaterialInstanceDynamic::Create(material, this);
-				meshInfo.MaterialInstances.Add(x, dynamicMaterial);
-			}
-			meshInfo.MaterialInstances[x]->SetScalarParameterValue	("InstancerWidth",	Width		);
-			meshInfo.MaterialInstances[x]->SetScalarParameterValue	("InstancerHeight", Height		);
-
-			if (IsValid(StartTarget))
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start", StartTarget	);
-			}
-			else
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start", InitialTarget	);
-			}
-
-			if (IsValid(EndTarget))
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", EndTarget		);
-			}
-			else
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", InitialTarget	);
-			}
-
-			if (IsValid(TypesTarget))
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", TypesTarget		);
-			}
-			else
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", InitialTarget	);
-			}
-		}
-		auto meshPtr = FoliageInstancers.Find(meshInfo.Mesh);
-
-		if (meshPtr && IsValid(*meshPtr)) 
-		{
-			InstancedMesh = *meshPtr;
-			InstancedMesh->SetWorldLocation(componentOffset);
-			InstancedMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		}
-		else 
-		{
-			auto instancerName	= FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
-			AActor* owner = this->GetOwner();
-
-			InstancedMesh	= NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
-			foliageActor	->AddInstanceComponent(InstancedMesh);
-			InstancedMesh	->RegisterComponent();
-
-			InstancedMesh->SetStaticMesh(meshInfo.Mesh);
-			InstancedMesh->SetWorldLocation(componentOffset);
-			InstancedMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-			FoliageInstancers	.Add(meshInfo.Mesh, InstancedMesh);
-			ArrayOfInstancers	.Add(InstancedMesh);
-			ArrayOfMeshInfos	.Add(meshInfo);
-		}
-		InstancedMesh->SetCastShadow(true);
-		InstancedMesh->SetCullDistances(StartCullDistance, EndCullDistance);
-
-		for (int x = 0; x < meshInfo.MaterialInstances.Num(); ++x)
-		{
-			UMaterialInterface* material = meshInfo.Mesh->GetMaterial(x);
-			InstancedMesh->SetMaterial(x, meshInfo.MaterialInstances[x]);
-		}
-
-		for (int x = 0; x < meshInfo.MaterialInstances.Num(); ++x)
-		{
-			meshInfo.MaterialInstances[x]->SetVectorParameterValue("MeshComponentPosition", InstancedMesh->GetComponentLocation());
-			meshInfo.MaterialInstances[x]->SetScalarParameterValue("Interpolation", 0.0f);
-		}
-	}*/
 
 	switch (MeshLayersOption) 
 	{
@@ -236,34 +285,32 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 
 	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
 
-	//{
-		TArray<FMultipolygonData> includePolys = {};
-		TArray<FContour> excludePolys = {};
-		for (auto poly: inPolygons)
+	TArray<FMultipolygonData> includePolys = {};
+	TArray<FContour> excludePolys = {};
+	TArray<FContour> excludeHoles = {};
+	for (auto poly: inPolygons)
+	{
+		if (poly.Tags.Find("typeRole"))
 		{
-			if (poly.Tags.Find("typeRole"))
+			includePolys.Add(poly);
+
+			for (auto inner : poly.Holes)
 			{
-				//for (auto outer : poly.Outer)
-				//{
-					includePolys.Add(poly);
-				//}
-				for (auto inner : poly.Holes)
-				{
-					excludePolys.Add(inner);
-				}
-			}
-			else
-			{
-				for (auto outer : poly.Outer)
-				{
-					excludePolys.Add(outer);
-				}
+				excludePolys.Add(inner);
 			}
 		}
-		//for (auto include : includePolys)
-		//{
-
-		//}
+		else
+		{
+			for (auto outer : poly.Outer)
+			{
+				excludePolys.Add(outer);
+			}
+			for (auto inner : poly.Holes)
+			{
+				excludeHoles.Add(inner);
+			}
+		}
+	}
 
 	for (auto include : includePolys)
 	{
@@ -273,18 +320,7 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 		{
 			TArray<FContour> exclude = {};
 
-			for (auto excludePoly : excludePolys)
-			{
-				for (auto point : excludePoly.Points)
-				{
-					if (IsPointInPolygon(outer.Points, point))
-					{
-						exclude.Add(excludePoly);
-						break;
-					}
-				}
-			}
-
+			exclude = GetIntersectedPolygons(outer, excludePolys);
 
 			TArray<FFoliageMeshInfo> infos;
 			TArray<UHierarchicalInstancedStaticMeshComponent*> instancers;
@@ -309,7 +345,7 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 				}
 			}
 
-			this->FillFoliageByPolygon(outer.Points, exclude, infos, instancers, presenceChance);
+			this->FillFoliageByPolygon(outer.Points, exclude, excludeHoles, infos, instancers, presenceChance);
 		}
 	}
 }
@@ -381,17 +417,7 @@ void UCustomFoliageInstancer::PrepareInstancers(
 		}
 		else
 		{
-			//if (!foliageActor)
-			//{
-			//	FActorSpawnParameters SpawnInfo;
-			//	SpawnInfo.Owner = GetOwner();
-			//	SpawnInfo.Name = "FoliageActor";
-			//	foliageActor = GetWorld()->SpawnActor<AActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
-			//}
-
-
 			auto instancerName = FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
-			//AActor* owner = this->GetOwner();
 
 			InstancedMesh = NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
 			foliageActor->AddInstanceComponent(InstancedMesh);
@@ -523,6 +549,7 @@ void UCustomFoliageInstancer::FillFoliageWithMeshes(
 void UCustomFoliageInstancer::FillFoliageByPolygon(
 	TArray<FVector> inPolygon,
 	TArray<FContour> inExcludePolygons,
+	TArray<FContour> inExcludeHoles,
 	TArray<FFoliageMeshInfo>& inInfos,
 	TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers,
 	float inPresenceChance
@@ -593,12 +620,25 @@ void UCustomFoliageInstancer::FillFoliageByPolygon(
 				Y = cellY + helper2;
 
 				bool treeSupressed = false;
-				for (auto exclude : inExcludePolygons)
+				bool isInHole = false;
+				for (auto hole : inExcludeHoles)
 				{
-					if (IsPointInPolygon(exclude.Points, FVector(X, Y, 0)))
+					if (IsPointInPolygon(hole.Points, FVector(X, Y, 0)))
 					{
-						treeSupressed = true;
+						isInHole = true;
 						break;
+					}
+				}
+
+				if (!isInHole)
+				{
+					for (auto exclude : inExcludePolygons)
+					{
+						if (IsPointInPolygon(exclude.Points, FVector(X, Y, 0)))
+						{
+							treeSupressed = true;
+							break;
+						}
 					}
 				}
 
