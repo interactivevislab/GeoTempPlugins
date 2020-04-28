@@ -1,90 +1,99 @@
 #pragma once
-#include "Basics.h"
-#include "Components/ActorComponent.h"
+
 #include "CoreMinimal.h"
-#include "MasksShaderDeclaration.h"
+
+#include "Components/ActorComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
+
+#include "GeometryData.h"
+#include "MasksShaderDeclaration.h"
+
 #include "MasksLoader.generated.h"
+
 
 class BasePolygonPreparer;
 
+/** \class UMaskLoader
+ * \brief Utility object for making raster masks from polygons
+ * 
+ * This class creating raster from input polygons and writes them to render target. The polygons are prepared by PolygonPreparer or its overrides.
+ * The polygons after rendered into raster mask with additive color blending (i. e. them are not occluding each other)
+ * The polygons can also specify dates of existence, which controls their appearance (you can pass current year into RenderMaskForTime to filter polygons or draw them with interpolation)
+ * @see UBasePolygonPreparer
+ */
 UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
 class POLYGONMASKSGENERATOR_API UMaskLoader : public UActorComponent
 {
 	GENERATED_BODY()
+
 public:
+
+	/** should update vertex buffer on next rener pass */
+	UPROPERTY()
+	bool IsDirty;
+
+	/** Rectangle in masks polygon space that will be drawn to render texture */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Masks Generation")
+	FVector4 Rect;
+
+	/** Vertex buffer */
+	TArray<FMaskPolygonVertex> Vertices;
+	/** index buffer */
+	TArray<uint32> Triangles;
+
 	UMaskLoader();
 	~UMaskLoader();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-		FString PolygonQuery;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-		UTextureRenderTarget2D* Target;
+	/** \fn RenderMaskForTime
+	 * Renders polygons to render target according to current year
+	 * @param inYear current year to which we should filter polygons
+	 * @param inTarget render target to render polygons to
+	 * @param inFraction fraction of year for more precise control (i. e. 0 is 01.01 and 1 is 31.12)
+	 */
+	UFUNCTION(BlueprintCallable)
+	void RenderMaskForTime(int inYear, UTextureRenderTarget2D* inTarget, float inFraction);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-		TArray<int> Years;
-
-	UPROPERTY(/*VisibleAnywhere, BlueprintReadWrite, Category = "Masks Generation"*/)
-		bool Dirty;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-		FVector4 Rect;
-	
-	TArray<FMyTextureVertex> InclVertices;
-	TArray<FMyTextureVertex> ExclVertices;
-	TArray<uint32> InclTriangles;
-	TArray<uint32> ExclTriangles;
-
-	UPROPERTY(/*Category = "Inner  Mask Data"*/) TArray<FPosgisContourData> Polygons;
 #pragma region Render Data
+
 protected:
+
+	/** const buffer */
 	FPixelShaderConstantParameters ConstantParameters;
+
+	/** variable buffer */
 	FPixelShaderVariableParameters VariableParameters;
+
+	/** feature level */
 	ERHIFeatureLevel::Type FeatureLevel;
 
-	/** Main texture */
+	/** Main texture ref */
 	FTexture2DRHIRef CurrentTexture;
-	FTexture2DRHIRef TextureParameter;
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* CurrentRenderTarget1 = nullptr;
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* CurrentRenderTarget2 = nullptr;
-	
 
-	/** Since we are only reading from the resource, we do not need a UAV; an SRV is sufficient */
-	FShaderResourceViewRHIRef TextureParameterSRV;
+	/** Render target to draw mask */
+	UPROPERTY()
+	UTextureRenderTarget2D* CurrentRenderTarget = nullptr;
 
-	FVertexBufferRHIRef vertBuf1;
-	FVertexBufferRHIRef vertBuf2;
-	FIndexBufferRHIRef indBuf1;
-	FIndexBufferRHIRef indBuf2;
-	
-	bool bIsPixelShaderExecuting;
-	bool bMustRegenerateSRV;
-	bool bIsUnloading;
-	
-	/********************************************************************************************************/
-/* Let the user change rendertarget during runtime if they want to :D                                   */
-/* @param RenderTarget - This is the output rendertarget!                                               */
-/* @param InputTexture - This is a rendertarget that's used as a texture parameter to the shader :)     */
-/* @param EndColor - This will be set to the dynamic parameter buffer each frame                        */
-/* @param TextureParameterBlendFactor - The scalar weight that decides how much of the texture to blend */
-/********************************************************************************************************/
-public:
+	/** vertex buffer */
+	FVertexBufferRHIRef VertBuf;
+	/** index buffer */
+	FIndexBufferRHIRef IndBuf;
+
+	/** Are we already called shader in this frame */
+	bool IsPixelShaderExecuting;
+	/** Shoud we regenereate SRV */
+	bool MustRegenerateSRV;
+	/** Is this object currently unloading */
+	bool IsUnloading;
+
+protected:
+
+	/** Request to execute pixel shader on next render pass */
 	UFUNCTION(BlueprintCallable, Category = "Render Data")
-		void ExecutePixelShader(UTextureRenderTarget2D* inclTarget, UTextureRenderTarget2D* exclTarget);
+	void ExecutePixelShader(UTextureRenderTarget2D* inInclTarget);
 
-	/************************************************************************/
-	/* Only execute this from the render thread!!!                          */
-	/************************************************************************/
-	void ExecutePixelShaderInternal(FRHICommandListImmediate& RHICmdList, bool isExclude);
+	/** Execute pixel shader from render tread */
+	void ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmdList, bool inIsExclude);
 
 #pragma endregion 
 
-	void UpdateRect();
-
-	/*UFUNCTION()
-		void SaveMasksState();*/
-
-	UFUNCTION(BlueprintCallable)
-		void RenderMaskForTime(int year, UTextureRenderTarget2D* inclTarget, UTextureRenderTarget2D* exclTarget, float p);
 };

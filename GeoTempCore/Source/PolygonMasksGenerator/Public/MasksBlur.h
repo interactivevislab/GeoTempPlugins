@@ -1,72 +1,87 @@
 #pragma once
+
 #include "CoreMinimal.h"
 
 #include "BlurShaderDeclaration.h"
 #include "Components/ActorComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
+
 #include "MasksBlur.generated.h"
 
-
-
+/** Utility object for bluring textures */
 UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
 class POLYGONMASKSGENERATOR_API UMaskBlurer : public UActorComponent
 {
 	GENERATED_BODY()
+
 public:
+
 	UMaskBlurer();
 	~UMaskBlurer();
+
+	/** \fn BlurMask
+	 * Blur render target and write it into another render target
+	 * @param inTargetToWrite render target to write result
+	 * @param inTempTarget texture for inner updates. Are not used and can be freely changed outside this blurer render pass so you can use same tempTarget in multiple blurers and other classes. However the data is not stored.
+	 * @param inInputTexture render target with texture to blur
+	 * @param inDistance blur distance as fraction of texture size
+	 * @param inSteps number of steps blur function perform in each axis
+	 */
+	UFUNCTION(BlueprintCallable)
+	void BlurMask(UTextureRenderTarget2D* inTargetToWrite, UTextureRenderTarget2D* inTempTarget, 
+		UTextureRenderTarget2D* inInputTexture, float inDistance, int inSteps);
 	
 #pragma region Render Data
+
 private:
-	FPixelShaderConstantParametersBlur ConstantParameters;
-	FPixelShaderVariableParametersBlur VariableParameters;
-	ERHIFeatureLevel::Type FeatureLevel;
-	FVertexBufferRHIRef vertBuf;
-	/** Main texture */
-	FTexture2DRHIRef CurrentTexture;
-	FTexture2DRHIRef TextureParameter;
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* CurrentRenderTarget = nullptr;	
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* InnerRenderTarget = nullptr;	
-	UPROPERTY(/*Category = "Render Data"*/) UTextureRenderTarget2D* InputTarget = nullptr;	
-	
 
-	/** Since we are only reading from the resource, we do not need a UAV; an SRV is sufficient */
-	FShaderResourceViewRHIRef TextureParameterSRV;
-	
-	FIndexBufferRHIRef indBuf1;
-	FIndexBufferRHIRef indBuf2;
-	
-	bool bIsPixelShaderExecuting;
-	bool bMustRegenerateSRV;
-	bool bIsUnloading;
-	
-	/********************************************************************************************************/
-/* Let the user change rendertarget during runtime if they want to :D                                   */
-/* @param RenderTarget - This is the output rendertarget!                                               */
-/* @param InputTexture - This is a rendertarget that's used as a texture parameter to the shader :)     */
-/* @param EndColor - This will be set to the dynamic parameter buffer each frame                        */
-/* @param TextureParameterBlendFactor - The scalar weight that decides how much of the texture to blend */
-/********************************************************************************************************/
-public:
+	/** const buffer */
+	FPixelShaderConstantParametersBlur	constParams;
+	/** variable buffer */
+	FPixelShaderVariableParametersBlur	varParams;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-		UTextureRenderTarget2D* BlurTarget;
+	/** feature level */
+	ERHIFeatureLevel::Type	featureLevel;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-		float BlurDistance;
+	/** vertex buffer */
+	FVertexBufferRHIRef		vertBuf;
+	/** output texture ref */
+	FTexture2DRHIRef		currentTex;
 
+	/** input texture ref */
+	FTexture2DRHIRef		texParam;
+
+	/** inner pointer to outputRenderTarget */
+	UPROPERTY()
+	UTextureRenderTarget2D* outputRenderTarget = nullptr;
+
+	/** inner pointer to tempRenderTarget */
+	UPROPERTY()
+	UTextureRenderTarget2D* innerRenderTarget = nullptr;
+
+	/** inner pointer to innerRenderTarget */
+	UPROPERTY()
+	UTextureRenderTarget2D* inputTarget = nullptr;
+
+	/** Reference to texture Since we are only reading from the resource, we do not need a UAV; an SRV is sufficient */
+	FShaderResourceViewRHIRef texParamSrv;
+
+	/** Are we already called shader in this frame */
+	bool isPixelShaderExecuting;
+	
+	/** Shoud we regenereate SRV */
+	bool mustRegenerateSRV;
+
+	/** Is this object currently unloading */
+	bool isUnloading;
+protected:
+	/** Request to execute pixel shader on next render pass */
 	UFUNCTION(BlueprintCallable, Category = "Render Data")
-		void ExecutePixelShader(UTextureRenderTarget2D* target, UTextureRenderTarget2D* texture);
+	void ExecutePixelShader(UTextureRenderTarget2D* inTarget, UTextureRenderTarget2D* inTexture);
 
-	/************************************************************************/
-	/* Only execute this from the render thread!!!                          */
-	/************************************************************************/
-	void ExecutePixelShaderInternal(FRHICommandListImmediate& RHICmdList);
+	
+	/** Execute pixel shader from render tread */
+	void ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmdList);
 
-#pragma endregion 	
-	/*UFUNCTION()
-		void SaveMasksState();*/
-
-	UFUNCTION(BlueprintCallable)
-		void BlurMask(UTextureRenderTarget2D* texTarget, UTextureRenderTarget2D* tempTarget, UTextureRenderTarget2D* InputTexture, float distance, int steps);
+#pragma endregion 
 };

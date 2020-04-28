@@ -10,8 +10,17 @@
 
 void FPolygonMasksGeneratorModule::StartupModule()
 {
+	
 	FString shadersPath = FPaths::Combine(FPaths::ProjectDir(), TEXT("Plugins/GeoTempCore/Shaders"));
-	AddShaderSourceDirectoryMapping("/GameShaders", shadersPath);
+
+	if (FPaths::DirectoryExists(shadersPath)) 
+	{
+		AddShaderSourceDirectoryMapping("/GameShaders", shadersPath);
+	} else
+	{
+		shadersPath = FPaths::Combine(FPaths::ProjectDir(), TEXT("Plugins/GeoTempPlugins/GeoTempCore/Shaders"));
+		AddShaderSourceDirectoryMapping("/GameShaders", shadersPath);
+	}
 }
 
 void FPolygonMasksGeneratorModule::ShutdownModule()

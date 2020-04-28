@@ -1,0 +1,58 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "GeoTempVis",
+	"Description": "Routines for creating urban scenes",
+	"Category": "Other",
+	"CreatedBy": "VisLab",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+  "Modules": [
+    {
+      "Name": "GeoTempVis",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "GeoTempRoads",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "GeoTempBuildings",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "GeoTempTiles",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "GeoTempFoliage",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+	"Plugins": [
+		{
+			"Name": "GeoTempCore",
+			"Enabled": true
+		},
+		{
+			"Name": "RuntimeMeshComponent",
+			"Enabled": true
+		},
+		{
+			"Name": "ProceduralMeshComponent",
+			"Enabled": true
+		}
+	]
+}
