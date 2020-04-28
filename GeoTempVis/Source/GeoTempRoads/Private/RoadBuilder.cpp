@@ -191,7 +191,11 @@ void URoadBuilder::ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh
 {
 	auto sectionData = CalculateMeshDataForRoad(inSegments, outCurtainsMeshData, 
 		AutoRoadZ, RailRoadZ, RoadHeight, CurtainsWidth, Stretch);
-
+	if(sectionData.Indices.Num() == 0 || sectionData.Vertices.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Attempt to create an empty mesh"));
+		return;
+	}
 	inRuntimeMesh->CreateMeshSection(inSectionIndex, sectionData.Vertices, sectionData.Indices, sectionData.Normals,
 		sectionData.Uv0, sectionData.Uv1, sectionData.VertexColors, sectionData.Tangents, false);
 	inRuntimeMesh->SetMaterial(inSectionIndex, inMaterial);
@@ -253,6 +257,11 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	ConstructRoadMeshSection(runtimeMesh, railSegments, RAIL_MATERIAL_INDEX, 
 		roadMaterials[RAIL_MATERIAL_INDEX], curtainsMeshData);
 
+	if(curtainsMeshData.Indices.Num() == 0 || curtainsMeshData.Vertices.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Attempt to create an empty mesh"));
+		return;
+	}
 	runtimeMesh->CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normals,
 		curtainsMeshData.Uv0, curtainsMeshData.Uv1, curtainsMeshData.VertexColors, curtainsMeshData.Tangents, false);
 	runtimeMesh->SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
