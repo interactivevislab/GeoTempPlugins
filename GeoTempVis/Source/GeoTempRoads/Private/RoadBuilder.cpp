@@ -243,6 +243,8 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "RoadNetworkActor";
 	roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+	roadNetworkActor->SetActorLabel(SpawnInfo.Name.ToString());
+	roadNetworkActor->SetMobility(EComponentMobility::Movable);
 	auto runtimeMesh = roadNetworkActor->GetRuntimeMeshComponent();
 
 	MeshSectionData curtainsMeshData;
@@ -254,6 +256,8 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	runtimeMesh->CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normals,
 		curtainsMeshData.Uv0, curtainsMeshData.Uv1, curtainsMeshData.VertexColors, curtainsMeshData.Tangents, false);
 	runtimeMesh->SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
+
+	roadNetworkActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void URoadBuilder::RemoveRoadNetworkActor()
@@ -262,6 +266,20 @@ void URoadBuilder::RemoveRoadNetworkActor()
 	{
 		roadNetworkActor->Destroy();
 		roadNetworkActor = nullptr;
+	}
+
+	TArray<ARoadNetworkActor*> toDestroy;
+	for (auto child : GetOwner()->Children)
+	{
+		auto castChild = Cast<ARoadNetworkActor>(child);
+		if (castChild)
+		{
+			toDestroy.Add(castChild);
+		}
+	}
+	for (auto child : toDestroy)
+	{
+		child->Destroy();
 	}
 }
 

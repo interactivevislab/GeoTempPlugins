@@ -44,7 +44,8 @@ void ABuildingActor::Initialize(const FBuilding& inBuilding, bool inInitPartsImm
 	
 	if (Building.Parts.Num() == 0 || Building.MainPart.Height != 0) 
 	{
-		auto name = FName(*(FString::FromInt(Building.Id) + "_" + FString::FromInt(Building.MainPart.Id)));
+		auto name = FName(*("BuildingPart_" + FString::FromInt(Building.Id) 
+			+ "_" + FString::FromInt(Building.MainPart.Id)));
 		UBuildingPartComponent* part = NewObject<UBuildingPartComponent>(this, name);
 		if (part) {
 			part->OnComponentCreated();

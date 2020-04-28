@@ -952,11 +952,12 @@ private:
 	/* Serializes this component */
 	virtual void Serialize(FArchive& Ar) override;
 
+protected:
 
 	/* Does post load fixups */
 	virtual void PostLoad() override;
 
-
+private:
 
 	/** Called by URuntimeMesh any time it has new collision data that we should use */
 	void NewCollisionMeshReceived();

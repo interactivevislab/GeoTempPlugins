@@ -85,6 +85,8 @@ public:
 	bool tickEnabled = false;
 	
 	void BeginPlay() override;
+
+	void PostLoad() override;
 	
 	void TickComponent(float DeltaTime,enum ELevelTick TickType,FActorComponentTickFunction * ThisTickFunction) override;
 	//!@}
@@ -137,6 +139,10 @@ public:
 	/** Max zoom level tiles will split to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
 	int MaxLevel = 18;
+
+	/** Flag to check if files were loaded */
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	bool AreTilesLoaded;
 	
 private: 
 

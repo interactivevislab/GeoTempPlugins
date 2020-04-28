@@ -96,5 +96,6 @@ private:
 		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
 
 	/** Spawned RoadNetworkActor. */
-	ARoadNetworkActor* roadNetworkActor = nullptr;
+	UPROPERTY()
+	ARoadNetworkActor* roadNetworkActor;
 };

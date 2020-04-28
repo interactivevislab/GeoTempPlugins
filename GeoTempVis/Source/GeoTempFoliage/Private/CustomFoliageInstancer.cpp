@@ -238,7 +238,14 @@ void UCustomFoliageInstancer::FillFoliageWithMask_BP(FVector4 inComponentRect)
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "FoliageActor";
 	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+
+
 	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
+
+	foliageActor->SetActorLabel(SpawnInfo.Name.ToString());
+	foliageActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
+
+
 
 	switch (MeshLayersOption) 
 	{
@@ -283,7 +290,13 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 	SpawnInfo.Name = "FoliageActor";
 	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 
+
+
 	PrepareInstancers(componentOffset, arrayOfMeshInfos, arrayOfInstancers);
+
+	foliageActor->SetActorLabel(SpawnInfo.Name.ToString());
+	foliageActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
+
 
 	TArray<FMultipolygonData> includePolys = {};
 	TArray<FContour> excludePolys = {};
@@ -314,7 +327,7 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 
 	for (auto include : includePolys)
 	{
-		float presenceChance = include.Tags.Find("leisure") ? 0.5f : 1.0f;
+		float presenceChance = include.Tags.Find("leisure") ? 0.65f : 1.0f;
 
 		for (auto outer : include.Outer)
 		{
@@ -419,13 +432,17 @@ void UCustomFoliageInstancer::PrepareInstancers(
 		{
 			auto instancerName = FName(*("InstanceTrees" + FString::FromInt(FoliageInstancers.Num())));
 
-			InstancedMesh = NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
-			foliageActor->AddInstanceComponent(InstancedMesh);
+			InstancedMesh	= NewObject<UHierarchicalInstancedStaticMeshComponent>(foliageActor, instancerName);
+			InstancedMesh->OnComponentCreated();
+			InstancedMesh->SetupAttachment(foliageActor->Root);
 			InstancedMesh->RegisterComponent();
+			foliageActor	->AddInstanceComponent(InstancedMesh);
+			InstancedMesh	->RegisterComponent();
 
 			InstancedMesh->SetStaticMesh(meshInfo.Mesh);
 			InstancedMesh->SetWorldLocation(inComponentOffset);
 			InstancedMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			InstancedMesh->SetMobility(EComponentMobility::Movable);
 
 			FoliageInstancers.Add(meshInfo.Mesh, InstancedMesh);
 			outArrayOfInstancers.Add(InstancedMesh);
@@ -446,6 +463,9 @@ void UCustomFoliageInstancer::PrepareInstancers(
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue("Interpolation", 0.0f);
 		}
 	}
+
+	//foliageActor->SetActorLabel(SpawnInfo.Name.ToString());
+	//foliageActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void UCustomFoliageInstancer::FillFoliageWithMeshes(
