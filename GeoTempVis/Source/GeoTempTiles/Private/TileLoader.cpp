@@ -172,6 +172,7 @@ void UTilesController::CreateMeshAroundPoint(int z, int x0, int y0)
 			}
 		}
 	}
+	AreTilesLoaded = true;
 }
 
 double UTilesController::EarthRadius  = 6378.137 * 100;
