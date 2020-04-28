@@ -375,6 +375,12 @@ void UCustomFoliageInstancer::PrepareInstancers(
 
 	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
 	{
+		if (!meshInfo.Mesh)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Mesh was not set in FoliageMeshInfo"));
+			continue;
+		}
+
 		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
 
 		for (int x = 0; x < meshInfo.Mesh->StaticMaterials.Num(); ++x)
