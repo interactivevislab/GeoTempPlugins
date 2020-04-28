@@ -203,7 +203,11 @@ void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, const
 		{
 			vertexColors.Add(linearColor.ToFColor(true));
 		}
-
+		if(segmentData.Triangles.Num() == 0 || segmentData.Vertices.Num() == 0)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Attempt to create an empty mesh"));
+			return;
+		}
 		runtimeMesh->CreateMeshSection(
 			inFirstSectionIndex,
 			segmentData.Vertices,

@@ -214,7 +214,8 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					d.Buildings.AddUnique(buildings.Num() - 1);
 				}
 				
-			} else
+			} 
+			if (!buildIter || partIter)
 			{
 				wayParts.Add(part.Id, part);
 				for (auto node : way->Nodes)
