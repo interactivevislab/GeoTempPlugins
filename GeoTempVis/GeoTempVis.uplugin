@@ -39,6 +39,11 @@
       "Name": "GeoTempFoliage",
       "Type": "Runtime",
       "LoadingPhase": "Default"
+    },
+    {
+      "Name": "GeoTempWater",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
     }
   ],
 	"Plugins": [
