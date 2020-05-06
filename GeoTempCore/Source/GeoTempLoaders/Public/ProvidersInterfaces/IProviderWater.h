@@ -17,10 +17,10 @@ class GEOTEMPLOADERS_API UProviderWater : public UInterface
 
 
 /**
-* \class IProviderFolliage
-* \brief Interface for providing folliage data.
+* \class IProviderWater
+* \brief Interface for providing water data.
 *
-* @see FContourData
+* @see FMultipolygonData
 */
 class GEOTEMPLOADERS_API IProviderWater
 {

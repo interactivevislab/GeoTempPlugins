@@ -8,7 +8,7 @@
 
 /**
 * \class AWaterActor
-* \brief Actor, that represent water.
+* \brief Actor, that represents water.
 *
 * Has no special logic, created to distinguish water meshes from other.
 * @see UWaterBuilder

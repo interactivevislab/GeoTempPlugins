@@ -67,7 +67,7 @@ void UWaterBuilder::SpawnWaterActor(const TArray<FMultipolygonData>& inPolygonDa
 {
 	if (!WaterMaterial)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No material assigned to water builder! Abort mesh building."));
+		UE_LOG(LogTemp, Warning, TEXT("No material assigned to WaterBuilder! Abort mesh building."));
 		return;
 	}
 	UMaterialInstanceDynamic* waterMaterial = UMaterialInstanceDynamic::Create(WaterMaterial, this);
