@@ -8,9 +8,31 @@
 #include "ImageDownloadOverride.h"
 #include "TilesBasics.generated.h"
 
+UINTERFACE(MinimalAPI)
+class UHeightCalculator : public UInterface
+{
+public:
+	GENERATED_BODY()
+};
+
+
+/** Interface handler for different approaches to parse elevation from pixel value*/
+class IHeightCalculator
+{
+public:
+	GENERATED_BODY()	
+
+	/** Calculate height in meters based on color value*/
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Default")
+	float CalcHeight(FColor inColor);
+};
+
 
 class UTileTextureContainer;
 class UUrlSourceTilePreparer;
+class UTileData;
+
+
 /** Tile coordinates struct for using in maps */
 USTRUCT(BlueprintType)
 struct FTileCoordinates
@@ -44,52 +66,9 @@ FORCEINLINE uint32 GetTypeHash(const FTileCoordinates& k)
 	return (std::hash<int>()(k.X) ^ std::hash<int>()(k.Y) ^ std::hash<int>()(k.Z));
 }
 
-
-/** Handle for tile web loading delegates */
-UCLASS()
-class UTextureDownloader : public UObject
-{
-	GENERATED_BODY()
-public:
-
-	/** Coordinates of the tile loading */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	FTileCoordinates TextureCoords;
-
-	/** Pointer to web loading task*/
-	UPROPERTY()
-	UImageDownloadOverride* Loader;
-
-	/** Initializer for beginning of tile download */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void StartDownloadingTile(FTileCoordinates meta, FString url);
-
-	/** Pointer to tile texture container */
-	UPROPERTY()
-	UTileTextureContainer* TileContainer;
-
-	UPROPERTY()
-	UUrlSourceTilePreparer* TilePreparer;
-	
-	/** Pointer to material generated for the tile loading */
-	UPROPERTY()
-	UMaterialInstanceDynamic* Material;
-
-	UPROPERTY()
-	FString Channel;
-	
-	/** Event to call when tile sucessfully loaded */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void OnTextureLoaded(UTexture2DDynamic* Texture, TArray<uint8> data);
-
-	/** Event to call when tile download has failed */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void OnLoadFailed(UTexture2DDynamic* Texture, TArray<uint8> data);
-};
-
-
-class UTileData;
+/** Delegate for single tile texture download callbacks */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTileCompleteDownloadTexture, UTileData*, Container, FString, Channel);
+/** Delegate for whole tile download callbacks */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTileCompleteDownloadAll, UTileData*, Container);
 
 /** Tile data container */
@@ -122,47 +101,71 @@ public:
 	UPROPERTY()
 	UMaterialInstanceDynamic* Material;
 
+	/** Coordinates metadata */
 	UPROPERTY()
 	FTileCoordinates Meta;
 
+	/** Callback delegate for called when finishing download of tile texture*/
 	UPROPERTY(BlueprintAssignable)
 	FOnTileCompleteDownloadTexture OnTextureLoad;
 
+	/** Callback delegate for called when finishing download of tile texture with that tile and neighbors affecting heightmap*/
 	UPROPERTY(BlueprintAssignable)
 	FOnTileCompleteDownloadTexture OnTextureLoadWithNeighbours;
 
+	/** Callback delegate for called when finishing download of all textures*/
 	UPROPERTY(BlueprintAssignable)
 	FOnTileCompleteDownloadAll OnTileLoad;
-	
+
+	/** Callback delegate for called when finishing download of all textures with that tile and neighbors affecting heightmap*/
 	UPROPERTY(BlueprintAssignable)
 	FOnTileCompleteDownloadAll OnTileLoadWithNeighbors;
 
+	/** TileContainer responsive for loading of this tile */
 	UPROPERTY()
 	UTileTextureContainer* Container;
-	
+
+	/** Dictionary of tile loading states for neighbor right of this texture*/
 	UPROPERTY()
 	TMap<FString, bool> IsRightLoaded;
-	
+
+	/** Dictionary of tile loading states for neighbor bottom of this texture*/
 	UPROPERTY()
 	TMap<FString, bool> IsBottomLoaded;	
-	
+
+	/** Dictionary of tile loading states for neighbor bottom right of this texture*/
 	UPROPERTY()
 	TMap<FString, bool> IsBottomRightLoaded;
 
+	/** Check if this tile loaded the textures and call all required callbacks */
 	UFUNCTION()
 	void CheckLoaded();
 
+	/** Check if this tile loaded the textures and call all required callbacks */
 	UFUNCTION()
 	void CheckNeighborLoaded();
 
+	/** Get pointer to the data of right neighbor */
 	UTileData* GetRightNeighbor();
+	
+	/** Get pointer to the data of left neighbor */
 	UTileData* GetLeftNeighbor();
+	
+	/** Get pointer to the data of top neighbor */
 	UTileData* GetTopNeighbor();
+	
+	/** Get pointer to the data of bottom neighbor */
 	UTileData* GetBottomNeighbor();
 
+	/** Get pointer to the data of top left neighbor */
 	UTileData* GetTopLeftNeighbor();
+	
+	/** Get pointer to the data of bottom right neighbor */
 	UTileData* GetBottomRightNeighbor();
 
+	/** Get pointer to the data of bottom left neighbor */
 	UTileData* GetBottomLeftNeighbor();
+	
+	/** Get pointer to the data of top right neighbor */
 	UTileData* GetTopRightNeighbor();
 };

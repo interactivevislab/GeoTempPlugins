@@ -18,7 +18,7 @@ struct GEOTEMPCORE_API FContour
 
 	FContour();
 	/** Initializes this contour from Unreal array */
-	FContour(TArray<FVector> initPoints);
+	FContour(const TArray<FVector>& initPoints);
 
 	/** returns index of point with minimal X */
 	int LeftmostIndex()		const;
@@ -41,6 +41,9 @@ struct GEOTEMPCORE_API FContour
 	 * @param reverse Maintain clockwise or counter-clockwise order
 	 */
 	bool IsNotClockwise(bool reverse = false);
+
+	//returns true if the first and the last points are equal
+	bool IsClosed();
 
 	/** Removes all duplicate points and performs other cleaning */
 	void Cleanup();	

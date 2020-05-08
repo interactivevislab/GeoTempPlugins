@@ -73,11 +73,11 @@ public:
 
 	/** Read contours data from WKB entity, converting coordinates to local. */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Connection")
-	static FMultipolygonData CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords);
+	static FMultipolygonData CreateContourFromBinary(FWkbEntity& inEntity, FGeoCoords inGeoCoords);
 
 	/** Read curves from WKB entity, converting coordinates to local. */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
-	static FLinesData CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords);
+	static FLinesData CreateCurvesFromBinary(FWkbEntity& inEntity, FGeoCoords inGeoCoords);
 
 	/** Check and update current connection status. */
 	UFUNCTION(BlueprintCallable, Category = "Connection")

@@ -98,9 +98,9 @@ void UTilesController::TickComponent(float DeltaTime, enum ELevelTick TickType, 
 	}
 }
 
-float UTilesController::GetPixelSize(FTileCoordinates meta)
+float UTilesController::GetPixelSize(FTileCoordinates inTileCoords)
 {
-	auto pos = GetXYOffsetFromMercatorOffset(meta.Z, meta.X, meta.Y) + GetOwner()->GetActorLocation();
+	auto pos = GetXYOffsetFromMercatorOffset(inTileCoords.Z, inTileCoords.X, inTileCoords.Y) + GetOwner()->GetActorLocation();
 	auto controller =  GEngine->GetFirstLocalPlayerController(GetWorld());
 	if (controller)
 	{
@@ -108,11 +108,32 @@ float UTilesController::GetPixelSize(FTileCoordinates meta)
 		float dist = (pos - manager->GetCameraLocation()).Size();
 		float tan = FMath::Tan(manager->GetCameraCachePOV().DesiredFOV * PI / 180 / 2);
 		float viewSize = 2 * dist * tan;
-		float tileSize = 360 * EarthOneDegreeLengthOnEquator * FMath::Cos(CenterLat * PI / 180) / (1 << meta.Z);
+		float tileSize = 360 * EarthOneDegreeLengthOnEquator * FMath::Cos(CenterLat * PI / 180) / (1 << inTileCoords.Z);
 		float tilePixelsSize = tileSize / viewSize * GEngine->GameViewport->Viewport->GetSizeXY().X;
 		return tilePixelsSize;
 	}
 	return 220; //so we just wont update anything for this tile if cannot find player controller.
+}
+
+
+void UTilesController::EditorTick_Implementation(float inDeltaTime)
+{
+	if (NeedInitOnTick && AreTilesLoaded)
+	{
+		ClearMesh();
+		CreateMesh();
+		NeedInitOnTick = false;
+	}
+	if (TileLoader)
+	{
+		Cast<IEditorTickable>(TileLoader)->Execute_EditorTick(TileLoader, inDeltaTime);
+	}
+}
+
+void UTilesController::PostLoad()
+{
+	Super::PostLoad();
+	NeedInitOnTick = true;
 }
 
 
@@ -135,6 +156,8 @@ void UTilesController::CreateMesh()
 			BeginCreateTileMesh(x + x0 - BaseLevelSize/2, y + y0 - BaseLevelSize/2, z);
 		}
 	}
+
+	AreTilesLoaded = true;
 }
 
 void UTilesController::ClearMesh()
@@ -144,66 +167,68 @@ void UTilesController::ClearMesh()
 	SplitTiles.Empty();
 	ReservedIndecies.Empty();
 	TileIndecies.Empty();
+
+	AreTilesLoaded = false;
 }
 
 
-void UTilesController::CreateMeshAroundPoint(int z, int x0, int y0)
+void UTilesController::CreateMeshAroundPoint(int inZoom, int inX, int inY)
 {
 	if (!TileLoader)	TileLoader = NewObject<UTileTextureContainer>(this);
-
+	TileLoader->ElevationChannel = ElevationChannel;
 	//mesh->ClearAllMeshSections();
 	for (int x = 0; x < BaseLevelSize; x++)
 	{
 		for (int y = 0; y < BaseLevelSize; y++)
 		{
-			if (!SplitTiles.Contains(FTileCoordinates{ x + x0 - BaseLevelSize / 2, y + y0 - BaseLevelSize / 2, z }))
+			if (!SplitTiles.Contains(FTileCoordinates{ inX + x - BaseLevelSize / 2, inX + y - BaseLevelSize / 2, inZoom }))
 			{
-				BeginCreateTileMesh(x + x0 - BaseLevelSize / 2, y + y0 - BaseLevelSize / 2, z);
+				BeginCreateTileMesh(inX + x - BaseLevelSize / 2, inY + y - BaseLevelSize / 2, inZoom);
 			}
 		}
 	}
+	AreTilesLoaded = true;
 }
 
 double UTilesController::EarthRadius  = 6378.137 * 100;
 double UTilesController::EarthOneDegreeLengthOnEquator = 111152.8928 * 100;
 
-void UTilesController::GetMercatorXYFromOffset(FVector offsetValue, int z, int& x, int& y)
+void UTilesController::GetMercatorXYFromOffset(FVector inOffsetVector, int inZ, int& outX, int& outY)
 {
 	int dx, dy;
-	GetMercatorXYOffsetFromOffset(offsetValue, z, dx, dy);
-	int x0 = GetMercatorXFromDegrees(CenterLon) * (1 << z);
-	int y0 = GetMercatorYFromDegrees(CenterLat) * (1 << z);
+	GetMercatorXYOffsetFromOffset(inOffsetVector, inZ, dx, dy);
+	int x0 = GetMercatorXFromDegrees(CenterLon) * (1 << inZ);
+	int y0 = GetMercatorYFromDegrees(CenterLat) * (1 << inZ);
 
-	x = x0 + dx;
-	y = y0 + dy;
+	outX = x0 + dx;
+	outY = y0 + dy;
 }
 
-void UTilesController::GetMercatorXYOffsetFromOffset(FVector offsetValue, int z, int& dx, int& dy)
+void UTilesController::GetMercatorXYOffsetFromOffset(FVector inOffsetVector, int inZ, int& dx, int& dy)
 {
-	float fdx = offsetValue.X * (1 << z) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
-	float fdy = offsetValue.Y * (1 << z) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
+	float fdx = inOffsetVector.X * (1 << inZ) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
+	float fdy = inOffsetVector.Y * (1 << inZ) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
 	dx = (int)FMath::RoundFromZero(fdx);
 	dy = (int)FMath::RoundFromZero(fdy);
 }
 
-FVector UTilesController::GetXYOffsetFromMercatorOffset(int z, int x, int y)
+FVector UTilesController::GetXYOffsetFromMercatorOffset(int inZ, int inX, int inY)
 {
-	int x0 = GetMercatorXFromDegrees(CenterLon) * (1 << z);
-	int y0 = GetMercatorYFromDegrees(CenterLat) * (1 << z);
-	float fdx = (x - x0) * 360 * EarthOneDegreeLengthOnEquator / (1 << z) * FMath::Cos(CenterLat * PI / 180);
-	float fdy = (y - y0) * 360 * EarthOneDegreeLengthOnEquator / (1 << z) * FMath::Cos(CenterLat * PI / 180);
+	int x0 = GetMercatorXFromDegrees(CenterLon) * (1 << inZ);
+	int y0 = GetMercatorYFromDegrees(CenterLat) * (1 << inZ);
+	float fdx = (inX - x0) * 360 * EarthOneDegreeLengthOnEquator / (1 << inZ) * FMath::Cos(CenterLat * PI / 180);
+	float fdy = (inY - y0) * 360 * EarthOneDegreeLengthOnEquator / (1 << inZ) * FMath::Cos(CenterLat * PI / 180);
 	return FVector(fdx, fdy, 0) + GetOwner()->GetActorLocation();
 }
 
-void UTilesController::CreateTileMesh(UTileData* tile)
+void UTilesController::CreateTileMesh(UTileData* inTile)
 {
-	auto& meta = tile->Meta;
-				
-	int sectionIndex  = ReservedIndecies[meta];
+	auto& meta = inTile->Meta;	
 	if (TileIndecies.Contains(meta))
 	{
 		return;// TileIndecies[meta];
 	}
+	int sectionIndex = ReservedIndecies[meta];
 	TileIndecies.Add(meta, sectionIndex);
 	ReservedIndecies.Remove(meta);
 	int x = meta.X;
@@ -269,29 +294,29 @@ void UTilesController::CreateTileMesh(UTileData* tile)
 				}
 			}		
 		}
-		GeometryGenerator->GenerateVertices(tile, ElevationChannel, TileMeshResolution, vertices, normals);
+		GeometryGenerator->GenerateVertices(inTile, ElevationChannel, TileMeshResolution, vertices, normals);
 	}
 	
 	CreateMeshSection(sectionIndex, vertices, triangles, normals, uvs, TArray<FColor>(), TArray<FRuntimeMeshTangent>(), false);
-	SetMaterial(sectionIndex, tile->Material);
+	SetMaterial(sectionIndex, inTile->Material);
 }
 
 
 int UTilesController::BeginCreateTileMesh(int inX, int inY, int inZ)
 {
 	auto meta = FTileCoordinates{ inX, inY, inZ };
-	return BeginCreateTileMesh(meta);
+	return BeginCreateTileMesh(meta, true);
 }
 
-int UTilesController::BeginCreateTileMesh(FTileCoordinates inMeta, bool inInitNeighbours)
+int UTilesController::BeginCreateTileMesh(FTileCoordinates inTileCoords, bool inInitNeighbours)
 {	
-	if (TileIndecies.Contains(inMeta))
+	if (TileIndecies.Contains(inTileCoords))
 	{
-		return TileIndecies[inMeta];
+		return TileIndecies[inTileCoords];
 	}
-	else if (ReservedIndecies.Contains(inMeta))
+	else if (ReservedIndecies.Contains(inTileCoords))
 	{
-		return ReservedIndecies[inMeta];
+		return ReservedIndecies.FindRef(inTileCoords);
 	}
 	int sectionIndex = -1;
 	if (freeIndices.Num() > 0)
@@ -303,50 +328,46 @@ int UTilesController::BeginCreateTileMesh(FTileCoordinates inMeta, bool inInitNe
 		sectionIndex = GetNumSections() + ReservedIndecies.Num();
 	}
 	UTileData* tile;
-	if (ReservedIndecies.Contains(inMeta))
-	{		
-		tile = Tiles[inMeta];		
-		tile->Container = TileLoader;
-	} else
-	{
-		ReservedIndecies.Add(inMeta, sectionIndex);
-		int x = inMeta.X;
-		int y = inMeta.Y;
-		int z = inMeta.Z;
-		tile = TileLoader->GetTileMaterial(x, y, z, TileMaterial, this->GetOwner());
-	}
+
+	ReservedIndecies.Add(inTileCoords, sectionIndex);
+	tile = TileLoader->GetTileMaterial(inTileCoords, TileMaterial, this->GetOwner());
+	
+	
+	tile->OnTileLoadWithNeighbors.Clear();
+	tile->OnTileLoadWithNeighbors.AddDynamic(this, &UTilesController::CreateTileMesh);
+
 	if (inInitNeighbours)
 	{
-		BeginCreateTileMesh(FTileCoordinates{inMeta.X + 1, inMeta.Y    , inMeta.Z}, false);
-		BeginCreateTileMesh(FTileCoordinates{inMeta.X    , inMeta.Y + 1, inMeta.Z}, false);
-		BeginCreateTileMesh(FTileCoordinates{inMeta.X + 1, inMeta.Y + 1, inMeta.Z}, false);
+		BeginCreateTileMesh(FTileCoordinates{ inTileCoords.X + 1, inTileCoords.Y    , inTileCoords.Z }, false);
+		BeginCreateTileMesh(FTileCoordinates{ inTileCoords.X    , inTileCoords.Y + 1, inTileCoords.Z }, false);
+		BeginCreateTileMesh(FTileCoordinates{ inTileCoords.X + 1, inTileCoords.Y + 1, inTileCoords.Z }, false);
 	}
-	tile->OnTileLoadWithNeighbors.AddDynamic(this, &UTilesController::CreateTileMesh);
+	
 	tile->CheckLoaded();
-	TileLoader->SetTileActive(inMeta, true);		
-	Tiles.Add(inMeta, tile);	
+	TileLoader->SetTileActive(inTileCoords, true);		
+	Tiles.Add(inTileCoords, tile);	
 	return sectionIndex;
 }
 
-void UTilesController::ClearTileMesh(FTileCoordinates meta)
+void UTilesController::ClearTileMesh(FTileCoordinates inTileCoords)
 {
-	int index = TileIndecies[meta];
+	int index = TileIndecies[inTileCoords];
 	SetMeshSectionVisible(index, false);
 	
-	TileLoader->SetTileActive(meta, false);
+	TileLoader->SetTileActive(inTileCoords, false);
 	freeIndices.Add(index);
-	TileIndecies.Remove(meta);
-	Tiles[meta]->IsActive = false;
-	Tiles[meta]->lastAcessTime = FDateTime::Now();
+	TileIndecies.Remove(inTileCoords);
+	Tiles[inTileCoords]->IsActive = false;
+	Tiles[inTileCoords]->lastAcessTime = FDateTime::Now();
 }
 
-bool UTilesController::IsTileSplit(int x, int y, int z)
+bool UTilesController::IsTileSplit(int inX, int inY, int inZ)
 {
 	return
-		TileIndecies.Contains(FTileCoordinates{x * 2, y * 2, z + 1}) &&
-		TileIndecies.Contains(FTileCoordinates{x * 2 + 1, y * 2, z + 1}) &&
-		TileIndecies.Contains(FTileCoordinates{x * 2, y * 2 + 1, z + 1}) &&
-		TileIndecies.Contains(FTileCoordinates{x * 2 + 1, y * 2 + 1, z + 1});
+		TileIndecies.Contains(FTileCoordinates{inX * 2, inY * 2, inZ + 1}) &&
+		TileIndecies.Contains(FTileCoordinates{inX * 2 + 1, inY * 2, inZ + 1}) &&
+		TileIndecies.Contains(FTileCoordinates{inX * 2, inY * 2 + 1, inZ + 1}) &&
+		TileIndecies.Contains(FTileCoordinates{inX * 2 + 1, inY * 2 + 1, inZ + 1});
 }
 
 void UTilesController::SplitTile(FTileCoordinates m)
@@ -354,13 +375,13 @@ void UTilesController::SplitTile(FTileCoordinates m)
 	SplitTile(m.X, m.Y, m.Z);
 }
 
-void UTilesController::SplitTile(int x, int y, int z)
+void UTilesController::SplitTile(int inX, int inY, int inZ)
 {
-	auto parentMeta = FTileCoordinates{ x, y, z };
-	auto childMeta1 = FTileCoordinates{ x * 2, y * 2, z + 1 };
-	auto childMeta2 = FTileCoordinates{ x * 2 + 1, y * 2, z + 1 };
-	auto childMeta3 = FTileCoordinates{ x * 2, y * 2 + 1, z + 1 };
-	auto childMeta4 = FTileCoordinates{ x * 2 + 1, y * 2 + 1, z + 1 };
+	auto parentMeta = FTileCoordinates{ inX, inY, inZ };
+	auto childMeta1 = FTileCoordinates{ inX * 2, inY * 2, inZ + 1 };
+	auto childMeta2 = FTileCoordinates{ inX * 2 + 1, inY * 2, inZ + 1 };
+	auto childMeta3 = FTileCoordinates{ inX * 2, inY * 2 + 1, inZ + 1 };
+	auto childMeta4 = FTileCoordinates{ inX * 2 + 1, inY * 2 + 1, inZ + 1 };
 
 	TileLoader->GetTileMaterial(childMeta1, TileMaterial, GetOwner());
 	TileLoader->GetTileMaterial(childMeta2, TileMaterial, GetOwner());

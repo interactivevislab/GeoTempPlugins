@@ -3,17 +3,29 @@
 #include "CoreMinimal.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
-UTileData* UTileTextureContainer::GetTileMaterial(int x, int y, int z, UMaterialInterface* mat, AActor* owner)
+void UTileTextureContainer::AddTextureGetter(FString inChannel, TScriptInterface<ITileProvider> inGetter)
 {
-	auto meta = FTileCoordinates{ x, y, z };
-	return GetTileMaterial(meta, mat, owner);
+	TextureGetters.Add(inChannel, inGetter);
 }
 
-UTileData* UTileTextureContainer::GetTileMaterial(FTileCoordinates meta, UMaterialInterface* mat, AActor* owner)
+void UTileTextureContainer::SetTileActive(FTileCoordinates inTileCoords, bool inActive)
+{
+	auto tile = CachedTiles.Find(inTileCoords);
+	if (tile)
+	{
+		(*tile)->IsActive = inActive;
+		if (!inActive)
+		{
+			(*tile)->lastAcessTime = FDateTime::Now();
+		}
+	}
+}
+
+UTileData* UTileTextureContainer::GetTileMaterial(FTileCoordinates inTileCoords, UMaterialInterface* inMat, AActor* inOwner)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Total cached textures: %i"), CachedTiles.Num());
-	auto cached = CachedTiles.Find(meta);
-	if (!cached || !*cached)
+	auto cached = CachedTiles.Find(inTileCoords);
+	if (!cached || !*cached || (*cached)->IsLoaded.Num() == 0)
 	{
 		if (CachedTiles.Num() > 512)
 		{
@@ -35,24 +47,25 @@ UTileData* UTileTextureContainer::GetTileMaterial(FTileCoordinates meta, UMateri
 			}
 		}
 		
-		UMaterialInstanceDynamic* matInstance = UMaterialInstanceDynamic::Create(mat, owner);
+		UMaterialInstanceDynamic* matInstance = UMaterialInstanceDynamic::Create(inMat, inOwner);
 		
 		auto TileInfo = NewObject<UTileData>();
-		TileInfo->Meta = meta;
+		TileInfo->Meta = inTileCoords;
 		TileInfo->Material = matInstance;
 		TileInfo->lastAcessTime = FDateTime::Now();
 		TileInfo->Container = this;
 
 		
-		CachedTiles.Add(meta, TileInfo);
+		CachedTiles.Add(inTileCoords, TileInfo);
 	
 		for (auto textureGetter : TextureGetters)
 		{
 			auto getter = textureGetter.Value;
-			const auto& interface = Cast<ITilePreparer>(getter.GetObject());
-			interface->Execute_RequestTile(getter.GetObject(), TileInfo, matInstance, this, textureGetter.Key);
+			const auto& interface = Cast<ITileProvider>(getter.GetObject());
+			if (IsValid(getter.GetObject())) 
+				interface->Execute_RequestTile(getter.GetObject(), TileInfo, this, textureGetter.Key);
 		}
-		//matInstance->SetTextureParameterValue("Tile", CachedTextures[meta]);		
+		//matInstance->SetTextureParameterValue("Tile", CachedTextures[inTileCoords]);		
 		return TileInfo;
 	}	
 	else
@@ -62,35 +75,35 @@ UTileData* UTileTextureContainer::GetTileMaterial(FTileCoordinates meta, UMateri
 }
 
 
-void UTileTextureContainer::CacheTexture(FTileCoordinates meta, UTexture* texture, FString channel, TArray<uint8> data)
+void UTileTextureContainer::CacheTexture(FTileCoordinates inTileCoords, UTexture* inTexture, FString inChannel, const TArray<uint8>& inData)
 {
-	if (CachedTiles.Contains(meta))
+	if (CachedTiles.Contains(inTileCoords))
 	{
-		if (texture && texture->IsValidLowLevel())
+		if (inTexture && inTexture->IsValidLowLevel())
 		{
-			CachedTiles[meta]->Textures.Add(channel, texture);
-			CachedTiles[meta]->IsLoaded[channel] = true;
+			CachedTiles[inTileCoords]->Textures.Add(inChannel, inTexture);
+			CachedTiles[inTileCoords]->IsLoaded[inChannel] = true;
 			
 		}
-		if (channel.Equals(ElevationChannel))
+		if (inChannel.Equals(ElevationChannel))
 		{
-			auto& heightmap = CachedTiles[meta]->HeightMap;
+			auto& heightmap = CachedTiles[inTileCoords]->HeightMap;
 			heightmap.Empty();
-			for (int i = 0; i < data.Num() / 4; i++)
+			for (int i = 0; i < inData.Num() / 4; i++)
 			{
-				heightmap.Add(FColor(data[i * 4 + 2], data[i * 4 + 1], data[i * 4], data[i * 4 + 3]));
+				heightmap.Add(FColor(inData[i * 4 + 2], inData[i * 4 + 1], inData[i * 4], inData[i * 4 + 3]));
 			}
-			CachedTiles[meta]->HeightMap = heightmap;
+			CachedTiles[inTileCoords]->HeightMap = heightmap;
 		}
-		CachedTiles[meta]->CheckLoaded();
+		CachedTiles[inTileCoords]->CheckLoaded();
 	}
 	
 }
 
-bool UTileTextureContainer::IsTextureLoaded(FTileCoordinates meta)
+bool UTileTextureContainer::IsTextureLoaded(FTileCoordinates inTileCoords)
 {
-	if (CachedTiles.Contains(meta)) return false;
-	for (auto x : CachedTiles[meta]->IsLoaded)
+	if (CachedTiles.Contains(inTileCoords)) return false;
+	for (auto x : CachedTiles[inTileCoords]->IsLoaded)
 	{
 		if (!x.Value) return false;
 	}

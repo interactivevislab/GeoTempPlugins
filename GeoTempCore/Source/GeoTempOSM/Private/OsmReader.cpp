@@ -89,8 +89,12 @@ void UOsmReader::ReadData()
 			while (tag != nullptr)
 			{
 				auto key = std::string(tag->Attribute("k"));
+				auto value = std::string(tag->Attribute("v"));
 				std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-				nodeObj->Tags.Add(key.c_str(), tag->Attribute("v"));
+
+				auto keyString = FString(UTF8_TO_TCHAR(key.c_str()));
+				auto valueString = FString(UTF8_TO_TCHAR(value.c_str()));
+				nodeObj->Tags.Add(keyString, valueString);
 				tag = tag->NextSiblingElement("tag");
 			}
 			Nodes.Add(id, nodeObj);
@@ -115,7 +119,10 @@ void UOsmReader::ReadData()
 			auto key = std::string(tag->Attribute("k"));
 			auto value = std::string(tag->Attribute("v"));
 			std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-			wayObj->Tags.Add(key.c_str(), tag->Attribute("v"));
+
+			auto keyString = FString(UTF8_TO_TCHAR(key.c_str()));
+			auto valueString = FString(UTF8_TO_TCHAR(value.c_str()));
+			wayObj->Tags.Add(keyString, valueString);
 			tag = tag->NextSiblingElement("tag");
 		}
 
@@ -176,8 +183,12 @@ void UOsmReader::ReadData()
 		while (tag != nullptr)
 		{
 			auto key = std::string(tag->Attribute("k"));
+			auto value = std::string(tag->Attribute("v"));
 			std::transform(key.begin(), key.end(), key.begin(), ::tolower);
-			relObj->Tags.Add(key.c_str(), tag->Attribute("v"));
+
+			auto keyString = FString(UTF8_TO_TCHAR(key.c_str()));
+			auto valueString = FString(UTF8_TO_TCHAR(value.c_str()));
+			relObj->Tags.Add(keyString, valueString);
 			tag = tag->NextSiblingElement("tag");
 		}
 

@@ -283,10 +283,10 @@ void UPostGisReader::SaveConfiguration()
 }
 
 
-FMultipolygonData UPostGisReader::CreateContourFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords)
+FMultipolygonData UPostGisReader::CreateContourFromBinary(FWkbEntity& inEntity, FGeoCoords inGeoCoords)
 {	
 	auto byteCount = inEntity.Geometry.Num();
-	auto c = inEntity.Geometry.GetData();
+	uint8* c = inEntity.Geometry.GetData();
 	FMultipolygonData contour;
 	contour.Origin = inGeoCoords;	
 	auto typeVal = ((uint32*)c)[0];
@@ -368,7 +368,7 @@ FMultipolygonData UPostGisReader::CreateContourFromBinary(FWkbEntity inEntity, F
 }
 
 
-FLinesData UPostGisReader::CreateCurvesFromBinary(FWkbEntity inEntity, FGeoCoords inGeoCoords)
+FLinesData UPostGisReader::CreateCurvesFromBinary(FWkbEntity& inEntity, FGeoCoords inGeoCoords)
 {
 	FLinesData ret;	
 	auto byteCount = inEntity.Geometry.Num();

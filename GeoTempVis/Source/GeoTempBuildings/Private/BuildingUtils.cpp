@@ -9,7 +9,7 @@ TMap<FString, TScriptInterface<IRoofMaker>> MeshHelpers::RoofMakers = TMap<FStri
 
 const float FLOOR_HEIGHT = 350;
 FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, const FBuildingPart& inBuildingPart,
-                                                 UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, FString inTriangulationFlags)
+                                                 UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial, const FString& inTriangulationFlags)
 {
 	FBuildingMeshData meshData;
 
@@ -171,7 +171,7 @@ FBuildingMeshData MeshHelpers::CalculateMeshData(const FBuilding& inBuilding, co
 
 
 
-void MeshHelpers::ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, FBuildingMeshData inMeshData, int inFirstSectionIndex)
+void MeshHelpers::ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, const FBuildingMeshData& inMeshData, int inFirstSectionIndex)
 {	
 	for (auto& segmentData : inMeshData.Sections) 
 	{
@@ -194,7 +194,7 @@ void MeshHelpers::ConstructProceduralMesh(UProceduralMeshComponent* inProcMesh, 
 }
 
 
-void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, FBuildingMeshData inMeshData, int inFirstSectionIndex)
+void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, const FBuildingMeshData& inMeshData, int inFirstSectionIndex)
 {
 	for (auto& segmentData : inMeshData.Sections)
 	{
@@ -203,7 +203,11 @@ void MeshHelpers::ConstructRuntimeMesh(URuntimeMeshComponent* runtimeMesh, FBuil
 		{
 			vertexColors.Add(linearColor.ToFColor(true));
 		}
-
+		if(segmentData.Triangles.Num() == 0 || segmentData.Vertices.Num() == 0)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Attempt to create an empty mesh"));
+			return;
+		}
 		runtimeMesh->CreateMeshSection(
 			inFirstSectionIndex,
 			segmentData.Vertices,

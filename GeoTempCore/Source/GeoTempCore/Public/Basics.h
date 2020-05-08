@@ -80,7 +80,7 @@ class GEOTEMPCORE_API UGeoHelpers : public UObject
 	GENERATED_BODY()
 
 public:
-	/** Earth radius */
+	/** Earth radius in meters */
 	static const double EARTH_RADIUS;
 	
 	/** Scale multiplier to convert meters to scene units */

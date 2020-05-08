@@ -4,12 +4,9 @@
 FContour::FContour() {}
 
 
-FContour::FContour(TArray<FVector> initPoints)
+FContour::FContour(const TArray<FVector>& initPoints)
 {
-	for (auto point : initPoints)
-	{
-		Points.Add(point);
-	}
+	Points.Append(initPoints);
 }
 
 
@@ -99,7 +96,7 @@ void FContour::FixLoop()
 
 bool FContour::IsNotClockwise(bool inReverse)
 {
-	if ((Points.Last() - Points[0]).Size2D() > 1)
+	if (!IsClosed())
 	{
 		auto v = Points[0];
 		Points.Add(v);
@@ -121,6 +118,12 @@ bool FContour::IsNotClockwise(bool inReverse)
 	bool needReverse = FVector::CrossProduct(Points[i] - Points[i0], Points[i1] - Points[i]).Z * (inReverse ? -1 : 1) < 0;
 	
 	return needReverse;
+}
+
+
+bool FContour::IsClosed()
+{
+	return (Points.Last() - Points[0]).Size2D() <= 1;
 }
 
 

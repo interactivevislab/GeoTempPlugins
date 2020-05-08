@@ -22,14 +22,14 @@ struct GEOTEMPCORE_API FWkbEntity
 };
 
 
-/** Container for storing multiple contours */
+/** Container for storing contour array in UE Containers */
 USTRUCT(BlueprintType)
 struct GEOTEMPCORE_API FLinesData
 {
 	GENERATED_BODY()
 
 public:
-	/** List of contours */
+	/** List of contours to store */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 	TArray<FContour> Lines;
 };
@@ -67,13 +67,18 @@ public:
 	 * @param inArray binary array of geometry data
 	 * @param outOffset current position of cursor in the array
 	 * @param inHeight elevation with which initialize the point
+	 *
+	 * @return coordinates of result point
 	 */
 	FVector BinaryParsePoint(uint8* inArray, int& outOffset, float inHeight = 0);
+	
 	/** Parse point from binary array, starting with offset. Static version that requires geoCoordinates input
 	 * @param inArray binary array of geometry data
 	 * @param outOffset current position of cursor in the array
 	 * @param inGeoCoords Scene-projection matching structure
-	 * @param inHeight elevation with which initialize the point	 
+	 * @param inHeight elevation with which initialize the point
+	 *
+	 * @return coordinates of result point
 	 */
 	static FVector BinaryParsePoint(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords, float inHeight = 0);
 
@@ -82,6 +87,8 @@ public:
 	 * @param outOffset current position of cursor in the array
 	 * @param inSkipBOM should the data contain Bite-Order mark under cursor
 	 * @param inHeight elevation with which initialize the point
+	 *
+	 * @return coordinates of result point
 	 */
 	TArray<FVector> BinaryParseCurve(uint8* inArray, int& outOffset,
 		bool inSkipBOM = false, float inHeight = 0);
@@ -90,8 +97,10 @@ public:
 	 * @param inArray binary array of geometry data
 	 * @param outOffset current position of cursor in the array
 	 * @param inGeoCoords Scene-projection matching structure
-	 * @param inSkipBOM should the data contain Bite-Order mark under cursor
+	 * @param inSkipBOM should the data contain Byte-Order mark under cursor
 	 * @param inHeight elevation with which initialize the point
+	 *
+	 * @return result array of points
 	 */
 	static TArray<FVector> BinaryParseCurve(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 		bool inSkipBOM = false, float inHeight = 0);
@@ -99,8 +108,10 @@ public:
 	/** Parse polygon from binary array, starting with offset. Uses geoCoordinates of this contour
 	 * @param inArray binary array of geometry data
 	 * @param outOffset current position of cursor in the array
-	 * @param inSkipBOM should the data contain Bite-Order mark under cursor
+	 * @param inSkipBOM should the data contain Byte-Order mark under cursor
 	 * @param inHeight elevation with which initialize the point
+	 *
+	 * @return result multipolygon
 	 */
 	FMultipolygonData BinaryParsePolygon(uint8* inArray, int& outOffset,
 		bool inSkipBOM, float inHeight = 0);
@@ -109,8 +120,10 @@ public:
 	 * @param inArray binary array of geometry data
 	 * @param outOffset current position of cursor in the array
 	 * @param inGeoCoords Scene-projection matching structure
-	 * @param inSkipBOM should the data contain Bite-Order mark under cursor
+	 * @param inSkipBOM should the data contain Byte-Order mark under cursor
 	 * @param inHeight elevation with which initialize the point
+	 *
+	 * @return result multipolygon
 	 */
 	static FMultipolygonData BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 		bool inSkipBOM, float inHeight = 0);

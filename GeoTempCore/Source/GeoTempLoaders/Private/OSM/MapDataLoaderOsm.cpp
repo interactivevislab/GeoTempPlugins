@@ -70,3 +70,11 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 	LoadedFoliageContours	= IProviderFolliage::Execute_GetFolliage(foliageLoader);
 	OnDataLoaded.Broadcast(true);
 }
+
+
+void UMapDataLoaderOsm::ClearLoadedData()
+{
+	LoadedBuildings.Empty();
+	LoadedRoadNetwork = FRoadNetwork();
+	LoadedFoliageContours.Empty();
+}
