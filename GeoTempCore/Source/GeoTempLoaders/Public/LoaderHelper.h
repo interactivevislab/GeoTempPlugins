@@ -4,6 +4,7 @@
 
 #include "RoadsData.h"
 #include "GeometryData.h"
+#include "OsmData.h"
 
 #include "LoaderHelper.Generated.h"
 
@@ -26,6 +27,8 @@ public:
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
 
 	static TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours);
+
+	static TArray<FContour> FixAndCutRelationContours(TArray<FContour>& inUnclosedContour, FVector4 inBounds, OsmRelation& inRelation);
 
 #pragma region Tags
 

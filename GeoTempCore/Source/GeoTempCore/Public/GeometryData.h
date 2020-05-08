@@ -128,3 +128,28 @@ public:
 	static FMultipolygonData BinaryParsePolygon(uint8* inArray, int& outOffset, FGeoCoords inGeoCoords,
 		bool inSkipBOM, float inHeight = 0);
 };
+
+UCLASS()
+class GEOTEMPCORE_API UGeometryHelpers : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	/** Get coordinates of lines intersection
+	 * @param inFirstLineStart start point of the first line
+	 * @param inFirstLineEnd end point of the first line
+	 * @param inSecondLineStart start point of the second line
+	 * @param inSecondLineEnd end point of the second line
+	 * @return FVector point of lines intersection (returns FVector(FLT_MAX, FLT_MAX, 0) if lines are parallel)
+	 */
+	static FVector LinesIntersection(FVector inFirstLineStart, FVector inFirstLineEnd, FVector inSecondLineStart, FVector inSecondLineEnd);
+
+	/** Get coordinates of lines intersection
+	 * @param inFirstLineStart start point of the first line
+	 * @param inFirstLineEnd end point of the first line
+	 * @param inSecondLineStart start point of the second line
+	 * @param inSecondLineEnd end point of the second line
+	 * @return bool whether line segments intersect or not
+	 */
+	static bool DoLineSegmentsIntersect(FVector inFirstLineStart, FVector inFirstLineEnd, FVector inSecondLineStart, FVector inSecondLineEnd, FVector& outIntersection);
+};

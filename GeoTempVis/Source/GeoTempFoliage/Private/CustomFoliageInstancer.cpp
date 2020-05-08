@@ -129,22 +129,29 @@ TArray<FContour> GetIntersectedPolygons(FContour inMainPolygon, TArray<FContour>
 				auto secondLineStart = excludePoly.Points[i];
 				auto secondLineEnd = excludePoly.Points[i+1];
 
-				auto intersection = LineIntersection(firstLineStart, firstLineEnd, secondLineStart, secondLineEnd);
-				if (intersection.X == FLT_MAX &&
-					intersection.Y == FLT_MAX)
+				FVector intersection;
+				foundIntersection = UGeometryHelpers::DoLineSegmentsIntersect(firstLineStart, firstLineEnd, secondLineStart, secondLineEnd, intersection);
+				if (foundIntersection)
 				{
-					continue;
-				}
-				auto minX = FMath::Min(firstLineStart.X, firstLineEnd.X);
-				auto maxX = FMath::Max(firstLineStart.X, firstLineEnd.X);
-				auto minY = FMath::Min(firstLineStart.Y, firstLineEnd.Y);
-				auto maxY = FMath::Max(firstLineStart.Y, firstLineEnd.Y);
-				if ((intersection.X >= minX && intersection.X <= maxX) && (intersection.Y >= minY && intersection.Y <= maxY))
-				{
-					foundIntersection = true;
 					exclude.Add(excludePoly);
 					break;
 				}
+				//auto intersection = LineIntersection(firstLineStart, firstLineEnd, secondLineStart, secondLineEnd);
+				//if (intersection.X == FLT_MAX &&
+				//	intersection.Y == FLT_MAX)
+				//{
+				//	continue;
+				//}
+				//auto minX = FMath::Min(firstLineStart.X, firstLineEnd.X);
+				//auto maxX = FMath::Max(firstLineStart.X, firstLineEnd.X);
+				//auto minY = FMath::Min(firstLineStart.Y, firstLineEnd.Y);
+				//auto maxY = FMath::Max(firstLineStart.Y, firstLineEnd.Y);
+				//if ((intersection.X >= minX && intersection.X <= maxX) && (intersection.Y >= minY && intersection.Y <= maxY))
+				//{
+				//	foundIntersection = true;
+				//	exclude.Add(excludePoly);
+				//	break;
+				//}
 			}
 			if (foundIntersection)
 			{
@@ -154,9 +161,6 @@ TArray<FContour> GetIntersectedPolygons(FContour inMainPolygon, TArray<FContour>
 	}
 	return exclude;
 }
-
-
-
 
 
 UCustomFoliageInstancer::UCustomFoliageInstancer()

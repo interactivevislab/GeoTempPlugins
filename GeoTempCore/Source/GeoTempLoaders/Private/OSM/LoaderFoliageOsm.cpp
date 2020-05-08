@@ -223,8 +223,8 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				}
 			}
 
-			polygon.Outer.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours));
-			polygon.Holes.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours));
+			polygon.Outer.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours/*,osmReader->BoundsRect*/));
+			polygon.Holes.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours/*,osmReader->BoundsRect*/));
 
 			polygon.Tags = relation->Tags;
 			polygon.Origin = osmReader->GeoCoords;

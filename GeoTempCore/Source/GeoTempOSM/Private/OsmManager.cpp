@@ -126,4 +126,17 @@ UHttpRequest* UOsmManager::GetOsmDataForBoundingBox(float inLeft, float inBottom
 	});
 }
 
+UHttpRequest* UOsmManager::GetOsmDataForIds(TArray<int> inIDs)
+{
+
+	//for (auto id: inIDs)
+	//{
+
+	//}
+	//return CreateRequest(GET_VERB, "/map", ParametersSet{
+	//	Parameter {"bbox", UrlWithArgs("{0},{1},{2},{3}", inLeft, inBottom, inRight, inTop)}
+	//	});
+	return nullptr;
+}
+
 #pragma endregion

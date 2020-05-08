@@ -40,6 +40,9 @@ public:
 	/** Processed OSM relations. */
 	TMap<long, OsmRelation*> Relations;
 
+	/** Rectangle that represents bounds in format FVector4(minX, maxX, minY, maxY) */
+	FVector4 BoundsRect;
+
 	/** Load data from XML string. */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
 	void InitWithXML(FString inXmlString);

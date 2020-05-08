@@ -25,7 +25,7 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 
 		FMultipolygonData polygon;
 		//if this is building or part
-		if (FoliageIterNatural && FoliageIterNatural->Equals("water"))
+		if (FoliageIterNatural && (FoliageIterNatural->Equals("water") || FoliageIterNatural->Equals("bay")))
 		{
 
 			//get all points of this way
@@ -119,7 +119,7 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 		auto FoliageIterNatural = relation->Tags.Find("natural");
 
 		//if this relation is building
-		if (FoliageIterNatural && FoliageIterNatural->Equals("water"))
+		if (FoliageIterNatural && (FoliageIterNatural->Equals("water") || FoliageIterNatural->Equals("bay")))
 		{
 			FMultipolygonData polygon;
 
@@ -156,13 +156,32 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 					unclosedConts.Add(contour);
 				}
 			}
+			//bool clockwise;
+			//if (relation->WayRoles.Num()==2)
+			//{
+			//	if (relation->Ways[0]->Nodes[0] == relation->Ways[1]->Nodes[0])
+			//	{
 
-			polygon.Outer.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours));
-			polygon.Holes.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours));
-
+			//	}
+			//}
+			polygon.Outer.Append(ULoaderHelper::FixAndCutRelationContours(UnclosedOuterContours, osmReader->BoundsRect, *relation));
+			polygon.Holes.Append(ULoaderHelper::FixAndCutRelationContours(UnclosedInnerContours, osmReader->BoundsRect, *relation));
 			polygon.Tags = relation->Tags;
 			polygon.Origin = osmReader->GeoCoords;
-
+			if (polygon.Outer.Num()==0)
+			{
+				FContour filler = FContour();
+				filler.Points.Append(
+					{
+						FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.Z,0),
+						FVector(osmReader->BoundsRect.Y,osmReader->BoundsRect.Z,0),
+						FVector(osmReader->BoundsRect.Y,osmReader->BoundsRect.W,0),
+						FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.W,0),
+						FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.Z,0),
+					}
+				);
+				polygon.Outer.Add(filler);
+			}
 			polygons.Add(polygon);
 		}
 	}

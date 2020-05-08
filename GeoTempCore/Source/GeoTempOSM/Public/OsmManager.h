@@ -34,6 +34,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UHttpRequest* GetOsmDataForBoundingBox(float inLeft, float inBottom, float inRight, float inTop);
 
+	/** Creates request for loading OSM data for IDs. */
+	UFUNCTION(BlueprintCallable)
+	UHttpRequest* GetOsmDataForIds(TArray<int> inIDs);
+
 #pragma endregion
 
 	/** Initialize manager. */
