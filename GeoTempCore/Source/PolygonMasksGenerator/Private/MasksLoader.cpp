@@ -138,8 +138,8 @@ void UMaskLoader::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 		GraphicsPSOInit.DepthStencilState	= TStaticDepthStencilState<true, CF_LessEqual>::GetRHI();
 		GraphicsPSOInit.PrimitiveType		= PT_TriangleList;
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI	= GTextureVertexDeclarationMask.VertexDeclarationRhi;
-		GraphicsPSOInit.BoundShaderState.VertexShaderRHI		= GETSAFERHISHADER_VERTEX(*VertexShader);
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI			= GETSAFERHISHADER_PIXEL(*PixelShader);
+		GraphicsPSOInit.BoundShaderState.VertexShaderRHI		= VertexShader.GetVertexShader();
+		GraphicsPSOInit.BoundShaderState.PixelShaderRHI			= PixelShader.GetPixelShader();
 
 		VertexShader->SetUniformBuffers(outRhiCmdList, ConstantParameters, VariableParameters);
 		PixelShader	->SetUniformBuffers(outRhiCmdList, ConstantParameters, VariableParameters);
