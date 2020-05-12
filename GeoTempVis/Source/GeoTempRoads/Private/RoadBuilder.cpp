@@ -2,10 +2,150 @@
 
 #include "RoadNetworkActor.h"
 
+#include "DrawDebugHelpers.h"
+
 
 #define LIST_4_TIMES(something) something, something, something, something
 #define LIST_8_TIMES(something) LIST_4_TIMES(something), LIST_4_TIMES(something)
 
+
+struct RoadSegmentGeometry
+{
+	int StartCrossroadId;
+	int EndCrossroadId;
+	int Lanes;
+	float Width;
+	float TurningRadius;
+};
+
+
+struct CrossroadGeometry
+{
+	FVector Center;
+	TArray<int> SegmentsIds;
+};
+
+
+struct RoadNetworkGeometry
+{
+	TMap<int, CrossroadGeometry> Crossroads;
+	TMap<int, RoadSegmentGeometry> Segments;
+};
+
+
+RoadSegmentGeometry GetSegmentGeometry(FRoadSegment inSegment)
+{
+	float speedOnSegment = 8.0f; // m/s
+	float turningRadius = 18.6f * FMath::Sqrt(speedOnSegment / FMath::Abs(10 * inSegment.Width + 65 - speedOnSegment));
+	return { 0, 0, inSegment.Lanes, inSegment.Width, turningRadius };
+}
+
+
+RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
+{
+	RoadNetworkGeometry convertedGeometry;
+
+	int lastCrossroadId = -1;
+	int nextSegmentId = 0;
+	
+	//getting base crossroads
+	for (auto crossroadData : inRoadNetwork.Crossroads)
+	{
+		auto id = crossroadData.Key;
+		auto crossroad = crossroadData.Value;
+		lastCrossroadId = FMath::Max(lastCrossroadId, id);
+		convertedGeometry.Crossroads.Add(id, CrossroadGeometry{ crossroad.Location });
+	}
+
+	//cutting segments into minimal parts
+	for (auto segmentData : inRoadNetwork.Segments)
+	{
+		auto segment = segmentData.Value;
+
+		if (segment.Type != EHighwayType::Auto)
+		{
+			continue;
+		}
+
+		RoadSegmentGeometry currentSegmentGeometry = GetSegmentGeometry(segment);
+
+		auto totalPoints = segment.AllPoints.Num();
+		for (int i = 0; i < totalPoints - 1; i++)
+		{
+			if (i == 0)
+			{
+				auto id = segment.StartCrossroadId;
+				auto crossroadBuffer = convertedGeometry.Crossroads[id];
+				crossroadBuffer.SegmentsIds.Add(nextSegmentId);
+				convertedGeometry.Crossroads.Emplace(id, crossroadBuffer);
+
+				currentSegmentGeometry.StartCrossroadId = id;
+			}
+			else
+			{
+				currentSegmentGeometry.StartCrossroadId = lastCrossroadId;
+			}
+
+			if (i == totalPoints - 2)
+			{
+				auto id = segment.EndCrossroadId;
+				auto crossroadBuffer = convertedGeometry.Crossroads[id];
+				crossroadBuffer.SegmentsIds.Add(nextSegmentId);
+				convertedGeometry.Crossroads.Emplace(id, crossroadBuffer);
+
+				currentSegmentGeometry.EndCrossroadId = id;
+			}
+			else
+			{
+				currentSegmentGeometry.EndCrossroadId = ++lastCrossroadId;
+				convertedGeometry.Crossroads.Add(lastCrossroadId,
+					CrossroadGeometry { 
+						segment.AllPoints[i + 1], 
+						TArray<int>{ nextSegmentId, nextSegmentId + 1}
+					});
+			}
+
+			convertedGeometry.Segments.Add(nextSegmentId++, currentSegmentGeometry);
+		}
+	}
+
+	//segments sorting by angle
+	for (auto crossroadData : convertedGeometry.Crossroads)
+	{
+		auto crossroadId = crossroadData.Key;
+		auto crossroad = crossroadData.Value;
+
+		TMap<float, int> atansMap;
+		TArray<float> atans;
+		for (auto segmentsId : crossroad.SegmentsIds)
+		{
+			auto segment = convertedGeometry.Segments[segmentsId];
+			auto otherCrossroadId = (segment.StartCrossroadId == crossroadId)
+				? segment.EndCrossroadId
+				: segment.StartCrossroadId;
+			auto segmentAsVector = convertedGeometry.Crossroads[otherCrossroadId].Center - crossroad.Center;
+			auto atan = FMath::Atan2(segmentAsVector.Y, segmentAsVector.X);
+			atans.Add(atan);
+			atansMap.Add(atan, segmentsId);
+		}
+
+		atans.Sort();
+
+		CrossroadGeometry sortedCrossroadGeometry { crossroad.Center };
+		for (auto atan : atans)
+		{
+			sortedCrossroadGeometry.SegmentsIds.Add(*atansMap.Find(atan));
+		}
+
+		convertedGeometry.Crossroads.Emplace(crossroadId, sortedCrossroadGeometry);
+	}
+
+
+	return convertedGeometry;
+}
+
+
+#pragma region OldCode
 
 struct MeshSectionData
 {
@@ -269,6 +409,7 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	roadNetworkActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 }
 
+
 void URoadBuilder::RemoveRoadNetworkActor()
 {
 	if (roadNetworkActor)
@@ -335,4 +476,72 @@ TArray<FVector> URoadBuilder::GetCupsPointsOffsets(TArray<FVector2D> inPointsDir
 		radiusDeltas.Add((inIsReversedCup ? 1 : -1) * (inPerpendicularToLine * pointDirection.X + yDelta * pointDirection.Y));
 	}
 	return radiusDeltas;
+}
+
+#pragma endregion
+
+
+void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
+{
+	if (roadNetworkActor)
+	{
+		RemoveRoadNetworkActor();
+	}
+
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = GetOwner();
+	SpawnInfo.Name = "RoadNetworkActor";
+	roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+	roadNetworkActor->SetActorLabel(SpawnInfo.Name.ToString());
+	roadNetworkActor->SetMobility(EComponentMobility::Movable);
+	auto runtimeMesh = roadNetworkActor->GetRuntimeMeshComponent();
+
+	//
+
+	auto geometry = GetRoadNetworkGeometry(inRoadNetwork);
+	auto world = GetWorld();
+
+	for (auto crossroadData : inRoadNetwork.Crossroads)
+	{
+		DrawDebugBox(world, crossroadData.Value.Location + FVector(FMath::RandRange(-20, 20)), FVector(200),
+			FColor::MakeRandomColor(), false, 120, 0, 20);
+	}
+
+	for (auto crossroadData : geometry.Crossroads)
+	{
+		auto crossroadId = crossroadData.Key;
+		auto crossroad = crossroadData.Value;
+		DrawDebugBox(world, crossroad.Center + FVector(FMath::RandRange(-20, 20)), FVector(100), 
+			FColor::MakeRandomColor(), false, 120, 0, 20);
+		for (int i = 0; i < crossroad.SegmentsIds.Num(); i++)
+		{
+			FColor color;
+			switch (i)
+			{
+				case 0:
+					color = FColor::Red;
+					break;
+				case 1:
+					color = FColor::Green;
+					break;
+				case 2:
+					color = FColor::Blue;
+					break;
+				default:
+					color = FColor::Black;
+					break;
+			}
+			auto segment = geometry.Segments[crossroad.SegmentsIds[i]];
+			auto otherCrossroadId = (segment.StartCrossroadId == crossroadId) 
+				? segment.EndCrossroadId 
+				: segment.StartCrossroadId;
+			float alpha = 0.6;
+			auto endPoint = alpha * crossroad.Center + (1 - alpha) * geometry.Crossroads[otherCrossroadId].Center;
+			DrawDebugLine(world, crossroad.Center, endPoint, color, false, 120, 0, 100);
+		}
+	}
+
+	//
+
+	roadNetworkActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 }

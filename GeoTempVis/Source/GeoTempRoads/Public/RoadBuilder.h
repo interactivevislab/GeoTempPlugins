@@ -60,6 +60,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork);
 
+	UFUNCTION(BlueprintCallable)
+	void SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork);
+
 	/** Destroy spawned RoadNetworkActor. */
 	UFUNCTION(BlueprintCallable)
 	void RemoveRoadNetworkActor();
