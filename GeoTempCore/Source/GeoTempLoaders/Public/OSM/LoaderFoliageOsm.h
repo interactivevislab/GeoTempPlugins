@@ -34,6 +34,8 @@ public:
 	virtual TArray<FMultipolygonData> GetFolliage_Implementation() override;
 	///@}
 
+	bool DataParsedSuccessfully = true;
+
 private:
 	/** An assigned UOsmReader to read foliage data from. */
 	UPROPERTY()

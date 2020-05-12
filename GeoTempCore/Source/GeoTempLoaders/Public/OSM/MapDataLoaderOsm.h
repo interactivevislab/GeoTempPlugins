@@ -51,6 +51,10 @@ public:
 	/** Clear all loaded OSM data. */
 	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
 	void ClearLoadedData();
+
+	/** Load OSM data that was incompleted. */
+	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
+	void ReloadIncompleteData(FString inXmlData);
 	
 	/** Loaded and processed buildings data. */
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
@@ -103,6 +107,12 @@ private:
 
 	/** Loader for water data. */
 	ULoaderWaterOsm* waterLoader;
+
+	/** Limit side size for loadable areas. */
+	int pendingRequests = 0;
+
+	/** Limit side size for loadable areas. */
+	TArray<int> pendingIds = {};
 
 	/** Reads and processes data when HTTP request is completed. */
 	UFUNCTION()

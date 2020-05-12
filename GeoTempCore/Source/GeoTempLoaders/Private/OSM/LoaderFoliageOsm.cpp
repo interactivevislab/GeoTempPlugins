@@ -152,6 +152,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				
 				roadPolygon.Outer.Add(roadCont);
 				roadPolygon.Tags = way->Tags;
+				polygon.Origin = osmReader->GeoCoords;
 				roadPolygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
 
 				polygons.Add(roadPolygon);

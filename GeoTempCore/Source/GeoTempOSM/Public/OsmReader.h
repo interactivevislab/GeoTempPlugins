@@ -51,6 +51,10 @@ public:
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
 	void InitWithFile(FString inFilename);
 
+	/** Clear loaded data. */
+	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
+	void ClearReaderData();
+
 private:
 
 	/** Buffer for XML data. */

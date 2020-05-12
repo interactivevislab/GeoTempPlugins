@@ -42,10 +42,12 @@ void UMapDataLoaderOsm::UpdateGeoCoords(FGeoCoords inGeoCoords)
 
 void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees)
 {	
+	
 	if (!isInitialized)
 	{ 
 		Init(); 
 	}
+	ClearLoadedData();
 
 	if (	inRightDegrees - inLeftDegrees > areaMaxSizeDegrees 
 		||	inLeftDegrees > inRightDegrees 
@@ -69,11 +71,57 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 {		
 	osmReader->InitWithXML(inXmlData);
 
-	LoadedBuildings			= IProviderBuildings::Execute_GetBuildings(buildingsLoader);
-	LoadedRoadNetwork		= IProviderRoads::Execute_GetRoadNetwork(roadsLoader);
-	LoadedFoliageContours	= IProviderFolliage::Execute_GetFolliage(foliageLoader);
-	LoadedWaterContours		= IProviderWater::Execute_GetWater(waterLoader);
+	auto roadNetwork =				IProviderRoads::Execute_GetRoadNetwork(roadsLoader);
+	LoadedRoadNetwork.Segments.Append(roadNetwork.Segments);
+	LoadedRoadNetwork.Crossroads.Append(roadNetwork.Crossroads);
+
+	LoadedBuildings			.Append(IProviderBuildings::Execute_GetBuildings(buildingsLoader)	);
+	LoadedFoliageContours	.Append(IProviderFolliage::Execute_GetFolliage(foliageLoader)		);
+	LoadedWaterContours		.Append(IProviderWater::Execute_GetWater(waterLoader)				);
+
+	if (!waterLoader->DataParsedSuccessfully)
+	{
+		osmReader->ClearReaderData();
+		pendingRequests = waterLoader->ErrorRelations.Num()-1;
+		pendingIds = waterLoader->ErrorRelations.Array();
+		ReloadIncompleteData("");
+		//if (currentRequest != nullptr)
+		//{
+		//	currentRequest->OnCompleted.RemoveAll(this);
+		//}
+		//currentRequest = osmManager->GetFullOsmDataForRelation(FString::FromInt(waterLoader->ErrorRelations.Array()[0]));
+		//currentRequest->OnCompleted.AddDynamic(this, &UMapDataLoaderOsm::OnOsmRequestCompleted);
+		//currentRequest->StartRequest();
+		//OnDataLoaded.Broadcast(false);
+	}
+	else
+	{
 	OnDataLoaded.Broadcast(true);
+	}
+}
+
+void UMapDataLoaderOsm::ReloadIncompleteData(FString inXmlData)
+{
+	osmReader->InitWithXML(inXmlData);
+	if (currentRequest != nullptr)
+	{
+		currentRequest->OnCompleted.RemoveAll(this);
+	}
+	if (pendingRequests>=0)
+	{
+		currentRequest = osmManager->GetFullOsmDataForRelation(FString::FromInt(pendingIds[pendingRequests]));
+		if (pendingRequests==0)
+		{
+			currentRequest->OnCompleted.AddDynamic(this, &UMapDataLoaderOsm::OnOsmRequestCompleted);
+		}
+		else
+		{
+			currentRequest->OnCompleted.AddDynamic(this, &UMapDataLoaderOsm::ReloadIncompleteData);
+		}
+		pendingRequests--;
+		currentRequest->StartRequest();
+		OnDataLoaded.Broadcast(false);
+	}
 }
 
 
@@ -83,4 +131,6 @@ void UMapDataLoaderOsm::ClearLoadedData()
 	LoadedRoadNetwork = FRoadNetwork();
 	LoadedFoliageContours.Empty();
 	LoadedWaterContours.Empty();
+
+	osmReader->ClearReaderData();
 }

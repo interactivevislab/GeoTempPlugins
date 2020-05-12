@@ -36,7 +36,11 @@ public:
 
 	/** Creates request for loading OSM data for IDs. */
 	UFUNCTION(BlueprintCallable)
-	UHttpRequest* GetOsmDataForIds(TArray<int> inIDs);
+	UHttpRequest* GetOsmDataForIds(TSet<int> inIDs);
+
+	/** Creates request for loading OSM data for relation. */
+	UFUNCTION(BlueprintCallable)
+	UHttpRequest* GetFullOsmDataForRelation(FString inRelationId);
 
 #pragma endregion
 

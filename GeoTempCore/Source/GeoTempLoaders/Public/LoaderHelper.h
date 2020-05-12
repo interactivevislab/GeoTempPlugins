@@ -28,7 +28,7 @@ public:
 
 	static TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours);
 
-	static TArray<FContour> FixAndCutRelationContours(TArray<FContour>& inUnclosedContour, FVector4 inBounds, OsmRelation& inRelation);
+	static TArray<FContour> FixAndCutRelationContours(TArray<FContour>& inUnclosedContour, FVector4 inBounds, OsmRelation& inRelation, bool& outGoodData, TSet<int>& outErrorRelations);
 
 #pragma region Tags
 

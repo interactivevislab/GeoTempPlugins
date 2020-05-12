@@ -34,6 +34,10 @@ public:
 	virtual TArray<FMultipolygonData> GetWater_Implementation() override;
 	///@}
 
+	bool DataParsedSuccessfully = true;
+
+	TSet<int> ErrorRelations = {};
+
 private:
 	/** An assigned UOsmReader to read water data from. */
 	UPROPERTY()

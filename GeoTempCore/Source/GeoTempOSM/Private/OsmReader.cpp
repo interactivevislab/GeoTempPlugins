@@ -6,6 +6,13 @@ UOsmReader::UOsmReader() : UObject()
 {
 }
 
+void UOsmReader::ClearReaderData()
+{
+	Nodes.Empty();
+	Ways.Empty();
+	Relations.Empty();
+}
+
 void UOsmReader::InitWithXML(FString inXmlString)
 {	
 	xmlDocument.Parse(TCHAR_TO_UTF8(*inXmlString));
@@ -33,16 +40,19 @@ void UOsmReader::ReadData()
 
 	tinyxml2::XMLElement* bounds = root->FirstChildElement("bounds");
 
-	double minY = bounds->DoubleAttribute("minlat");
-	double maxY = bounds->DoubleAttribute("maxlat");
+	if (bounds)
+	{
+		double minY = bounds->DoubleAttribute("minlat");
+		double maxY = bounds->DoubleAttribute("maxlat");
 
-	double minX = bounds->DoubleAttribute("minlon");
-	double maxX = bounds->DoubleAttribute("maxlon");
+		double minX = bounds->DoubleAttribute("minlon");
+		double maxX = bounds->DoubleAttribute("maxlon");
 
-	auto topLeftCorner		= UGeoHelpers::GetLocalCoordinates(minX, maxY, 0, GeoCoords);
-	auto bottomRightCorner	= UGeoHelpers::GetLocalCoordinates(maxX, minY, 0, GeoCoords);
+		auto topLeftCorner = UGeoHelpers::GetLocalCoordinates(minX, maxY, 0, GeoCoords);
+		auto bottomRightCorner = UGeoHelpers::GetLocalCoordinates(maxX, minY, 0, GeoCoords);
 
-	BoundsRect = FVector4(topLeftCorner.X, bottomRightCorner.X, topLeftCorner.Y, bottomRightCorner.Y);
+		BoundsRect = FVector4(topLeftCorner.X, bottomRightCorner.X, topLeftCorner.Y, bottomRightCorner.Y);
+	}
 
 	tinyxml2::XMLElement* xmlNode = root->FirstChildElement("node");
 	while (xmlNode)

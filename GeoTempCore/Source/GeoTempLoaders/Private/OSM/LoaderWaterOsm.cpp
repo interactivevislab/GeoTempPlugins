@@ -17,6 +17,8 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 	TArray<FContour> UnclosedInnerContours;
 
 	polygons.Empty();
+	ErrorRelations.Empty();
+	DataParsedSuccessfully = true;
 	//find all building and building parts through ways
 	for (auto wayP : osmReader->Ways)
 	{
@@ -107,6 +109,7 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 
 				roadPolygon.Outer.Add(roadCont);
 				roadPolygon.Tags = way->Tags;
+				polygon.Origin = osmReader->GeoCoords;
 
 				polygons.Add(roadPolygon);
 			}
@@ -164,23 +167,36 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 
 			//	}
 			//}
-			polygon.Outer.Append(ULoaderHelper::FixAndCutRelationContours(UnclosedOuterContours, osmReader->BoundsRect, *relation));
-			polygon.Holes.Append(ULoaderHelper::FixAndCutRelationContours(UnclosedInnerContours, osmReader->BoundsRect, *relation));
+			bool goodRelation = true;
+			polygon.Outer.Append(ULoaderHelper::FixAndCutRelationContours(UnclosedOuterContours, osmReader->BoundsRect, *relation, goodRelation, ErrorRelations));
+			polygon.Holes.Append(ULoaderHelper::FixAndCutRelationContours(UnclosedInnerContours, osmReader->BoundsRect, *relation, goodRelation, ErrorRelations));
+			DataParsedSuccessfully = DataParsedSuccessfully && goodRelation;
+			if (!goodRelation)
+			{
+				continue;
+			}
 			polygon.Tags = relation->Tags;
 			polygon.Origin = osmReader->GeoCoords;
 			if (polygon.Outer.Num()==0)
 			{
-				FContour filler = FContour();
-				filler.Points.Append(
-					{
-						FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.Z,0),
-						FVector(osmReader->BoundsRect.Y,osmReader->BoundsRect.Z,0),
-						FVector(osmReader->BoundsRect.Y,osmReader->BoundsRect.W,0),
-						FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.W,0),
-						FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.Z,0),
-					}
-				);
-				polygon.Outer.Add(filler);
+				if (polygon.Holes.Num() > 0)
+				{
+					FContour filler = FContour();
+					filler.Points.Append(
+						{
+							FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.Z,0),
+							FVector(osmReader->BoundsRect.Y,osmReader->BoundsRect.Z,0),
+							FVector(osmReader->BoundsRect.Y,osmReader->BoundsRect.W,0),
+							FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.W,0),
+							FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.Z,0),
+						}
+					);
+					polygon.Outer.Add(filler);
+				}
+				else
+				{
+					continue;
+				}
 			}
 			polygons.Add(polygon);
 		}

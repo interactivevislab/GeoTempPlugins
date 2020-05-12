@@ -126,17 +126,23 @@ UHttpRequest* UOsmManager::GetOsmDataForBoundingBox(float inLeft, float inBottom
 	});
 }
 
-UHttpRequest* UOsmManager::GetOsmDataForIds(TArray<int> inIDs)
+UHttpRequest* UOsmManager::GetOsmDataForIds(TSet<int> inIDs)
 {
-
-	//for (auto id: inIDs)
-	//{
-
-	//}
-	//return CreateRequest(GET_VERB, "/map", ParametersSet{
-	//	Parameter {"bbox", UrlWithArgs("{0},{1},{2},{3}", inLeft, inBottom, inRight, inTop)}
-	//	});
+	FString ids = "";
+	for (auto id: inIDs)
+	{
+		ids += FString::FromInt(id) + ',';
+	}
+	ids.RemoveFromEnd(",");
+	return CreateRequest(GET_VERB, "/relations", ParametersSet{
+		Parameter {"relations", ids}
+		});
 	return nullptr;
+}
+
+UHttpRequest* UOsmManager::GetFullOsmDataForRelation(FString inRelationId)
+{
+	return CreateRequest(GET_VERB, UrlWithArgs("/relation/{0}/full", inRelationId));
 }
 
 #pragma endregion
