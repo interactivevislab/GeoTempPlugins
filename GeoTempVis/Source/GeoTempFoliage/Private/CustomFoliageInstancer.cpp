@@ -82,6 +82,7 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "FoliageActor";
+	SpawnInfo.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
 	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 
 	for (FFoliageMeshInfo& meshInfo : FoliageMeshes)
@@ -199,8 +200,10 @@ void UCustomFoliageInstancer::FillFoliage_BP(FVector4 inComponentRect)
 			break;
 		}
 	}
-
+#if UE_EDITOR
 	foliageActor->SetActorLabel(SpawnInfo.Name.ToString());
+#endif
+	
 	foliageActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 }
 
