@@ -2,32 +2,32 @@
 
 
 //struct vs_in {
-//	int steps : ATTRIBUTE0;
-//	float sigma : ATTRIBUTE1;
-//	float distance: ATTRIBUTE2;
-//	float2 direction : ATTRIBUTE3;
+//    int steps : ATTRIBUTE0;
+//    float sigma : ATTRIBUTE1;
+//    float distance: ATTRIBUTE2;
+//    float2 direction : ATTRIBUTE3;
 //};
 
 struct vs_in {
-	float3 Position : ATTRIBUTE0;
-	float4 Color : ATTRIBUTE1;
+    float3 Position : ATTRIBUTE0;
+    float4 Color : ATTRIBUTE1;
 };
 
 
 void MainVertexShader(
-	in uint id : SV_VertexID,
-	in vs_in input,
-	out float2 OutUV : TEXCOORD0,
-	out float3 Color : COLOR0,
-	out float4 OutPosition : SV_POSITION
-	)
+    in uint id : SV_VertexID,
+    in vs_in input,
+    out float2 OutUV : TEXCOORD0,
+    out float3 Color : COLOR0,
+    out float4 OutPosition : SV_POSITION
+    )
 {
-	OutUV       = float2(id & 1, (id & 2)>>1);
-	OutPosition = float4(OutUV * float2(2, -2) + float2(-1, 1), 0, 1);
+    OutUV       = float2(id & 1, (id & 2)>>1);
+    OutPosition = float4(OutUV * float2(2, -2) + float2(-1, 1), 0, 1);
 
-	Color = input.Color.rgb;
+    Color = input.Color.rgb;
 
-	OutPosition = float4(input.Position, 1.0f);
+    OutPosition = float4(input.Position, 1.0f);
 }
 
 
@@ -36,31 +36,31 @@ void MainVertexShader(
 Texture2D<float4> TextureParameter;
 
 void MainPixelShader(
-	in float2 uv : TEXCOORD0,
-	in float4 Color : COLOR0,
-	out float4 OutColor : SV_Target0
-	)
-{	
-	float sizeX, sizeY;
-	TextureParameter.GetDimensions(sizeX, sizeY);
-	
-	float normSum = 0;
-	OutColor = float4(0, 0, 0, 0);	
-	float2 delta = PSVariableB.Distance / PSVariableB.Steps * PSVariableB.Direction;
-	int i = 0;
-	int j = 0;
-//	for (i = -PSVariableB.Steps; i <= PSVariableB.Steps; i++) {
-//		for (int j = -PSVariableB.Steps; j < PSVariableB.Steps; j++) {
-//			float4 v = TextureParameter.Load(int3(sizeX * (uv.x + delta.x * i + delta.y * j), sizeY * (uv.y + delta.y * i - delta.x * j), 0));		
-//			OutColor += v;// / abs(i + 1);
-//			normSum += 1;///abs(i + 1);
-//		}
-//	}
+    in float2 uv : TEXCOORD0,
+    in float4 Color : COLOR0,
+    out float4 OutColor : SV_Target0
+    )
+{    
+    float sizeX, sizeY;
+    TextureParameter.GetDimensions(sizeX, sizeY);
+    
+    float normSum = 0;
+    OutColor = float4(0, 0, 0, 0);    
+    float2 delta = PSVariableB.Distance / PSVariableB.Steps * PSVariableB.Direction;
+    int i = 0;
+    int j = 0;
+//    for (i = -PSVariableB.Steps; i <= PSVariableB.Steps; i++) {
+//        for (int j = -PSVariableB.Steps; j < PSVariableB.Steps; j++) {
+//            float4 v = TextureParameter.Load(int3(sizeX * (uv.x + delta.x * i + delta.y * j), sizeY * (uv.y + delta.y * i - delta.x * j), 0));        
+//            OutColor += v;// / abs(i + 1);
+//            normSum += 1;///abs(i + 1);
+//        }
+//    }
 
-	for (i = -PSVariableB.Steps; i <= PSVariableB.Steps; i++) {
-		float4 v = TextureParameter.Load(int3(sizeX * (uv.x + delta.x * i), sizeY * (uv.y + delta.y * i), 0));		
-		OutColor += v;// / abs(i + 1);
-		normSum += 1;///abs(i + 1);		
-	}
-	OutColor /= normSum;
+    for (i = -PSVariableB.Steps; i <= PSVariableB.Steps; i++) {
+        float4 v = TextureParameter.Load(int3(sizeX * (uv.x + delta.x * i), sizeY * (uv.y + delta.y * i), 0));        
+        OutColor += v;// / abs(i + 1);
+        normSum += 1;///abs(i + 1);        
+    }
+    OutColor /= normSum;
 }

@@ -12,7 +12,7 @@
 UINTERFACE(BlueprintType)
 class GEOTEMPLOADERS_API UProviderFolliage : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 
@@ -24,11 +24,11 @@ class GEOTEMPLOADERS_API UProviderFolliage : public UInterface
 */
 class GEOTEMPLOADERS_API IProviderFolliage
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** Provide folliage data. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	TArray<FMultipolygonData> GetFolliage();
+    /** Provide folliage data. */
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    TArray<FMultipolygonData> GetFolliage();
 };

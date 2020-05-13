@@ -24,75 +24,75 @@ class BasePolygonPreparer;
 UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
 class POLYGONMASKSGENERATOR_API UMaskLoader : public UActorComponent
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** should update vertex buffer on next rener pass */
-	UPROPERTY()
-	bool IsDirty;
+    /** should update vertex buffer on next rener pass */
+    UPROPERTY()
+    bool IsDirty;
 
-	/** Rectangle in masks polygon space that will be drawn to render texture */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Masks Generation")
-	FVector4 Rect;
+    /** Rectangle in masks polygon space that will be drawn to render texture */
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Masks Generation")
+    FVector4 Rect;
 
-	/** Vertex buffer */
-	TArray<FMaskPolygonVertex> Vertices;
-	/** index buffer */
-	TArray<uint32> Triangles;
+    /** Vertex buffer */
+    TArray<FMaskPolygonVertex> Vertices;
+    /** index buffer */
+    TArray<uint32> Triangles;
 
-	UMaskLoader();
-	~UMaskLoader();
+    UMaskLoader();
+    ~UMaskLoader();
 
-	/** \fn RenderMaskForTime
-	 * Renders polygons to render target according to current year
-	 * @param inYear current year to which we should filter polygons
-	 * @param inTarget render target to render polygons to
-	 * @param inFraction fraction of year for more precise control (i. e. 0 is 01.01 and 1 is 31.12)
-	 */
-	UFUNCTION(BlueprintCallable)
-	void RenderMaskForTime(int inYear, UTextureRenderTarget2D* inTarget, float inFraction);
+    /** \fn RenderMaskForTime
+     * Renders polygons to render target according to current year
+     * @param inYear current year to which we should filter polygons
+     * @param inTarget render target to render polygons to
+     * @param inFraction fraction of year for more precise control (i. e. 0 is 01.01 and 1 is 31.12)
+     */
+    UFUNCTION(BlueprintCallable)
+    void RenderMaskForTime(int inYear, UTextureRenderTarget2D* inTarget, float inFraction);
 
 #pragma region Render Data
 
 protected:
 
-	/** const buffer */
-	FPixelShaderConstantParameters ConstantParameters;
+    /** const buffer */
+    FPixelShaderConstantParameters ConstantParameters;
 
-	/** variable buffer */
-	FPixelShaderVariableParameters VariableParameters;
+    /** variable buffer */
+    FPixelShaderVariableParameters VariableParameters;
 
-	/** feature level */
-	ERHIFeatureLevel::Type FeatureLevel;
+    /** feature level */
+    ERHIFeatureLevel::Type FeatureLevel;
 
-	/** Main texture ref */
-	FTexture2DRHIRef CurrentTexture;
+    /** Main texture ref */
+    FTexture2DRHIRef CurrentTexture;
 
-	/** Render target to draw mask */
-	UPROPERTY()
-	UTextureRenderTarget2D* CurrentRenderTarget = nullptr;
+    /** Render target to draw mask */
+    UPROPERTY()
+    UTextureRenderTarget2D* CurrentRenderTarget = nullptr;
 
-	/** vertex buffer */
-	FVertexBufferRHIRef VertBuf;
-	/** index buffer */
-	FIndexBufferRHIRef IndBuf;
+    /** vertex buffer */
+    FVertexBufferRHIRef VertBuf;
+    /** index buffer */
+    FIndexBufferRHIRef IndBuf;
 
-	/** Are we already called shader in this frame */
-	bool IsPixelShaderExecuting;
-	/** Shoud we regenereate SRV */
-	bool MustRegenerateSRV;
-	/** Is this object currently unloading */
-	bool IsUnloading;
+    /** Are we already called shader in this frame */
+    bool IsPixelShaderExecuting;
+    /** Shoud we regenereate SRV */
+    bool MustRegenerateSRV;
+    /** Is this object currently unloading */
+    bool IsUnloading;
 
 protected:
 
-	/** Request to execute pixel shader on next render pass */
-	UFUNCTION(BlueprintCallable, Category = "Render Data")
-	void ExecutePixelShader(UTextureRenderTarget2D* inInclTarget);
+    /** Request to execute pixel shader on next render pass */
+    UFUNCTION(BlueprintCallable, Category = "Render Data")
+    void ExecutePixelShader(UTextureRenderTarget2D* inInclTarget);
 
-	/** Execute pixel shader from render tread */
-	void ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmdList, bool inIsExclude);
+    /** Execute pixel shader from render tread */
+    void ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmdList, bool inIsExclude);
 
 #pragma endregion 
 

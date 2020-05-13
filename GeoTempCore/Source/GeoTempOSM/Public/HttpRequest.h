@@ -19,46 +19,46 @@ class UOsmManager;
 UCLASS(BlueprintType)
 class GEOTEMPOSM_API UHttpRequest : public UObject
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	UHttpRequest();
+    UHttpRequest();
 
-	/** Initialize with inner HTTP request. */
-	void Init(TSharedPtr<IHttpRequest> inRequest);
+    /** Initialize with inner HTTP request. */
+    void Init(TSharedPtr<IHttpRequest> inRequest);
 
-	/** Returns ID. */
-	int GetId();
+    /** Returns ID. */
+    int GetId();
 
-	/** Delegate type for providing responses. */
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRequestComleted, FString, inResponseString);
+    /** Delegate type for providing responses. */
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRequestComleted, FString, inResponseString);
 
-	/** Delegate for providing responses. */
-	UPROPERTY(BlueprintAssignable)
-	FOnRequestComleted OnCompleted;
+    /** Delegate for providing responses. */
+    UPROPERTY(BlueprintAssignable)
+    FOnRequestComleted OnCompleted;
 
-	/** Delegate type for indicating readiness for deletion. */
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReadyToDelete, int, inId);
+    /** Delegate type for indicating readiness for deletion. */
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReadyToDelete, int, inId);
 
-	/** Delegate for indicating readiness for deletion. */
-	FOnReadyToDelete OnReadyToDelete;
+    /** Delegate for indicating readiness for deletion. */
+    FOnReadyToDelete OnReadyToDelete;
 
-	/** Execute request. */
-	UFUNCTION(BlueprintCallable)
-	void StartRequest();
+    /** Execute request. */
+    UFUNCTION(BlueprintCallable)
+    void StartRequest();
 
-	/** Process request results. */
-	void OnHttpRequestCompleted(FHttpRequestPtr inRequest, FHttpResponsePtr inResponse, bool inSucceeded);
+    /** Process request results. */
+    void OnHttpRequestCompleted(FHttpRequestPtr inRequest, FHttpResponsePtr inResponse, bool inSucceeded);
 
 private:
 
-	/** Request ID. */
-	int id;
+    /** Request ID. */
+    int id;
 
-	/** Next unique ID. */
-	static int nextId;
+    /** Next unique ID. */
+    static int nextId;
 
-	/** Inner HTTP request. */
-	TSharedPtr<IHttpRequest> request;
+    /** Inner HTTP request. */
+    TSharedPtr<IHttpRequest> request;
 };

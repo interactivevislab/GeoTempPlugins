@@ -8,18 +8,18 @@ UCLASS()
 class UModernFlatRoofMaker : public UObject, public IRoofMaker
 {
 public:
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	/** Width of barriers on roof edges */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	float BarrierWidth = 80;
+    /** Width of barriers on roof edges */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+    float BarrierWidth = 80;
 
-	/** height of barriers on roof edges */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	float BarrierHeight = 70;
+    /** height of barriers on roof edges */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+    float BarrierHeight = 70;
 
-	/** @name Implementation of IRoofMaker */
-	///@{
-	virtual FBuildingMeshData GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial) override;
-	///@}
+    /** @name Implementation of IRoofMaker */
+    ///@{
+    virtual FBuildingMeshData GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial) override;
+    ///@}
 };

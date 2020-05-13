@@ -13,7 +13,7 @@
 * @see URoadBuilder
 */
 UCLASS(BlueprintType)
-class GEOTEMPROADS_API	ARoadNetworkActor : public ARuntimeMeshActor
+class GEOTEMPROADS_API    ARoadNetworkActor : public ARuntimeMeshActor
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };

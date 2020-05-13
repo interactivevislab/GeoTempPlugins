@@ -12,7 +12,7 @@
 UINTERFACE(BlueprintType)
 class GEOTEMPLOADERS_API UParserPostGis : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 
@@ -24,11 +24,11 @@ class GEOTEMPLOADERS_API UParserPostGis : public UInterface
 */
 class GEOTEMPLOADERS_API IParserPostGis
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** Sets UPostGisReader as data source. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void SetPostGisReader(UPostGisReader* inPostGisReader);
+    /** Sets UPostGisReader as data source. */
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void SetPostGisReader(UPostGisReader* inPostGisReader);
 };

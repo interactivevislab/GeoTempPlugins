@@ -10,8 +10,8 @@ class FGeoTempCoreModule : public IModuleInterface
 {
 public:
 
-	/** IModuleInterface implementation */
-	virtual void StartupModule() override;
-	/** IModuleInterface implementation */
-	virtual void ShutdownModule() override;
+    /** IModuleInterface implementation */
+    virtual void StartupModule() override;
+    /** IModuleInterface implementation */
+    virtual void ShutdownModule() override;
 };

@@ -12,7 +12,7 @@
 UINTERFACE(BlueprintType)
 class GEOTEMPLOADERS_API UParserOsm : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 
@@ -24,11 +24,11 @@ class GEOTEMPLOADERS_API UParserOsm : public UInterface
 */
 class GEOTEMPLOADERS_API IParserOsm
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** Sets UOsmReader as data source. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void SetOsmReader(UOsmReader* inOsmReader);
+    /** Sets UOsmReader as data source. */
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void SetOsmReader(UOsmReader* inOsmReader);
 };

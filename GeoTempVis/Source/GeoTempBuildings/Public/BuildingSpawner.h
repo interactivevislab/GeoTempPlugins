@@ -17,34 +17,34 @@ struct FBuilding;
 UCLASS(Blueprintable, BlueprintType, meta = (BlueprintSpawnableComponent))
 class GEOTEMPBUILDINGS_API UBuildingSpawner: public UActorComponent
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	UBuildingSpawner() {};
+    UBuildingSpawner() {};
 
-	/**
-	 * \var Buildings
-	 * \brief Array of Building Actors representing currently spawned buildings
-	 * 
-	 * @see ABuildingActor
-	 */
-	UPROPERTY(BlueprintReadWrite, Category = "Default")
-	TArray<ABuildingActor*> Buildings;
+    /**
+     * \var Buildings
+     * \brief Array of Building Actors representing currently spawned buildings
+     * 
+     * @see ABuildingActor
+     */
+    UPROPERTY(BlueprintReadWrite, Category = "Default")
+    TArray<ABuildingActor*> Buildings;
 
-	/**
-	 * \fn SpawnBuildingActors
-	 * \brief Process building structures and spawn building actors
-	 * 
-	 * @param inBuildingData	array of building structures containing information about buildings
-	 * @param inWallMaterial	material that will be assigned to building walls (and wall-type decorations)
-	 * @param inRoofMaterial	material that will be assigned to building roofs (and roof-type decorations)
-	 * @see FBuilding
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void SpawnBuildingActors(const TArray<FBuilding>& inBuildingData, UMaterialInterface * inWallMaterial, UMaterialInterface * inRoofMaterial);
+    /**
+     * \fn SpawnBuildingActors
+     * \brief Process building structures and spawn building actors
+     * 
+     * @param inBuildingData    array of building structures containing information about buildings
+     * @param inWallMaterial    material that will be assigned to building walls (and wall-type decorations)
+     * @param inRoofMaterial    material that will be assigned to building roofs (and roof-type decorations)
+     * @see FBuilding
+     */
+    UFUNCTION(BlueprintCallable, Category = "Default")
+    void SpawnBuildingActors(const TArray<FBuilding>& inBuildingData, UMaterialInterface * inWallMaterial, UMaterialInterface * inRoofMaterial);
 
-	/** Remove all currently spawned building actors */
-	UFUNCTION(BlueprintCallable, Category = "Default")
-	void CleanBuildings();	
+    /** Remove all currently spawned building actors */
+    UFUNCTION(BlueprintCallable, Category = "Default")
+    void CleanBuildings();    
 };

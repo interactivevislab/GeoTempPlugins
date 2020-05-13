@@ -27,77 +27,77 @@ class UHttpRequest;
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
 class GEOTEMPLOADERS_API UMapDataLoaderOsm : public UActorComponent
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+    
 public:
 
-	/** Coordinates of the reference point in the scene space. */
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
-	FGeoCoords GeoCoords;
+    /** Coordinates of the reference point in the scene space. */
+    UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
+    FGeoCoords GeoCoords;
 
-	/** Initialize inner managers and data loaders. */
-	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
-	void Init();
+    /** Initialize inner managers and data loaders. */
+    UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
+    void Init();
 
-	/** Replace geocoordiantes in inner managers and data loaders. */
-	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
-	void UpdateGeoCoords(FGeoCoords inGeoCoords);
+    /** Replace geocoordiantes in inner managers and data loaders. */
+    UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
+    void UpdateGeoCoords(FGeoCoords inGeoCoords);
 
-	/** Load all OSM data from map bounding box. */
-	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
-	void LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees);
+    /** Load all OSM data from map bounding box. */
+    UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
+    void LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees);
 
-	/** Clear all loaded OSM data. */
-	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
-	void ClearLoadedData();
-	
-	/** Loaded and processed buildings data. */
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
-	TArray<FBuilding> LoadedBuildings;
+    /** Clear all loaded OSM data. */
+    UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
+    void ClearLoadedData();
+    
+    /** Loaded and processed buildings data. */
+    UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
+    TArray<FBuilding> LoadedBuildings;
 
-	/** Loaded and processed road network data. */
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
-	FRoadNetwork LoadedRoadNetwork;
+    /** Loaded and processed road network data. */
+    UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
+    FRoadNetwork LoadedRoadNetwork;
 
-	/** Loaded and processed foliage data. */
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
-	TArray<FMultipolygonData> LoadedFoliageContours;
+    /** Loaded and processed foliage data. */
+    UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
+    TArray<FMultipolygonData> LoadedFoliageContours;
 
-	/** Delegate type for reporting completion of data loading. */
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataLoadedDelegate, bool, isSuccess);
+    /** Delegate type for reporting completion of data loading. */
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataLoadedDelegate, bool, isSuccess);
 
-	/** Delegate for reporting completion of data loading. */
-	UPROPERTY(BlueprintAssignable, Category = "Geoprocessing")
-	FOnDataLoadedDelegate OnDataLoaded;
+    /** Delegate for reporting completion of data loading. */
+    UPROPERTY(BlueprintAssignable, Category = "Geoprocessing")
+    FOnDataLoadedDelegate OnDataLoaded;
 
 private:
 
-	/** Initialization flag. */
-	bool isInitialized = false;
+    /** Initialization flag. */
+    bool isInitialized = false;
 
-	/** Limit side size for loadable areas. */
-	const float areaMaxSizeDegrees = 0.5f;
+    /** Limit side size for loadable areas. */
+    const float areaMaxSizeDegrees = 0.5f;
 
-	/** Buffer for current HTTP request. */
-	UHttpRequest* currentRequest = nullptr;
+    /** Buffer for current HTTP request. */
+    UHttpRequest* currentRequest = nullptr;
 
-	/** Reader for OSM data. */
-	UOsmReader* osmReader;
+    /** Reader for OSM data. */
+    UOsmReader* osmReader;
 
-	/** Manager for OSM base. */
-	UOsmManager* osmManager;
+    /** Manager for OSM base. */
+    UOsmManager* osmManager;
 
-	/** Loader for buildings data. */
-	ULoaderBuildingsOsm* buildingsLoader;
+    /** Loader for buildings data. */
+    ULoaderBuildingsOsm* buildingsLoader;
 
-	/** Loader for road network data. */
-	ULoaderRoadsOsm* roadsLoader;
+    /** Loader for road network data. */
+    ULoaderRoadsOsm* roadsLoader;
 
-	/** Loader for foliage data. */
-	ULoaderFoliageOsm* foliageLoader;
+    /** Loader for foliage data. */
+    ULoaderFoliageOsm* foliageLoader;
 
-	/** Reads and processes data when HTTP request is completed. */
-	UFUNCTION()
-	void OnOsmRequestCompleted(FString inXmlData);
+    /** Reads and processes data when HTTP request is completed. */
+    UFUNCTION()
+    void OnOsmRequestCompleted(FString inXmlData);
 };
 

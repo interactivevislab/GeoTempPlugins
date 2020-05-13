@@ -12,7 +12,7 @@
 UINTERFACE(BlueprintType)
 class GEOTEMPLOADERS_API UProviderBuildings : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 
@@ -24,11 +24,11 @@ class GEOTEMPLOADERS_API UProviderBuildings : public UInterface
 */
 class GEOTEMPLOADERS_API IProviderBuildings
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** Provide buildings data. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	TArray<FBuilding> GetBuildings();
+    /** Provide buildings data. */
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    TArray<FBuilding> GetBuildings();
 };

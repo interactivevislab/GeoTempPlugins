@@ -34,9 +34,9 @@ public class GeoTempPostgis : ModuleRules
 
         var path = System.Environment.GetEnvironmentVariable("Path");
         System.Console.Write("====================\nLooking for postgres path\n");
-		System.Console.Write("Path:\n");
-		System.Console.Write(path+"\n");
-		var sqlCandidates = System.Array.FindAll(path.Split(';'), a => a.Contains("PostgreSQL"));
+        System.Console.Write("Path:\n");
+        System.Console.Write(path+"\n");
+        var sqlCandidates = System.Array.FindAll(path.Split(';'), a => a.Contains("PostgreSQL"));
 
         var sqlPath = "";
         foreach (var cand in sqlCandidates)
@@ -77,15 +77,15 @@ public class GeoTempPostgis : ModuleRules
 
         PublicIncludePaths.AddRange(
             new string[] {
-				// ... add public include paths required here ...
-			}
+                // ... add public include paths required here ...
+            }
             );
 
 
         PrivateIncludePaths.AddRange(
             new string[] {
-				// ... add other private include paths required here ...
-			}
+                // ... add other private include paths required here ...
+            }
             );
 
 
@@ -94,8 +94,8 @@ public class GeoTempPostgis : ModuleRules
             {
                 "Core",
                  "CoreUObject",
-				// ... add other public dependencies that you statically link with here ...
-			}
+                // ... add other public dependencies that you statically link with here ...
+            }
             );
 
 
@@ -106,16 +106,16 @@ public class GeoTempPostgis : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "InputCore",
-				// ... add private dependencies that you statically link with here ...	
-			}
+                // ... add private dependencies that you statically link with here ...    
+            }
             );
 
 
         DynamicallyLoadedModuleNames.AddRange(
             new string[]
             {
-				// ... add any modules that your module loads dynamically here ...
-			}
+                // ... add any modules that your module loads dynamically here ...
+            }
             );
     }
 }

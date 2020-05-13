@@ -7,14 +7,14 @@ UCLASS()
 class USlopeRoofMaker : public UObject, public IRoofMaker
 {
 public:
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	/** Height of roof crest over the walls top point */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	float RoofHeight;
+    /** Height of roof crest over the walls top point */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+    float RoofHeight;
 
-	/** @name Implementation of IRoofMaker */
-	///@{
-	virtual FBuildingMeshData GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial) override;
-	///@}
+    /** @name Implementation of IRoofMaker */
+    ///@{
+    virtual FBuildingMeshData GenerateRoof_Implementation(const FBuildingPart& inBuildingPart, UMaterialInterface* inWallMaterial, UMaterialInterface* inRoofMaterial) override;
+    ///@}
 };

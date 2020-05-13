@@ -3,7 +3,7 @@
 
 OsmNode::OsmNode(long id, double lon, double lat, FGeoCoords geoCoords, float height) : Id(id)
 {
-	Point = UGeoHelpers::GetLocalCoordinates(lon, lat, 0, geoCoords);
+    Point = UGeoHelpers::GetLocalCoordinates(lon, lat, 0, geoCoords);
 }
 
 

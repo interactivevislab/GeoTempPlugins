@@ -12,7 +12,7 @@
 UINTERFACE(BlueprintType)
 class GEOTEMPLOADERS_API UParserJson : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 
@@ -24,11 +24,11 @@ class GEOTEMPLOADERS_API UParserJson : public UInterface
 */
 class GEOTEMPLOADERS_API IParserJson
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** Sets UJsonReader as data source. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void SetJsonReader(UJsonReader* inJsonReader);
+    /** Sets UJsonReader as data source. */
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void SetJsonReader(UJsonReader* inJsonReader);
 };

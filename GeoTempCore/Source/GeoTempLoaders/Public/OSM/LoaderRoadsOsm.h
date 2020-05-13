@@ -21,23 +21,23 @@ class UOsmReader;
 UCLASS(Blueprintable)
 class GEOTEMPLOADERS_API ULoaderRoadsOsm : public UObject, public IParserOsm, public IProviderRoads
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** @name Implementation of IParserOsm */
-	///@{
-	virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
-	///@}
+    /** @name Implementation of IParserOsm */
+    ///@{
+    virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
+    ///@}
 
-	/** @name Implementation of IProviderRoads */
-	///@{
-	virtual FRoadNetwork GetRoadNetwork_Implementation() override;
-	///@}
+    /** @name Implementation of IProviderRoads */
+    ///@{
+    virtual FRoadNetwork GetRoadNetwork_Implementation() override;
+    ///@}
 
 private:
 
-	/** Inner data reader. */
-	UPROPERTY()
-	UOsmReader* osmReader;
+    /** Inner data reader. */
+    UPROPERTY()
+    UOsmReader* osmReader;
 };

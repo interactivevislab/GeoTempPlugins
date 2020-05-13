@@ -19,35 +19,35 @@
 UCLASS(Blueprintable)
 class GEOTEMPLOADERS_API ULoaderRoadsPostGis : public UObject, public IParserPostGis, public IProviderRoads
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** @name Implementation of IParserPostGis */
-	///@{
-	virtual void SetPostGisReader_Implementation(UPostGisReader* inPostGisReader) override;
-	///@}
+    /** @name Implementation of IParserPostGis */
+    ///@{
+    virtual void SetPostGisReader_Implementation(UPostGisReader* inPostGisReader) override;
+    ///@}
 
-	/** @name Implementation of IProviderRoads */
-	///@{
-	virtual FRoadNetwork GetRoadNetwork_Implementation() override;
-	///@}
+    /** @name Implementation of IProviderRoads */
+    ///@{
+    virtual FRoadNetwork GetRoadNetwork_Implementation() override;
+    ///@}
 
-	/** Coordinates of the reference point in the scene space. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FGeoCoords GeoCoodrs;
+    /** Coordinates of the reference point in the scene space. */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    FGeoCoords GeoCoodrs;
 
-	/** Name of tag for road lines number. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FString LanesTag;
+    /** Name of tag for road lines number. */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    FString LanesTag;
 
-	/** Name of tag for road width. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FString WidthTag;
+    /** Name of tag for road width. */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    FString WidthTag;
 
 private:
 
-	/** Inner data reader. */
-	UPROPERTY()
-	UPostGisReader* postGisReader;
+    /** Inner data reader. */
+    UPROPERTY()
+    UPostGisReader* postGisReader;
 };

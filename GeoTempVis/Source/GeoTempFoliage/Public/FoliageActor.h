@@ -14,14 +14,14 @@
 * @see UCustomFoliageInstancer
 */
 UCLASS(BlueprintType)
-class GEOTEMPFOLIAGE_API	AFoliageActor : public AActor
+class GEOTEMPFOLIAGE_API    AFoliageActor : public AActor
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	/** Sets default values for this actor's properties. */
-	AFoliageActor();
+    /** Sets default values for this actor's properties. */
+    AFoliageActor();
 
-	UPROPERTY()
-	USceneComponent* Root;
+    UPROPERTY()
+    USceneComponent* Root;
 };

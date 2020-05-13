@@ -108,25 +108,25 @@ line-feed character, as required by the XML spec.
 
 White space in text is preserved. For example:
 
-	<element> Hello,  World</element>
+    <element> Hello,  World</element>
 
 The leading space before the "Hello" and the double space after the comma are
 preserved. Line-feeds are preserved, as in this example:
 
-	<element> Hello again,
-	          World</element>
+    <element> Hello again,
+              World</element>
 
 However, white space between elements is **not** preserved. Although not strictly
 compliant, tracking and reporting inter-element space is awkward, and not normally
 valuable. TinyXML-2 sees these as the same XML:
 
-	<document>
-		<data>1</data>
-		<data>2</data>
-		<data>3</data>
-	</document>
+    <document>
+        <data>1</data>
+        <data>2</data>
+        <data>3</data>
+    </document>
 
-	<document><data>1</data><data>2</data><data>3</data></document>
+    <document><data>1</data><data>2</data><data>3</data></document>
 
 #### Whitespace Collapse
 
@@ -160,16 +160,16 @@ line number information for error messages.
 TinyXML-2 recognizes the pre-defined "character entities", meaning special
 characters. Namely:
 
-	&amp;	&
-	&lt;	<
-	&gt;	>
-	&quot;	"
-	&apos;	'
+    &amp;    &
+    &lt;    <
+    &gt;    >
+    &quot;    "
+    &apos;    '
 
 These are recognized when the XML document is read, and translated to their
 UTF-8 equivalents. For instance, text with the XML of:
 
-	Far &amp; Away
+    Far &amp; Away
 
 will have the Value() of "Far & Away" when queried from the XMLText object,
 and will be written back to the XML stream/file as an ampersand.
@@ -185,21 +185,21 @@ regular code point. The output is correct, but the entity syntax isn't preserved
 #### Print to file
 You can directly use the convenience function:
 
-	XMLDocument doc;
-	...
-	doc.SaveFile( "foo.xml" );
+    XMLDocument doc;
+    ...
+    doc.SaveFile( "foo.xml" );
 
 Or the XMLPrinter class:
 
-	XMLPrinter printer( fp );
-	doc.Print( &printer );
+    XMLPrinter printer( fp );
+    doc.Print( &printer );
 
 #### Print to memory
 Printing to memory is supported by the XMLPrinter.
 
-	XMLPrinter printer;
-	doc.Print( &printer );
-	// printer.CStr() has a const char* to the XML
+    XMLPrinter printer;
+    doc.Print( &printer );
+    // printer.CStr() has a const char* to the XML
 
 #### Print without an XMLDocument
 
@@ -211,46 +211,46 @@ The Printer supports the streaming case. The following code
 prints out a trivially simple XML file without ever creating
 an XML document.
 
-	XMLPrinter printer( fp );
-	printer.OpenElement( "foo" );
-	printer.PushAttribute( "foo", "bar" );
-	printer.CloseElement();
+    XMLPrinter printer( fp );
+    printer.OpenElement( "foo" );
+    printer.PushAttribute( "foo", "bar" );
+    printer.CloseElement();
 
 Examples
 --------
 
 #### Load and parse an XML file.
 
-	/* ------ Example 1: Load and parse an XML file. ---- */
-	{
-		XMLDocument doc;
-		doc.LoadFile( "dream.xml" );
-	}
+    /* ------ Example 1: Load and parse an XML file. ---- */
+    {
+        XMLDocument doc;
+        doc.LoadFile( "dream.xml" );
+    }
 
 #### Lookup information.
 
-	/* ------ Example 2: Lookup information. ---- */
-	{
-		XMLDocument doc;
-		doc.LoadFile( "dream.xml" );
+    /* ------ Example 2: Lookup information. ---- */
+    {
+        XMLDocument doc;
+        doc.LoadFile( "dream.xml" );
 
-		// Structure of the XML file:
-		// - Element "PLAY"      the root Element, which is the
-		//                       FirstChildElement of the Document
-		// - - Element "TITLE"   child of the root PLAY Element
-		// - - - Text            child of the TITLE Element
+        // Structure of the XML file:
+        // - Element "PLAY"      the root Element, which is the
+        //                       FirstChildElement of the Document
+        // - - Element "TITLE"   child of the root PLAY Element
+        // - - - Text            child of the TITLE Element
 
-		// Navigate to the title, using the convenience function,
-		// with a dangerous lack of error checking.
-		const char* title = doc.FirstChildElement( "PLAY" )->FirstChildElement( "TITLE" )->GetText();
-		printf( "Name of play (1): %s\n", title );
+        // Navigate to the title, using the convenience function,
+        // with a dangerous lack of error checking.
+        const char* title = doc.FirstChildElement( "PLAY" )->FirstChildElement( "TITLE" )->GetText();
+        printf( "Name of play (1): %s\n", title );
 
-		// Text is just another Node to TinyXML-2. The more
-		// general way to get to the XMLText:
-		XMLText* textNode = doc.FirstChildElement( "PLAY" )->FirstChildElement( "TITLE" )->FirstChild()->ToText();
-		title = textNode->Value();
-		printf( "Name of play (2): %s\n", title );
-	}
+        // Text is just another Node to TinyXML-2. The more
+        // general way to get to the XMLText:
+        XMLText* textNode = doc.FirstChildElement( "PLAY" )->FirstChildElement( "TITLE" )->FirstChild()->ToText();
+        title = textNode->Value();
+        printf( "Name of play (2): %s\n", title );
+    }
 
 Using and Installing
 --------------------

@@ -21,38 +21,38 @@
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
 class GEOTEMPOSM_API UOsmReader : public UObject
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	UOsmReader();
+    UOsmReader();
 
 public:
-	
-	/** Coordinates of the reference point in the scene space. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
-	FGeoCoords GeoCoords;
+    
+    /** Coordinates of the reference point in the scene space. */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Geoprocessing")
+    FGeoCoords GeoCoords;
 
-	/** Processed OSM nodes. */
-	TMap<long, OsmNode*> Nodes;
+    /** Processed OSM nodes. */
+    TMap<long, OsmNode*> Nodes;
 
-	/** Processed OSM ways. */
-	TMap<long, OsmWay*> Ways;
+    /** Processed OSM ways. */
+    TMap<long, OsmWay*> Ways;
 
-	/** Processed OSM relations. */
-	TMap<long, OsmRelation*> Relations;
+    /** Processed OSM relations. */
+    TMap<long, OsmRelation*> Relations;
 
-	/** Load data from XML string. */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
-	void InitWithXML(FString inXmlString);
+    /** Load data from XML string. */
+    UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
+    void InitWithXML(FString inXmlString);
 
-	/** Load data from XML file. */
-	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
-	void InitWithFile(FString inFilename);
+    /** Load data from XML file. */
+    UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
+    void InitWithFile(FString inFilename);
 
 private:
 
-	/** Buffer for XML data. */
-	tinyxml2::XMLDocument xmlDocument;
+    /** Buffer for XML data. */
+    tinyxml2::XMLDocument xmlDocument;
 
-	/** Read OSM data from loaded XML document. */
-	void ReadData();
+    /** Read OSM data from loaded XML document. */
+    void ReadData();
 };

@@ -12,7 +12,7 @@
 UINTERFACE(BlueprintType)
 class GEOTEMPLOADERS_API UProviderRoads : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 
@@ -24,11 +24,11 @@ class GEOTEMPLOADERS_API UProviderRoads : public UInterface
 */
 class GEOTEMPLOADERS_API IProviderRoads
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** Provide roads data. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	FRoadNetwork GetRoadNetwork();
+    /** Provide roads data. */
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    FRoadNetwork GetRoadNetwork();
 };

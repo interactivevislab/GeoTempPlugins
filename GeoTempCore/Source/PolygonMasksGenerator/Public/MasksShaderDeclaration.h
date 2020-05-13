@@ -26,9 +26,9 @@ typedef TUniformBufferRef<FPixelShaderVariableParameters> FPsVarParamsRef;
 /** This is the type for vertices in vertex shader. */
 struct FMaskPolygonVertex
 {
-	FVector4 Position;
-	FColor Color;
-	FVector4 YearData;
+    FVector4 Position;
+    FColor Color;
+    FVector4 YearData;
 };
 
 
@@ -36,53 +36,53 @@ struct FMaskPolygonVertex
 class FVertexDeclarationExample : public FRenderResource
 {
 public:
-	FVertexDeclarationRHIRef VertexDeclarationRhi;
+    FVertexDeclarationRHIRef VertexDeclarationRhi;
 
-	virtual void InitRHI() override;
-	virtual void ReleaseRHI() override;
+    virtual void InitRHI() override;
+    virtual void ReleaseRHI() override;
 };
 
 
 /** A simple passthrough vertexshader that we will use. */
 class FVertexShaderExample : public FGlobalShader
 {
-	DECLARE_SHADER_TYPE(FVertexShaderExample, Global);
+    DECLARE_SHADER_TYPE(FVertexShaderExample, Global);
 
 public:
 
-	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& inParameters);
+    static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& inParameters);
 
-	FVertexShaderExample();
-	FVertexShaderExample(const ShaderMetaType::CompiledShaderInitializerType& inInitializer);
+    FVertexShaderExample();
+    FVertexShaderExample(const ShaderMetaType::CompiledShaderInitializerType& inInitializer);
 
-	void SetUniformBuffers(FRHICommandList& outRhiCmdList, 
-		FPixelShaderConstantParameters& outConstParams, FPixelShaderVariableParameters& outVarParams);
+    void SetUniformBuffers(FRHICommandList& outRhiCmdList, 
+        FPixelShaderConstantParameters& outConstParams, FPixelShaderVariableParameters& outVarParams);
 };
 
 /** Base shader class */
 class FPixelShaderExample : public FGlobalShader
 {
-	DECLARE_SHADER_TYPE(FPixelShaderExample, Global);
+    DECLARE_SHADER_TYPE(FPixelShaderExample, Global);
 
 public:
 
-	FPixelShaderExample();
+    FPixelShaderExample();
 
-	explicit FPixelShaderExample(const ShaderMetaType::CompiledShaderInitializerType& inInitializer);
+    explicit FPixelShaderExample(const ShaderMetaType::CompiledShaderInitializerType& inInitializer);
 
-	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& inParameters);
+    static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& inParameters);
 
-	virtual bool Serialize(FArchive& inArchive) override;
+    virtual bool Serialize(FArchive& inArchive) override;
 
-	/** This function is required to let us bind our runtime surface to the shader using an SRV. */
-	void SetOutputTexture(FRHICommandList& outRhiCmdList, FShaderResourceViewRHIRef inTexParamSrv);
-	/** This function is required to bind our constant / uniform buffers to the shader. */
-	void SetUniformBuffers(FRHICommandList& outRhiCmdList, 
-		FPixelShaderConstantParameters& outConstParams, FPixelShaderVariableParameters& outVarParams);
-	/** This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed. */
-	void UnbindBuffers(FRHICommandList& outRhiCmdList);
+    /** This function is required to let us bind our runtime surface to the shader using an SRV. */
+    void SetOutputTexture(FRHICommandList& outRhiCmdList, FShaderResourceViewRHIRef inTexParamSrv);
+    /** This function is required to bind our constant / uniform buffers to the shader. */
+    void SetUniformBuffers(FRHICommandList& outRhiCmdList, 
+        FPixelShaderConstantParameters& outConstParams, FPixelShaderVariableParameters& outVarParams);
+    /** This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed. */
+    void UnbindBuffers(FRHICommandList& outRhiCmdList);
 
 private:
-	//This is how you declare resources that are going to be made available in the HLSL
-	FShaderResourceParameter textureParameter;
+    //This is how you declare resources that are going to be made available in the HLSL
+    FShaderResourceParameter textureParameter;
 };
