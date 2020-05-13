@@ -16,6 +16,16 @@ struct RoadSegmentGeometry
 	int Lanes;
 	float Width;
 	float TurningRadius;
+	float DistanceFromStartCrossroad = 0;
+	float DistanceFromEndCrossroad = 0;
+};
+
+
+enum class ArcType
+{
+	INNER_ARC,
+	OUTER_ARC,
+	NO_ARC
 };
 
 
@@ -23,6 +33,8 @@ struct CrossroadGeometry
 {
 	FVector Center;
 	TArray<int> SegmentsIds;
+	TArray<ArcType> Arcs;
+	TArray<FVector> ArcsCenters;
 };
 
 
@@ -37,7 +49,7 @@ RoadSegmentGeometry GetSegmentGeometry(FRoadSegment inSegment)
 {
 	float speedOnSegment = 8.0f; // m/s
 	float turningRadius = 18.6f * FMath::Sqrt(speedOnSegment / FMath::Abs(10 * inSegment.Width + 65 - speedOnSegment));
-	return { 0, 0, inSegment.Lanes, inSegment.Width, turningRadius };
+	return { 0, 0, inSegment.Lanes, 100 * inSegment.Width, 100 * turningRadius / 4 };
 }
 
 
@@ -140,6 +152,148 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 		convertedGeometry.Crossroads.Emplace(crossroadId, sortedCrossroadGeometry);
 	}
 
+	//calculation crossroads borders
+	for (auto crossroadData : convertedGeometry.Crossroads)
+	{
+		auto crossroadId = crossroadData.Key;
+		auto crossroad = crossroadData.Value;
+		auto centerPoint = crossroad.Center;
+		auto segmentsNum = crossroad.SegmentsIds.Num();
+
+		if (segmentsNum < 2)
+		{
+			continue;
+		}
+
+		for (int i = 0; i < segmentsNum; i++)
+		{
+			auto firstSegmentId = crossroad.SegmentsIds[i];
+			auto secondSegmentId = crossroad.SegmentsIds[(i + 1) % segmentsNum];
+			auto firstSegment = convertedGeometry.Segments[firstSegmentId];
+			auto secondSegment = convertedGeometry.Segments[secondSegmentId];
+
+			bool isStartForFirst = (firstSegment.StartCrossroadId == crossroadId);
+			bool isStartForSecond = (secondSegment.StartCrossroadId == crossroadId);
+			auto firstOtherCrossroadId = isStartForFirst ? firstSegment.EndCrossroadId : firstSegment.StartCrossroadId;
+			auto secondOtherCrossroadId = isStartForSecond ? secondSegment.EndCrossroadId : secondSegment.StartCrossroadId;
+			auto firstPoint = convertedGeometry.Crossroads[firstOtherCrossroadId].Center;
+			auto secondPoint = convertedGeometry.Crossroads[secondOtherCrossroadId].Center;
+			
+			auto firstDirection = (firstPoint - centerPoint).GetSafeNormal();
+			auto secondDirection = (secondPoint - centerPoint).GetSafeNormal();
+			auto firstDelta = firstSegment.Width / 2 * FVector::CrossProduct(FVector::UpVector, firstDirection);
+			auto secondDelta = secondSegment.Width / 2 * FVector::CrossProduct(FVector::DownVector, secondDirection);
+
+			FVector pointBuffer;
+			bool isSpecialCase = !FMath::SegmentIntersection2D(firstPoint + firstDelta, centerPoint + firstDelta,
+				secondPoint + secondDelta, centerPoint + secondDelta, pointBuffer);
+
+			auto dot = firstDirection.X * secondDirection.X + firstDirection.Y * secondDirection.Y;
+			auto det = firstDirection.X * secondDirection.Y - firstDirection.Y * secondDirection.X;
+			auto angle = FMath::Atan2(det, dot);	//in radians
+			if (angle < 0)
+			{
+				angle += 2 * PI;
+			}
+
+			auto& firstDistance = isStartForFirst
+				? firstSegment.DistanceFromStartCrossroad
+				: firstSegment.DistanceFromEndCrossroad;
+			auto& secondDistance = isStartForSecond
+				? secondSegment.DistanceFromStartCrossroad
+				: secondSegment.DistanceFromEndCrossroad;
+
+			if (isSpecialCase)
+			{
+				crossroad.Arcs.Add(ArcType::NO_ARC);
+				crossroad.ArcsCenters.Add(FVector());
+			}
+			else if (angle >= PI)
+			{
+				isSpecialCase = true;
+				crossroad.Arcs.Add(ArcType::OUTER_ARC);
+				crossroad.ArcsCenters.Add(FVector());
+			}
+
+			if (isSpecialCase)
+			{		
+				//negative values are "flags" for special cases
+				auto specialDistance = -0.67f * FMath::Max(firstSegment.Width, secondSegment.Width);
+				if (firstDistance <= 0)
+				{
+					firstDistance = FMath::Min(firstDistance, specialDistance);
+					convertedGeometry.Segments.Emplace(firstSegmentId, firstSegment);
+				}
+				if (secondDistance <= 0)
+				{
+					secondDistance = FMath::Min(secondDistance, specialDistance);
+					convertedGeometry.Segments.Emplace(secondSegmentId, secondSegment);
+				}
+			}
+			else
+			{
+				auto turningRadius = FMath::Min(firstSegment.TurningRadius, secondSegment.TurningRadius);
+				auto d1 = firstSegment.Width / 2 + turningRadius;
+				auto d2 = secondSegment.Width / 2 + turningRadius;
+				auto sinA = FMath::Sin(angle);
+				auto P = FMath::Sqrt(d1 * d1 + d2 * d2 + 2 * d1 * d2 * FMath::Cos(angle));
+				auto d1Angle = FMath::Asin(d1 / P * sinA);
+				auto D1Angle = PI / 2 - d1Angle;
+				auto D2Angle = PI - angle - D1Angle;
+				auto D1 = P * FMath::Sin(D1Angle) / sinA;
+				auto D2 = P * FMath::Sin(D2Angle) / sinA;
+
+				if (firstDistance < D1)
+				{
+					firstDistance = D1;
+					convertedGeometry.Segments.Emplace(firstSegmentId, firstSegment);
+				}
+				if (secondDistance < D2)
+				{
+					secondDistance = D2;
+					convertedGeometry.Segments.Emplace(secondSegmentId, secondSegment);
+				}
+
+				auto arcCenter = centerPoint + D1 * firstDirection 
+					+ d1 * FVector::CrossProduct(FVector::UpVector, firstDirection);
+				crossroad.Arcs.Add(ArcType::INNER_ARC);
+				crossroad.ArcsCenters.Add(arcCenter);
+			}
+		}
+		
+		convertedGeometry.Crossroads.Emplace(crossroadId, crossroad);
+	}
+
+	//fixing negative distance values
+	for (auto segmentData : convertedGeometry.Segments)
+	{
+		auto segmentId = segmentData.Key;
+		auto segment = segmentData.Value;
+
+		bool needToEmplace = false;
+		if (segment.DistanceFromStartCrossroad < 0)
+		{
+			segment.DistanceFromStartCrossroad *= -1;
+			needToEmplace = true;
+		}
+		if (segment.DistanceFromEndCrossroad < 0)
+		{
+			segment.DistanceFromEndCrossroad *= -1;
+			needToEmplace = true;
+		}
+		
+		if (needToEmplace)
+		{
+			convertedGeometry.Segments.Emplace(segmentId, segment);
+		}
+
+		auto length = (convertedGeometry.Crossroads[segment.StartCrossroadId].Center 
+			- convertedGeometry.Crossroads[segment.EndCrossroadId].Center).Size();
+		if (segment.DistanceFromStartCrossroad + segment.DistanceFromEndCrossroad > length)
+		{
+			// invalid segment distances (to close to crossroads)
+		}
+	}
 
 	return convertedGeometry;
 }
@@ -500,44 +654,43 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 
 	auto geometry = GetRoadNetworkGeometry(inRoadNetwork);
 	auto world = GetWorld();
-
-	for (auto crossroadData : inRoadNetwork.Crossroads)
-	{
-		DrawDebugBox(world, crossroadData.Value.Location + FVector(FMath::RandRange(-20, 20)), FVector(200),
-			FColor::MakeRandomColor(), false, 120, 0, 20);
-	}
+	float debugDuration = 120;
 
 	for (auto crossroadData : geometry.Crossroads)
 	{
 		auto crossroadId = crossroadData.Key;
 		auto crossroad = crossroadData.Value;
-		DrawDebugBox(world, crossroad.Center + FVector(FMath::RandRange(-20, 20)), FVector(100), 
-			FColor::MakeRandomColor(), false, 120, 0, 20);
-		for (int i = 0; i < crossroad.SegmentsIds.Num(); i++)
+		DrawDebugBox(world, crossroad.Center, FVector(100), FColor::Blue, false, debugDuration, 0, 50);
+		for (int i = 0; i < crossroad.Arcs.Num(); i++)
 		{
-			FColor color;
-			switch (i)
+			if (crossroad.Arcs[i] == ArcType::INNER_ARC)
 			{
-				case 0:
-					color = FColor::Red;
-					break;
-				case 1:
-					color = FColor::Green;
-					break;
-				case 2:
-					color = FColor::Blue;
-					break;
-				default:
-					color = FColor::Black;
-					break;
+				DrawDebugBox(world, crossroad.ArcsCenters[i], FVector(50), FColor::Cyan, false, debugDuration, 0, 25);
+				DrawDebugLine(world, crossroad.ArcsCenters[i], crossroad.Center, FColor::Cyan, false, debugDuration, 0, 20);
 			}
-			auto segment = geometry.Segments[crossroad.SegmentsIds[i]];
-			auto otherCrossroadId = (segment.StartCrossroadId == crossroadId) 
-				? segment.EndCrossroadId 
-				: segment.StartCrossroadId;
-			float alpha = 0.6;
-			auto endPoint = alpha * crossroad.Center + (1 - alpha) * geometry.Crossroads[otherCrossroadId].Center;
-			DrawDebugLine(world, crossroad.Center, endPoint, color, false, 120, 0, 100);
+		}
+	}
+
+	for (auto segmentData : geometry.Segments)
+	{
+		auto segmentId = segmentData.Key;
+		auto segment = segmentData.Value;
+
+		auto startPoint = geometry.Crossroads[segment.StartCrossroadId].Center;
+		auto endPoint = geometry.Crossroads[segment.EndCrossroadId].Center;
+
+		auto direction = (endPoint - startPoint).GetSafeNormal();
+		auto length = (endPoint - startPoint).Size();
+
+		if (length < segment.DistanceFromStartCrossroad + segment.DistanceFromEndCrossroad)
+		{
+			DrawDebugLine(world, startPoint, endPoint, FColor::Red, false, debugDuration, 0, 50);
+		}
+		else
+		{
+			startPoint += segment.DistanceFromStartCrossroad * direction;
+			endPoint -= segment.DistanceFromEndCrossroad * direction;
+			DrawDebugLine(world, startPoint, endPoint, FColor::Green, false, debugDuration, 0, 100);
 		}
 	}
 
