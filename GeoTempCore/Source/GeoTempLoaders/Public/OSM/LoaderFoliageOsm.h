@@ -20,22 +20,22 @@ class UOsmReader;
 UCLASS(Blueprintable)
 class ULoaderFoliageOsm : public UObject, public IParserOsm, public IProviderFolliage
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    /** @name Implementation of IParserOsm. */
-    ///@{
-    virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
-    ///@}
+	/** @name Implementation of IParserOsm. */
+	///@{
+	virtual void SetOsmReader_Implementation(UOsmReader* inOsmReader) override;
+	///@}
 
-    
-    /** @name Implementation of IProviderFolliage. */
-    ///@{
-    virtual TArray<FMultipolygonData> GetFolliage_Implementation() override;
-    ///@}
+	
+	/** @name Implementation of IProviderFolliage. */
+	///@{
+	virtual TArray<FMultipolygonData> GetFolliage_Implementation() override;
+	///@}
 
 private:
-    /** An assigned UOsmReader to read foliage data from. */
-    UPROPERTY()
-    UOsmReader* osmReader;
+	/** An assigned UOsmReader to read foliage data from. */
+	UPROPERTY()
+	UOsmReader* osmReader;
 };

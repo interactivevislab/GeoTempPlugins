@@ -10,11 +10,11 @@
 UCLASS(BlueprintType)
 class POLYGONMASKSGENERATOR_API UTreeTypesPolygonPreparer : public UBasePolygonPreparer
 {
-    GENERATED_BODY()
-    
-    /** @name Implementation of UBasePolygonPreparer */
-    ///@{
-    void PrepareMaskLoader(UMaskLoader* inTarget, const TArray<FMultipolygonData>& inPolygonData,
-            const TMap<FString, FString>& inTags) override;
-    ///@}
+	GENERATED_BODY()
+	
+	/** @name Implementation of UBasePolygonPreparer */
+	///@{
+	void PrepareMaskLoader(UMaskLoader* inTarget, const TArray<FMultipolygonData>& inPolygonData,
+			const TMap<FString, FString>& inTags) override;
+	///@}
 };
