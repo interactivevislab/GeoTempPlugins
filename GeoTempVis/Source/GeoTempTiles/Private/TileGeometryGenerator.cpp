@@ -24,9 +24,7 @@ void UTileGeometryGenerator::GenerateVertices(UTileData* inTile, FString inChann
 
     auto delta = inoutVertices[2 + inResolution] - inoutVertices[0];
 
-    auto object = HeightCalculator.GetObject();
-    auto interface = Cast<IHeightCalculator>(object);
-    if (!IsValid(object)) return;
+    if (!IsValid(HeightCalculator.GetObject())) return;
     if (inResolution < 1) inResolution = 1;
     if (inResolution > h) inResolution = h;
     if (inResolution > w) inResolution = w;
@@ -39,22 +37,19 @@ void UTileGeometryGenerator::GenerateVertices(UTileData* inTile, FString inChann
             if (ix < inResolution && iy < inResolution)
             {
                 auto& c = tileData[((w) * ix / inResolution) + w * ((h) * iy / inResolution)];
-                inoutVertices[ix * (inResolution + 1) + iy].Z = interface->Execute_CalcHeight(
-                    object, c);
+                inoutVertices[ix * (inResolution + 1) + iy].Z = RequestElevation(c);
             }
             else if (ix < inResolution)
             {
-                inoutVertices[ix * (inResolution + 1) + iy].Z = interface->Execute_CalcHeight(
-                    object, bottomData[((w) * ix / inResolution) + 0]);
+                inoutVertices[ix * (inResolution + 1) + iy].Z = RequestElevation(bottomData[((w) * ix / inResolution) + 0]);
             }
             else if (iy < inResolution)
             {
-                inoutVertices[ix * (inResolution + 1) + iy].Z = interface->Execute_CalcHeight(
-                    object, rightData[0 + w * ((h) * iy / inResolution)]);
+                inoutVertices[ix * (inResolution + 1) + iy].Z = RequestElevation(rightData[0 + w * ((h) * iy / inResolution)]);
             }
             else
             {
-                inoutVertices[ix * (inResolution + 1) + iy].Z = interface->Execute_CalcHeight(object, brData[0]);
+                inoutVertices[ix * (inResolution + 1) + iy].Z = RequestElevation(brData[0]);
             }
         }
     }
@@ -70,16 +65,12 @@ void UTileGeometryGenerator::GenerateVertices(UTileData* inTile, FString inChann
             }
             else if (iy < inResolution - 1)
             {
-                float hr = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(
-                    HeightCalculator.GetObject(),
-                    rightData[((w) * (ix - inResolution + 1) / inResolution) + w * ((h) * iy / inResolution)]);
+                float hr = RequestElevation(rightData[((w) * (ix - inResolution + 1) / inResolution) + w * ((h) * iy / inResolution)]);
                 r = FVector(delta.X, 0, hr - inoutVertices[ix * (inResolution + 1) + iy].Z);
             }
             else
             {
-                float hr = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(
-                    HeightCalculator.GetObject(),
-                    brData[((w) * (ix - inResolution + 1) / inResolution) + w * ((h)* (iy - inResolution + 1) / inResolution)]);
+                float hr = RequestElevation(brData[((w) * (ix - inResolution + 1) / inResolution) + w * ((h)* (iy - inResolution + 1) / inResolution)]);
                 r = FVector(delta.X, 0, hr - inoutVertices[ix * (inResolution + 1) + iy].Z);
             }
             
@@ -89,16 +80,12 @@ void UTileGeometryGenerator::GenerateVertices(UTileData* inTile, FString inChann
             }
             else if (ix < inResolution - 1)
             {
-                float hb = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(
-                    HeightCalculator.GetObject(),
-                    bottomData[((w) * ix / inResolution) + w * ((h) * (iy - inResolution + 1) / inResolution)]);
+                float hb = RequestElevation(bottomData[((w) * ix / inResolution) + w * ((h) * (iy - inResolution + 1) / inResolution)]);
                 b = FVector(0, delta.Y, hb - inoutVertices[ix * (inResolution + 1) + iy].Z);
             }
             else
             {
-                float hb = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(
-                    HeightCalculator.GetObject(),
-                    brData[((w)* (ix - inResolution + 1) / inResolution) + w * ((h) * (iy - inResolution + 1) / inResolution)]);
+                float hb = RequestElevation(brData[((w)* (ix - inResolution + 1) / inResolution) + w * ((h) * (iy - inResolution + 1) / inResolution)]);
                 b = FVector(0, delta.Y, hb - inoutVertices[ix * (inResolution + 1) + iy].Z);
             }
             
@@ -121,25 +108,21 @@ void UTileGeometryGenerator::GenerateVertices(UTileData* inTile, FString inChann
             float hr, hb;
             if (ix < (int)inTile->Textures[inChannel]->GetSurfaceWidth() - 1)
             {
-                 hb = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(),
-                    tileData[iy + (ix + 1)* textureSize]);
+                 hb = RequestElevation(tileData[iy + (ix + 1)* textureSize]);
             }
             else
             {
-                hb = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(),
-                    bottomData[iy + (0) * textureSize]);
+                hb = RequestElevation(bottomData[iy + (0) * textureSize]);
             }
 
             if (iy < (int)inTile->Textures[inChannel]->GetSurfaceHeight() - 1)
             {
-                hr = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(),
-                    tileData[iy + 1 + ix * textureSize]);
+                hr = RequestElevation(tileData[iy + 1 + ix * textureSize]);
 
             }
             else
             {
-                hr = Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(),
-                    rightData[0 + ix * textureSize]);
+                hr = RequestElevation(rightData[0 + ix * textureSize]);
             }
             r = FVector(delta.X, 0, hr - h);
             b = FVector(0, delta.Y, hb - h);
@@ -152,4 +135,9 @@ void UTileGeometryGenerator::GenerateVertices(UTileData* inTile, FString inChann
 	
     inTile->Textures.Add("Normal", normalMapTex);
 	inTile->Material->SetTextureParameterValue(FName(TEXT("Normal")), normalMapTex);
+}
+
+float UTileGeometryGenerator::RequestElevation(FColor inHeightmapColor)
+{
+    return Cast<IHeightCalculator>(HeightCalculator.GetObject())->Execute_CalcHeight(HeightCalculator.GetObject(), inHeightmapColor);
 }

@@ -32,6 +32,68 @@ protected:
 
 public:
 
+    //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnElevationRequestCompleteDelegate, float, value);
+    	
+    //TMap<FVector, FOnElevationRequestCompleteDelegate&> AsyncRequests;
+
+	
+    //UFUNCTION(BlueprintCallable, Category = "Tiles")
+    //    void GetElevationForCoordinatesAsync(FVector inCoords, UPARAM(ref) TBaseDelegate<>& inDelegate)
+    //{
+    //    //AsyncRequests.Add(inCoords, inDelegate);
+    //    //return new FOnElevationRequestCompleteDelegate();
+    //}
+
+    UFUNCTION(BlueprintCallable, Category = "Tiles")
+	float GetElevationForLoadedTile(FVector inCoords)
+    {
+        float x, y;
+        GetMercatorXYFromOffsetFloat(inCoords, BaseLevel, x, y);
+        int ix = FMath::FloorToInt(x), iy = FMath::FloorToInt(y);
+    	
+        auto tileCoords = FTileCoordinates{ ix, iy, BaseLevel };
+
+        
+    	
+        if (!Tiles.Contains(tileCoords))
+        {
+            return NAN;
+        }
+        auto tile = Tiles.FindRef(tileCoords);
+        if (!tile || !tile->IsLoaded.FindRef(ElevationChannel))
+        {
+            return NAN;
+        }
+        int size = FMath::Sqrt(tile->HeightMap.Num());
+        int cx = int(FMath::Frac(x) * (size));
+    	int cy = int(FMath::Frac(y) * (size));
+    	if (cx > size)
+    	{
+            cx = 0;
+            ix += 1;
+    	}
+    	if (cy > size)
+    	{
+            cy = 0;
+            iy += 1;
+    	}
+        tileCoords = FTileCoordinates{ ix, iy, BaseLevel };
+        if (!Tiles.Contains(tileCoords))
+        {
+            return NAN;
+        }
+        tile = Tiles.FindRef(tileCoords);
+        if (!tile || !tile->IsLoaded.FindRef(ElevationChannel))
+        {
+            return NAN;
+        }
+    	
+        UE_LOG(LogTemp, Warning, TEXT("%f; %f"), FMath::Frac(x), FMath::Frac(y));
+    	
+        return GeometryGenerator->RequestElevation(tile->HeightMap[cx + size * cy]);
+        
+    }
+	
     /** @name Implementation of UActorComponent default functions */
     ///@{    
     bool tickEnabled = false;
@@ -142,6 +204,15 @@ private:
     UFUNCTION(BlueprintCallable, Category = "Math")
     void GetMercatorXYFromOffset(FVector inOffsetVector, int inZ, int& outX, int& outY);
 
+    /** Get tile coordinates based on offset vector in scene space
+     * @param inOffsetVector offset vector in scene space
+     * @param inZ zoom level
+     * @param outX x coordinate of the tile
+     * @param outY y coordinate of the tile
+     */
+    UFUNCTION(BlueprintCallable, Category = "Math")
+    void GetMercatorXYFromOffsetFloat(FVector inOffsetVector, int inZ, float& outX, float& outY);
+
     /** Get tile coordinates offset from default tile coordinates based on offset vector in scene space
      * @param inOffsetVector offset vector in scene space
      * @param inZ zoom level
@@ -150,6 +221,16 @@ private:
      */
     UFUNCTION(BlueprintCallable, Category = "Math")
     void GetMercatorXYOffsetFromOffset(FVector inOffsetVector, int inZ, int& outX, int& outY);
+
+
+    /** Get tile coordinates offset from default tile coordinates based on offset vector in scene space
+     * @param inOffsetVector offset vector in scene space
+     * @param inZ zoom level
+     * @param outX x offset of the tile
+     * @param outY y offset of the tile
+     */
+    UFUNCTION(BlueprintCallable, Category = "Math")
+    void GetMercatorXYOffsetFromOffsetFloat(FVector inOffsetVector, int inZ, float& outX, float& outY);
 
     /** Get scene coordinates of tile based on it tile coordinates
      * @param inZ zoom level

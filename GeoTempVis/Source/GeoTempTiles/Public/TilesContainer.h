@@ -59,7 +59,11 @@ public:
 
     /** Clear all caches */
     UFUNCTION(BlueprintCallable, Category = "Default")
-    void Clear();    
+    void Clear();
+
+    /** Clear all corrupted data in caches */
+    UFUNCTION(BlueprintCallable, Category = "Default")
+    void CleanMess();
 
 
     /** @name Implementation of IEditorTickable */

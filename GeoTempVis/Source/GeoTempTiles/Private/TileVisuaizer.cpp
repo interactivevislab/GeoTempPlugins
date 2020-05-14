@@ -171,7 +171,7 @@ void UTilesController::ClearMesh()
     SplitTiles.Empty();
     ReservedIndecies.Empty();
     TileIndecies.Empty();
-    TileLoader->Clear();
+    TileLoader->CleanMess();
     Tiles.Empty();    
     AreTilesLoaded = false;
 }
@@ -209,12 +209,31 @@ void UTilesController::GetMercatorXYFromOffset(FVector inOffsetVector, int inZ, 
     outY = y0 + dy;
 }
 
+void UTilesController::GetMercatorXYFromOffsetFloat(FVector inOffsetVector, int inZ, float& outX, float& outY)
+{
+    float dx, dy;
+    GetMercatorXYOffsetFromOffsetFloat(inOffsetVector, inZ, dx, dy);
+    float x0 = GetMercatorXFromDegrees(CenterLon) * (1 << inZ);
+    float y0 = GetMercatorYFromDegrees(CenterLat) * (1 << inZ);
+
+    outX = x0 + dx;
+    outY = y0 + dy;
+}
+
 void UTilesController::GetMercatorXYOffsetFromOffset(FVector inOffsetVector, int inZ, int& dx, int& dy)
 {
     float fdx = inOffsetVector.X * (1 << inZ) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
     float fdy = inOffsetVector.Y * (1 << inZ) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
     dx = (int)FMath::RoundFromZero(fdx);
     dy = (int)FMath::RoundFromZero(fdy);
+}
+
+void UTilesController::GetMercatorXYOffsetFromOffsetFloat(FVector inOffsetVector, int inZ, float& dx, float& dy)
+{
+    float fdx = inOffsetVector.X * (1 << inZ) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
+    float fdy = inOffsetVector.Y * (1 << inZ) / 360 / EarthOneDegreeLengthOnEquator / FMath::Cos(CenterLat * PI / 180);
+    dx = fdx;
+    dy = fdy;
 }
 
 FVector UTilesController::GetXYOffsetFromMercatorOffset(int inZ, int inX, int inY)

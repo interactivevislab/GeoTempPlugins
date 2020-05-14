@@ -114,3 +114,16 @@ void UTileTextureContainer::Clear()
 {
     CachedTiles.Empty();
 }
+
+void UTileTextureContainer::CleanMess()
+{
+    TArray<FTileCoordinates> mess;
+	for (auto& kv : CachedTiles)
+	{
+        if (!kv.Value) mess.Add(kv.Key);
+	}
+	for (auto& key : mess)
+	{
+        CachedTiles.Remove(key);
+	}
+}

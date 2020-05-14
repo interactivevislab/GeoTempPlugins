@@ -42,6 +42,9 @@ public:
     UFUNCTION()
     void GenerateVertices(UTileData* inTile, FString inChannel, int inResolution, TArray<FVector>& inoutVertices,
                         TArray<FVector>& outNormals);
+
+    UFUNCTION()
+        float RequestElevation(FColor inHeightmapColor);
 	
 };
 
