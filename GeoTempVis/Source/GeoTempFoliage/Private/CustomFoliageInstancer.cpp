@@ -389,7 +389,7 @@ void UCustomFoliageInstancer::GetDatesNearCurrent(FDateTime inCurrentTime)
 }
 
 
-void UCustomFoliageInstancer::ParseDates(TArray<FMultipolygonData>& inContours)
+void UCustomFoliageInstancer::ParseDates(TArray<FMultipolygonData> inContours)
 {
 	TSet<int> maskDates = TSet<int>();
 
