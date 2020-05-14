@@ -1,7 +1,7 @@
 #include "LoaderHelper.h"
 
 
-const int ULoaderHelper::DEFAULT_LANES = 2;
+const int ULoaderHelper::DEFAULT_LANES = 1;
 const float ULoaderHelper::DEFAULT_LANE_WIDTH = 3.5f;
 
 

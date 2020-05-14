@@ -12,6 +12,7 @@
 
 struct MeshSectionData;
 
+struct RoadNetworkGeometry;
 
 class ARoadNetworkActor;
 
@@ -34,7 +35,10 @@ public:
 
 	/** Material that be used in creating road network actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInterface* RoadMaterial;
+	UMaterialInterface* RoadSegmentsMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UMaterialInterface* CrossroadsMaterial;
 
 	/** Z-coordinate of highway surface. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -96,6 +100,9 @@ private:
 	* @param outCurtainsMeshData	Calculated data for roadsides' mesh section.
 	*/
 	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, TArray<FRoadSegment> inSegments, 
+		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
+
+	void ConstructNewRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, RoadNetworkGeometry inNetworkGeometry,
 		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
 
 	/** Spawned RoadNetworkActor. */

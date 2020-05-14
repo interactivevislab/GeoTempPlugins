@@ -18,6 +18,7 @@ struct RoadSegmentGeometry
 	float TurningRadius;
 	float DistanceFromStartCrossroad = 0;
 	float DistanceFromEndCrossroad = 0;
+	bool IsValid = true;
 };
 
 
@@ -281,17 +282,18 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 			segment.DistanceFromEndCrossroad *= -1;
 			needToEmplace = true;
 		}
-		
-		if (needToEmplace)
-		{
-			convertedGeometry.Segments.Emplace(segmentId, segment);
-		}
 
 		auto length = (convertedGeometry.Crossroads[segment.StartCrossroadId].Center 
 			- convertedGeometry.Crossroads[segment.EndCrossroadId].Center).Size();
 		if (segment.DistanceFromStartCrossroad + segment.DistanceFromEndCrossroad > length)
 		{
-			// invalid segment distances (to close to crossroads)
+			segment.IsValid = false;
+			needToEmplace = true;
+		}
+
+		if (needToEmplace)
+		{
+			convertedGeometry.Segments.Emplace(segmentId, segment);
 		}
 	}
 
@@ -503,9 +505,9 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	const int RAIL_MATERIAL_INDEX		= 2;
 
 	TMap<int, UMaterialInstanceDynamic*> roadMaterials = {
-		{ CURTAINS_MATERIAL_INDEX,	UMaterialInstanceDynamic::Create(RoadMaterial, this) },
-		{ AUTO_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadMaterial, this) },
-		{ RAIL_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadMaterial, this) },
+		{ CURTAINS_MATERIAL_INDEX,	UMaterialInstanceDynamic::Create(RoadSegmentsMaterial, this) },
+		{ AUTO_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadSegmentsMaterial, this) },
+		{ RAIL_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadSegmentsMaterial, this) },
 	};
 
 	roadMaterials[CURTAINS_MATERIAL_INDEX]	->SetScalarParameterValue("CoatingType", static_cast<float>(RoadType::Sand));
@@ -635,6 +637,190 @@ TArray<FVector> URoadBuilder::GetCupsPointsOffsets(TArray<FVector2D> inPointsDir
 #pragma endregion
 
 
+MeshSectionData CalculateNewMeshDataForRoad(RoadNetworkGeometry inNetworkGeometry, MeshSectionData& outCurtainsMeshData,
+	float inRoadZ, float inRoadHeight, float inCurtainsWidth, float inStretch)
+{
+	MeshSectionData sectionData;
+
+	for (auto segmentData : inNetworkGeometry.Segments)
+	{
+		auto segmentId = segmentData.Key;
+		auto segment = segmentData.Value;
+
+		if (!segment.IsValid)
+		{
+			continue;
+		}
+
+		auto startPoint = inNetworkGeometry.Crossroads[segment.StartCrossroadId].Center;
+		auto endPoint = inNetworkGeometry.Crossroads[segment.EndCrossroadId].Center;
+
+		auto direction = (endPoint - startPoint).GetSafeNormal();
+		startPoint += segment.DistanceFromStartCrossroad * direction;
+		endPoint -= segment.DistanceFromEndCrossroad * direction;
+
+		startPoint.Z = inRoadZ;
+		endPoint.Z = inRoadZ;
+
+		auto pointDelta = URoadBuilder::CalculatePerpendicularToLine(startPoint, endPoint);
+		auto curtainsDelta1 = pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
+		auto curtainsDelta2 = -pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
+
+		pointDelta *= segment.Width / 2;
+
+		auto roadRectangle = URoadBuilder::ConvertLineToRect(startPoint, endPoint, pointDelta);
+
+		auto indicesDelta = sectionData.Vertices.Num();
+		sectionData.Vertices.Append(roadRectangle);
+
+		sectionData.Indices.Append({
+			0 + indicesDelta,
+			2 + indicesDelta,
+			1 + indicesDelta,
+			3 + indicesDelta,
+			1 + indicesDelta,
+			2 + indicesDelta,
+			});
+
+		indicesDelta = outCurtainsMeshData.Vertices.Num();
+		outCurtainsMeshData.Vertices.Append({
+			roadRectangle[0] + curtainsDelta1,
+			roadRectangle[0],
+			roadRectangle[2] + curtainsDelta1,
+			roadRectangle[2],
+
+			roadRectangle[1],
+			roadRectangle[1] + curtainsDelta2,
+			roadRectangle[3],
+			roadRectangle[3] + curtainsDelta2
+			});
+
+		outCurtainsMeshData.Indices.Append({
+			0 + indicesDelta,
+			2 + indicesDelta,
+			1 + indicesDelta,
+			3 + indicesDelta,
+			1 + indicesDelta,
+			2 + indicesDelta,
+			});
+		indicesDelta += 4;
+		outCurtainsMeshData.Indices.Append({
+			0 + indicesDelta,
+			2 + indicesDelta,
+			1 + indicesDelta,
+			3 + indicesDelta,
+			1 + indicesDelta,
+			2 + indicesDelta,
+			});
+
+		auto curtainsNormal1 = FVector::UpVector;
+		auto curtainsNormal2 = FVector::UpVector;
+
+		auto lenght = FMath::RoundToInt((startPoint - endPoint).Size()
+			/ (segment.Width * inStretch) * segment.Lanes);
+
+		auto uv00 = FVector2D(0, 0);
+		auto uv01 = FVector2D(segment.Lanes, 0);
+		auto uv01c = FVector2D(1, 0);
+		auto uv02 = FVector2D(0, lenght);
+		auto uv03 = FVector2D(segment.Lanes, lenght);
+		auto uv03c = FVector2D(1, lenght);
+
+		sectionData.Uv0.Append({ uv00, uv01, uv02, uv03 });
+		sectionData.Uv1.Append({ LIST_4_TIMES(FVector2D()) });
+		sectionData.Normals.Append({ LIST_4_TIMES(FVector::UpVector) });
+		sectionData.VertexColors.Append({ LIST_4_TIMES(FColor(1, 1, 1, 1)) });
+		sectionData.Tangents.Append({ LIST_4_TIMES(FRuntimeMeshTangent()) });
+
+		outCurtainsMeshData.Uv0.Append({ uv00, uv01c, uv02, uv03c, uv00, uv01c, uv02, uv03c });
+		outCurtainsMeshData.Uv1.Append({ LIST_8_TIMES(FVector2D()) });
+		outCurtainsMeshData.Normals.Append({ LIST_4_TIMES(curtainsNormal1), LIST_4_TIMES(curtainsNormal2) });
+		outCurtainsMeshData.VertexColors.Append({ LIST_8_TIMES(FColor(1, 1, 1, 1)) });
+		outCurtainsMeshData.Tangents.Append({ LIST_8_TIMES(FRuntimeMeshTangent()) });
+	}
+
+	for (auto crossroadsData : inNetworkGeometry.Crossroads)
+	{
+		auto crossroadId = crossroadsData.Key;
+		auto crossroad = crossroadsData.Value;
+
+		if (crossroad.SegmentsIds.Num() > 1)
+		{
+			TArray<FVector> allPoints;
+			for (auto id : crossroad.SegmentsIds)
+			{
+				auto segment = inNetworkGeometry.Segments[id];
+
+				int otherCrossroadId;
+				float distanceFromCenter;
+				if (crossroadId == segment.StartCrossroadId)
+				{
+					otherCrossroadId = segment.EndCrossroadId;
+					distanceFromCenter = segment.DistanceFromStartCrossroad;
+				}
+				else
+				{
+					otherCrossroadId = segment.StartCrossroadId;
+					distanceFromCenter = segment.DistanceFromEndCrossroad;
+				}
+
+				auto otherPoint = inNetworkGeometry.Crossroads[otherCrossroadId].Center;
+				auto direction = (otherPoint - crossroad.Center).GetSafeNormal();
+				otherPoint = crossroad.Center + distanceFromCenter * direction;
+				auto delta = segment.Width / 2 * FVector::CrossProduct(FVector::UpVector, direction);
+				otherPoint.Z = inRoadZ;
+				allPoints.Add(otherPoint - delta);
+				allPoints.Add(otherPoint + delta);
+			}
+
+			auto centerIndex = sectionData.Vertices.Num();
+
+			sectionData.Vertices.Add(crossroad.Center);
+			sectionData.Uv0.Add(FVector2D(0, 0));
+			sectionData.Uv1.Add(FVector2D());
+			sectionData.Normals.Add(FVector::UpVector);
+			sectionData.VertexColors.Add(FColor(1, 1, 1, 1));
+			sectionData.Tangents.Add(FRuntimeMeshTangent());
+
+			sectionData.Vertices.Append(allPoints);
+			auto pointsNum = allPoints.Num();
+			for (int i = 0; i < pointsNum; i++)
+			{
+				sectionData.Indices.Append({
+					centerIndex + 0,
+					centerIndex + (i + 1) % pointsNum + 1,
+					centerIndex + i + 1,
+					});
+
+				sectionData.Uv0.Add(FVector2D(0, 0));
+				sectionData.Uv1.Add(FVector2D());
+				sectionData.Normals.Add(FVector::UpVector);
+				sectionData.VertexColors.Add(FColor(1, 1, 1, 1));
+				sectionData.Tangents.Add(FRuntimeMeshTangent());
+			}
+		}
+	}
+
+	return sectionData;
+}
+
+
+void URoadBuilder::ConstructNewRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, RoadNetworkGeometry inNetworkGeometry,
+	int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData)
+{
+	auto sectionData = CalculateNewMeshDataForRoad(inNetworkGeometry, outCurtainsMeshData,
+		AutoRoadZ, RoadHeight, CurtainsWidth, Stretch);
+	if (sectionData.Indices.Num() == 0 || sectionData.Vertices.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Attempt to create an empty mesh"));
+		return;
+	}
+	inRuntimeMesh->CreateMeshSection(inSectionIndex, sectionData.Vertices, sectionData.Indices, sectionData.Normals,
+		sectionData.Uv0, sectionData.Uv1, sectionData.VertexColors, sectionData.Tangents, false);
+	inRuntimeMesh->SetMaterial(inSectionIndex, inMaterial);
+}
+
+
 void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 {
 	if (roadNetworkActor)
@@ -650,9 +836,37 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	roadNetworkActor->SetMobility(EComponentMobility::Movable);
 	auto runtimeMesh = roadNetworkActor->GetRuntimeMeshComponent();
 
-	//
+	const int CURTAINS_MATERIAL_INDEX	= 0;
+	const int SEGMENTS_MATERIAL_INDEX	= 1;
+	const int CROSSROADS_MATERIAL_INDEX	= 2;
+	TMap<int, UMaterialInstanceDynamic*> roadMaterials = {
+		{ CURTAINS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadSegmentsMaterial, this) },
+		{ SEGMENTS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadSegmentsMaterial, this) },
+		{ CROSSROADS_MATERIAL_INDEX,	UMaterialInstanceDynamic::Create(CrossroadsMaterial, this) },
+	};
 
 	auto geometry = GetRoadNetworkGeometry(inRoadNetwork);
+	MeshSectionData curtainsMeshData;
+
+	ConstructNewRoadMeshSection(runtimeMesh, geometry, SEGMENTS_MATERIAL_INDEX,
+		roadMaterials[SEGMENTS_MATERIAL_INDEX], curtainsMeshData);
+
+	//if (curtainsMeshData.Indices.Num() == 0 || curtainsMeshData.Vertices.Num() == 0)
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("Attempt to create an empty mesh"));
+	//	return;
+	//}
+	//runtimeMesh->CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normals,
+	//	curtainsMeshData.Uv0, curtainsMeshData.Uv1, curtainsMeshData.VertexColors, curtainsMeshData.Tangents, false);
+	//runtimeMesh->SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
+
+	roadNetworkActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
+
+	return;
+
+#pragma region Debug Drawing
+
+	
 	auto world = GetWorld();
 	float debugDuration = 120;
 
@@ -680,21 +894,19 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 		auto endPoint = geometry.Crossroads[segment.EndCrossroadId].Center;
 
 		auto direction = (endPoint - startPoint).GetSafeNormal();
-		auto length = (endPoint - startPoint).Size();
 
-		if (length < segment.DistanceFromStartCrossroad + segment.DistanceFromEndCrossroad)
+		if (segment.IsValid)
 		{
-			DrawDebugLine(world, startPoint, endPoint, FColor::Red, false, debugDuration, 0, 50);
+			//startPoint += segment.DistanceFromStartCrossroad * direction;
+			//endPoint -= segment.DistanceFromEndCrossroad * direction;
+			//DrawDebugLine(world, startPoint, endPoint, FColor::Green, false, debugDuration, 0, 100);
 		}
 		else
 		{
-			startPoint += segment.DistanceFromStartCrossroad * direction;
-			endPoint -= segment.DistanceFromEndCrossroad * direction;
-			DrawDebugLine(world, startPoint, endPoint, FColor::Green, false, debugDuration, 0, 100);
+			DrawDebugLine(world, startPoint, endPoint, FColor::Red, false, debugDuration, 0, 150);
 		}
 	}
 
-	//
+#pragma endregion
 
-	roadNetworkActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 }
