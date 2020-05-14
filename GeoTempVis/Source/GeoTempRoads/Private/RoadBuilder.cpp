@@ -9,6 +9,10 @@
 #define LIST_8_TIMES(something) LIST_4_TIMES(something), LIST_4_TIMES(something)
 
 
+const float URoadBuilder::ArcsAngleStep = PI / 18;
+const int URoadBuilder::DefaultCapDensity = 8;
+
+
 struct RoadSegmentGeometry
 {
 	int StartCrossroadId;
@@ -425,12 +429,12 @@ MeshSectionData CalculateMeshDataForRoad(TArray<FRoadSegment> inSegments, MeshSe
 
 				
 				TArray<FVector2D>	uvs;		
-				TArray<FVector2D>	uvs_curtains = URoadBuilder::GetRoadCupsPointsDirections();
+				TArray<FVector2D>	uvs_curtains = URoadBuilder::GetRoadCupsPointsDirections(URoadBuilder::DefaultCapDensity);
 				TArray<FVector>		radiusDeltas = URoadBuilder::GetCupsPointsOffsets(uvs_curtains, pointDelta, isReversedCup);
 
-				for (int j = 0; j <= URoadBuilder::capDensity; j++)
+				for (int j = 0; j <= URoadBuilder::DefaultCapDensity; j++)
 				{
-					uvs.Add(FVector2D(0, static_cast<float>(j) / URoadBuilder::capDensity * segment.Lanes));
+					uvs.Add(FVector2D(0, static_cast<float>(j) / URoadBuilder::DefaultCapDensity * segment.Lanes));
 
 					auto radiusDelta	= radiusDeltas[j];
 					auto size			= radiusDelta.Size();
@@ -607,12 +611,12 @@ TArray<FVector> URoadBuilder::ConvertLineToRect(FVector inStartPoint, FVector in
 }
 
 
-TArray<FVector2D> URoadBuilder::GetRoadCupsPointsDirections()
+TArray<FVector2D> URoadBuilder::GetRoadCupsPointsDirections(int capDensity)
 {
 	TArray<FVector2D> pointsDirections = {};
-	for (int j = 0; j <= URoadBuilder::capDensity; j++)
+	for (int j = 0; j <= capDensity; j++)
 	{
-		float angle = PI / URoadBuilder::capDensity * j;
+		float angle = PI / capDensity * j;
 
 		float x = FMath::Cos(angle);
 		float y = FMath::Sin(angle);
@@ -776,7 +780,7 @@ MeshSectionData CalculateNewMeshDataForRoad(RoadNetworkGeometry inNetworkGeometr
 			auto centerIndex = sectionData.Vertices.Num();
 
 			sectionData.Vertices.Add(crossroad.Center);
-			sectionData.Uv0.Add(FVector2D(0, 0));
+			sectionData.Uv0.Add(FVector2D(0.5f, 0.5f));
 			sectionData.Uv1.Add(FVector2D());
 			sectionData.Normals.Add(FVector::UpVector);
 			sectionData.VertexColors.Add(FColor(1, 1, 1, 1));
@@ -792,11 +796,88 @@ MeshSectionData CalculateNewMeshDataForRoad(RoadNetworkGeometry inNetworkGeometr
 					centerIndex + i + 1,
 					});
 
-				sectionData.Uv0.Add(FVector2D(0, 0));
+				sectionData.Uv0.Add(FVector2D());
 				sectionData.Uv1.Add(FVector2D());
 				sectionData.Normals.Add(FVector::UpVector);
 				sectionData.VertexColors.Add(FColor(1, 1, 1, 1));
 				sectionData.Tangents.Add(FRuntimeMeshTangent());
+			}
+		}
+		else if (crossroad.SegmentsIds.Num() == 1)
+		{
+			auto segment = inNetworkGeometry.Segments[crossroad.SegmentsIds[0]];
+
+			int otherCrossroadId = (crossroadId == segment.StartCrossroadId)
+				? segment.EndCrossroadId
+				: segment.StartCrossroadId;
+
+			auto otherPoint = inNetworkGeometry.Crossroads[otherCrossroadId].Center;
+			auto direction = (otherPoint - crossroad.Center).GetSafeNormal();
+			auto delta = segment.Width / 2 * FVector::CrossProduct(FVector::UpVector, direction);
+			auto point = crossroad.Center;
+			point.Z = inRoadZ;
+
+			auto indicesDelta = sectionData.Vertices.Num();
+			auto indicesDelta_curtains = outCurtainsMeshData.Vertices.Num();
+
+			sectionData.Vertices.Add(point);
+			sectionData.Uv0.Add(FVector2D());
+			sectionData.Uv1.Add(FVector2D());
+			sectionData.Normals.Add(FVector::UpVector);
+			sectionData.VertexColors.Add(FColor::White);
+			sectionData.Tangents.Add(FRuntimeMeshTangent());
+
+			int capDensity = FMath::RoundToInt(PI / URoadBuilder::ArcsAngleStep);
+			TArray<FVector2D>	uvs;
+			TArray<FVector2D>	uvs_curtains = URoadBuilder::GetRoadCupsPointsDirections(capDensity);
+			TArray<FVector>		radiusDeltas = URoadBuilder::GetCupsPointsOffsets(uvs_curtains, delta, false);
+
+			for (int j = 0; j <= capDensity; j++)
+			{
+				uvs.Add(FVector2D(0, static_cast<float>(j) / capDensity * segment.Lanes));
+
+				auto radiusDelta = radiusDeltas[j];
+				auto size = radiusDelta.Size();
+				auto curtainsDelta = radiusDelta / size * inCurtainsWidth - FVector(0, 0, inRoadHeight);
+				auto curtainNormal = FVector::CrossProduct(
+					(radiusDeltas[FMath::Max(j - 1, 0)] - radiusDelta).GetSafeNormal(),
+					(-curtainsDelta).GetSafeNormal());
+
+
+				sectionData.Vertices.Add(point + radiusDelta);
+				sectionData.Uv0.Add(uvs[j]);
+				sectionData.Uv1.Add(FVector2D());
+				sectionData.Normals.Add(FVector::UpVector);
+				sectionData.VertexColors.Add(FColor::White);
+				sectionData.Tangents.Add(FRuntimeMeshTangent());
+
+				outCurtainsMeshData.Vertices.Add(point + radiusDelta);
+				outCurtainsMeshData.Uv0.Add(uvs_curtains[j]);
+				outCurtainsMeshData.Uv1.Add(FVector2D());
+				outCurtainsMeshData.Normals.Add(curtainNormal);
+				outCurtainsMeshData.VertexColors.Add(FColor::White);
+				outCurtainsMeshData.Tangents.Add(FRuntimeMeshTangent());
+
+				outCurtainsMeshData.Vertices.Add(point + radiusDelta + curtainsDelta);
+				outCurtainsMeshData.Uv0.Add(2 * uvs_curtains[j]);
+				outCurtainsMeshData.Uv1.Add(FVector2D());
+				outCurtainsMeshData.Normals.Add(curtainNormal);
+				outCurtainsMeshData.VertexColors.Add(FColor::White);
+				outCurtainsMeshData.Tangents.Add(FRuntimeMeshTangent());
+
+				if (j > 0)
+				{
+					sectionData.Indices.Append({ indicesDelta, indicesDelta + j, indicesDelta + j + 1 });
+					auto baseIndex = indicesDelta_curtains + 2 * j;
+					outCurtainsMeshData.Indices.Append({
+						baseIndex - 2,
+						baseIndex - 1,
+						baseIndex,
+						baseIndex + 1,
+						baseIndex,
+						baseIndex - 1
+						});
+				}
 			}
 		}
 	}

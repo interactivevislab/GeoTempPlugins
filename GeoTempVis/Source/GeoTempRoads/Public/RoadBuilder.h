@@ -31,7 +31,9 @@ class GEOTEMPROADS_API	URoadBuilder : public UActorComponent
 public:
 
 	/** Number of points used to create round road edges. */
-	static const int capDensity = 8;
+	static const int DefaultCapDensity;
+
+	static const float ArcsAngleStep;
 
 	/** Material that be used in creating road network actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -81,7 +83,7 @@ public:
 
 	/** Calculate direction vectors for road segment round edges. Used in UVs and calculating points for edges cups. */
 	UFUNCTION(BlueprintCallable)
-	static TArray<FVector2D> GetRoadCupsPointsDirections();
+	static TArray<FVector2D> GetRoadCupsPointsDirections(int capDensity);
 
 	/** Calculate points for edges cups. */
 	UFUNCTION(BlueprintCallable)
