@@ -34,7 +34,11 @@ public:
 	virtual TArray<FMultipolygonData> GetFolliage_Implementation() override;
 	///@}
 
+	/** Whether there were none of incomplete relations to parse */
 	bool DataParsedSuccessfully = true;
+
+	/** A set of ids of incompleted relations */
+	TSet<int> ErrorRelations = {};
 
 private:
 	/** An assigned UOsmReader to read foliage data from. */

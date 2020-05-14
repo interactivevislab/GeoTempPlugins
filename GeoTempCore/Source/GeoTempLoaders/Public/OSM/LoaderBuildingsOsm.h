@@ -31,6 +31,12 @@ public:
 	virtual TArray<FBuilding> GetBuildings_Implementation() override;
 	///@}
 
+	/** Whether there were none of incomplete relations to parse */
+	bool DataParsedSuccessfully = true;
+
+	/** A set of ids of incompleted relations */
+	TSet<int> ErrorRelations = {};
+
 private:
 
 	/** Inner data reader. */

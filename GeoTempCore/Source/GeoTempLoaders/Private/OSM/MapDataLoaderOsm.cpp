@@ -85,14 +85,6 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 		pendingRequests = waterLoader->ErrorRelations.Num()-1;
 		pendingIds = waterLoader->ErrorRelations.Array();
 		ReloadIncompleteData("");
-		//if (currentRequest != nullptr)
-		//{
-		//	currentRequest->OnCompleted.RemoveAll(this);
-		//}
-		//currentRequest = osmManager->GetFullOsmDataForRelation(FString::FromInt(waterLoader->ErrorRelations.Array()[0]));
-		//currentRequest->OnCompleted.AddDynamic(this, &UMapDataLoaderOsm::OnOsmRequestCompleted);
-		//currentRequest->StartRequest();
-		//OnDataLoaded.Broadcast(false);
 	}
 	else
 	{

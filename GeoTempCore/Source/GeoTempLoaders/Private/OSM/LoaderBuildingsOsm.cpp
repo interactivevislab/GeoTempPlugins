@@ -283,8 +283,9 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					}
 				}
 			}
-			part.OuterConts.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours));
-			part.InnerConts.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours));
+			bool goodRelation = true;
+			part.OuterConts.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours, relation->Id, goodRelation, ErrorRelations));
+			part.InnerConts.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours, relation->Id, goodRelation, ErrorRelations));
 
 			relParts.Add(part.Id, part);
 			for (auto element : relation->WayRoles)
@@ -365,9 +366,9 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					}
 				}
 			}
-			
-			part.OuterConts.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours));
-			part.InnerConts.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours));
+			bool goodRelation = true;
+			part.OuterConts.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours, relation->Id, goodRelation, ErrorRelations));
+			part.InnerConts.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours, relation->Id, goodRelation, ErrorRelations));
 
 			for (auto element : relation->RelRoles)
 			{

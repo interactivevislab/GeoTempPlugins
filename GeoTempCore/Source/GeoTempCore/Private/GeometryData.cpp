@@ -137,3 +137,57 @@ bool UGeometryHelpers::DoLineSegmentsIntersect(FVector inFirstLineStart, FVector
 	}
 	return false;
 }
+
+bool UGeometryHelpers::IsPointInPolygon(TArray<FVector>& inPolygon, FVector inPoint)
+{
+	int j = inPolygon.Num() - 1;
+	bool oddNodes = false;
+	for (int i = 0; i < inPolygon.Num(); i++)
+	{
+		if ((inPolygon[i].Y < inPoint.Y && inPolygon[j].Y >= inPoint.Y || inPolygon[j].Y < inPoint.Y && inPolygon[i].Y >= inPoint.Y)
+			&&
+			(inPolygon[i].X <= inPoint.X || inPolygon[j].X <= inPoint.X))
+		{
+			oddNodes ^= (inPolygon[i].X + (inPoint.Y - inPolygon[i].Y)
+				/ (inPolygon[j].Y - inPolygon[i].Y) * (inPolygon[j].X - inPolygon[i].X) < inPoint.X);
+		}
+		j = i;
+	}
+
+	return oddNodes;
+}
+
+//========================================================//
+// Assumes:                                               //
+//    N+1 vertices:   p[0], p[1], ... , p[N-1], p[N]      //
+//    Closed polygon: p[0] = p[N]                         //
+// Returns:                                               //
+//    Signed area: -ve if anticlockwise, +ve if clockwise //
+//========================================================//
+double UGeometryHelpers::PolygonDirectionSign(const TArray<FVector>& inPolygon)
+{
+	double determinant = 0;
+	int verticesNumber = inPolygon.Num() - 1;
+	for (int i = 0; i < verticesNumber; i++)
+	{
+		determinant += inPolygon[i].X * inPolygon[i + 1].Y - inPolygon[i + 1].X * inPolygon[i].Y;
+	}
+	determinant *= 0.5;
+	return determinant;
+}
+
+bool UGeometryHelpers::IsPolygonClockwise(const TArray<FVector>& inPolygon)
+{
+	return UGeometryHelpers::PolygonDirectionSign(inPolygon) > 0;
+}
+
+bool UGeometryHelpers::HasNumbersSameSign(double inFirstNumber, double inSecondNumber)
+{
+	return (inFirstNumber >= 0) ^ (inSecondNumber < 0);
+}
+
+// Returns 1 if point is to the right, -1 if point is to the left, 0 if point is on the line
+double UGeometryHelpers::PointToLineRelativePosition(FVector inLineStart, FVector inLineEnd, FVector inPoint)
+{
+	return FMath::Sign((inLineEnd.X - inLineStart.X) * (inPoint.Y - inLineStart.Y) - (inLineEnd.Y - inLineStart.Y) * (inPoint.X - inLineStart.X));
+}

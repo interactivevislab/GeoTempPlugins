@@ -26,9 +26,11 @@ public:
 	/** Creates a complete road network structure based on data from road segments. */
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
 
-	static TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours);
+	static TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours, int inRelationId, bool& outGoodData, TSet<int>& outErrorRelations);
 
-	static TArray<FContour> FixAndCutRelationContours(TArray<FContour>& inUnclosedContour, FVector4 inBounds, OsmRelation& inRelation, bool& outGoodData, TSet<int>& outErrorRelations);
+	static TArray<FContour> FixAndCutRelationContours(TArray<FContour>& inUnclosedContour, FVector4 inBounds, int inRelationId, bool& outGoodData, TSet<int>& outErrorRelations);
+
+	static TArray<FContour> CutContoursByBounds(TArray<FContour>& inContour, FVector4 inBounds);
 
 #pragma region Tags
 

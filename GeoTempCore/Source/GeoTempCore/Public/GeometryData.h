@@ -152,4 +152,40 @@ public:
 	 * @return bool whether line segments intersect or not
 	 */
 	static bool DoLineSegmentsIntersect(FVector inFirstLineStart, FVector inFirstLineEnd, FVector inSecondLineStart, FVector inSecondLineEnd, FVector& outIntersection);
+
+	/** Checks whether the point is inside the polygon
+	* @param inPolygon polygon to check for the point position
+	* @param inPoint point check within the polygon
+	* @return bool whether the point is inside the polygon
+	*/
+	static bool IsPointInPolygon(TArray<FVector>& inPolygon, FVector inPoint);
+
+	/** Get polygon direction as sign
+	* @param inPolygon polygon to check for direction
+	* @return double negative value (<0) anticlockwise, positive value (>0) if clockwise 
+	*/
+	static double PolygonDirectionSign(const TArray<FVector>& inPolygon);
+
+	/** Checks whetrer polygon is clockwise or not
+	* @param inPolygon polygon to check for direction
+	* @return bool true if clockwise, false if anticlockwise 
+	*/
+	static bool IsPolygonClockwise(const TArray<FVector>& inPolygon);
+
+	/** Check numbers for same signs
+	* Zero (0) considred to have a plus (+) sign
+	*
+	* @param inFirstNumber first number to check for sign
+	* @param inSecondNumber second number to check for sign
+	* @return bool true if numbers have same sign, otherwise false
+	*/
+	static bool HasNumbersSameSign(double inFirstNumber, double inSecondNumber);
+
+	/** Get point position relatively to a line looking in direction from line start point to line end point
+	* @param inLineStart start point to represent a line
+	* @param inLineEnd end point to represent a line
+	* @param inPoint point to check for relative position
+	* @return double negative value (<0) if point is to the left of a line, positive value (>0) if point is to the right of a line, zero (==0) if point is on a line
+	*/
+	static double PointToLineRelativePosition(FVector inLineStart, FVector inLineEnd, FVector inPoint);
 };

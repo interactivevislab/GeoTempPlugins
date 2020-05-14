@@ -41,6 +41,15 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 			auto cont = FContour(points);
 			polygon.Outer.Add(cont);
 
+
+
+			TArray<FContour> cutOuters = {};
+			for (auto poly : polygon.Outer)
+			{
+				cutOuters.Append(ULoaderHelper::CutContoursByBounds(TArray<FContour>() = { poly }, osmReader->BoundsRect));
+			}
+			polygon.Outer = cutOuters;// = ULoaderHelper::CutContoursByBounds(polygon.Outer, osmReader->BoundsRect);
+
 			polygon.Tags = way->Tags;
 			polygon.Origin = osmReader->GeoCoords;
 
@@ -159,22 +168,35 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 					unclosedConts.Add(contour);
 				}
 			}
-			//bool clockwise;
-			//if (relation->WayRoles.Num()==2)
-			//{
-			//	if (relation->Ways[0]->Nodes[0] == relation->Ways[1]->Nodes[0])
-			//	{
 
-			//	}
-			//}
 			bool goodRelation = true;
-			polygon.Outer.Append(ULoaderHelper::FixAndCutRelationContours(UnclosedOuterContours, osmReader->BoundsRect, *relation, goodRelation, ErrorRelations));
-			polygon.Holes.Append(ULoaderHelper::FixAndCutRelationContours(UnclosedInnerContours, osmReader->BoundsRect, *relation, goodRelation, ErrorRelations));
+
+			auto fixedOuters = ULoaderHelper::FixRelationContours(UnclosedOuterContours, relation->Id, goodRelation, ErrorRelations);
+			auto fixedInnres = ULoaderHelper::FixRelationContours(UnclosedInnerContours, relation->Id, goodRelation, ErrorRelations);
+
 			DataParsedSuccessfully = DataParsedSuccessfully && goodRelation;
 			if (!goodRelation)
 			{
 				continue;
 			}
+
+			polygon.Outer.Append(fixedOuters);
+			polygon.Holes.Append(fixedInnres);
+
+			TArray<FContour> cutOuters = {};
+			TArray<FContour> cutHoles = {};
+			for (auto poly : polygon.Outer)
+			{
+				cutOuters.Append(ULoaderHelper::CutContoursByBounds(TArray<FContour>() = { poly }, osmReader->BoundsRect));
+			}
+			for (auto poly : polygon.Holes)
+			{
+				cutHoles.Append(ULoaderHelper::CutContoursByBounds(TArray<FContour>() = { poly }, osmReader->BoundsRect));
+			}
+
+			polygon.Outer = cutOuters;// = ULoaderHelper::CutContoursByBounds(polygon.Outer, osmReader->BoundsRect);
+			polygon.Holes = cutHoles;// = ULoaderHelper::CutContoursByBounds(polygon.Holes, osmReader->BoundsRect);
+
 			polygon.Tags = relation->Tags;
 			polygon.Origin = osmReader->GeoCoords;
 			if (polygon.Outer.Num()==0)
