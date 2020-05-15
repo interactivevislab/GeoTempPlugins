@@ -79,11 +79,14 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 	LoadedFoliageContours	.Append(IProviderFolliage::Execute_GetFolliage(foliageLoader)		);
 	LoadedWaterContours		.Append(IProviderWater::Execute_GetWater(waterLoader)				);
 
-	if (!waterLoader->DataParsedSuccessfully)
+	auto successfullParse = waterLoader->DataParsedSuccessfully && foliageLoader->DataParsedSuccessfully;
+
+	if (!successfullParse)
 	{
 		osmReader->ClearReaderData();
-		pendingRequests = waterLoader->ErrorRelations.Num()-1;
+		pendingRequests = waterLoader->ErrorRelations.Num()-1 + foliageLoader->ErrorRelations.Num() - 1;
 		pendingIds = waterLoader->ErrorRelations.Array();
+		pendingIds.Append(foliageLoader->ErrorRelations.Array());
 		ReloadIncompleteData("");
 	}
 	else

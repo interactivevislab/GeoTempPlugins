@@ -17,6 +17,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 	TArray<FContour> UnclosedInnerContours;
 
 	polygons.Empty();
+	DataParsedSuccessfully = true;
 	//find all building and building parts through ways
 	for (auto wayP : osmReader->Ways)
 	{
@@ -57,6 +58,8 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 			auto cont = FContour(points);
 			polygon.Outer.Add(cont);
+			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->BoundsRect);
+
 
 			polygon.Tags = way->Tags;
 
@@ -97,65 +100,76 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			auto lanes = ULoaderHelper::TryGetTag(way->Tags, "lanes", ULoaderHelper::DEFAULT_LANES);
 			auto width = ULoaderHelper::TryGetTag(way->Tags, "width", lanes * ULoaderHelper::DEFAULT_LANE_WIDTH);
 
-			for (int i = 0; i < way->Nodes.Num() - 1; i++)
+
+			auto contour = FContour();
+			for (auto node : way->Nodes)
 			{
-				FMultipolygonData roadPolygon;
-				auto startPoint = way->Nodes[i]->Point;
-				auto endPoint = way->Nodes[i + 1]->Point;
+				contour.Points.Add(node->Point);
+			}
+			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->BoundsRect);
 
-				pointDelta = FVector::CrossProduct((startPoint - endPoint).GetSafeNormal(), FVector(0, 0, 1));
-
-				pointDelta *= (width * 50);
-
-				auto point0 = startPoint + pointDelta;
-				auto point1 = startPoint - pointDelta;
-				auto point2 = endPoint + pointDelta;
-				auto point3 = endPoint - pointDelta;
-
-				auto roadCont = FContour();
-				roadCont.Points.Append({
-					point0,
-					point2 
-				});
-
-				const int capDensity = 8;
-				auto yDelta = FVector::CrossProduct(pointDelta, FVector::UpVector);
-
-				for (int j = 1; j < capDensity; j++)
+			for (auto contourPiece : cutContour)
+			{
+				for (int i = 0; i < contourPiece.Points.Num() - 1; i++)
 				{
-					float angle = PI / capDensity * j;
+					FMultipolygonData roadPolygon;
+					auto startPoint = contourPiece.Points[i];
+					auto endPoint = contourPiece.Points[i + 1];
 
-					float x = FMath::Cos(angle);
-					float y = FMath::Sin(angle);
+					pointDelta = FVector::CrossProduct((startPoint - endPoint).GetSafeNormal(), FVector(0, 0, 1));
 
-					roadCont.Points.Add(endPoint - FVector(0, 0, 2) + (pointDelta * x + yDelta * y));
+					pointDelta *= (width * 50);
+
+					auto point0 = startPoint + pointDelta;
+					auto point1 = startPoint - pointDelta;
+					auto point2 = endPoint + pointDelta;
+					auto point3 = endPoint - pointDelta;
+
+					auto roadCont = FContour();
+					roadCont.Points.Append({
+						point0,
+						point2
+						});
+
+					const int capDensity = 8;
+					auto yDelta = FVector::CrossProduct(pointDelta, FVector::UpVector);
+
+					for (int j = 1; j < capDensity; j++)
+					{
+						float angle = PI / capDensity * j;
+
+						float x = FMath::Cos(angle);
+						float y = FMath::Sin(angle);
+
+						roadCont.Points.Add(endPoint - FVector(0, 0, 2) + (pointDelta * x + yDelta * y));
+					}
+
+					roadCont.Points.Append({
+						point3,
+						point1
+						});
+
+					for (int j = 1; j < capDensity; j++)
+					{
+						float angle = PI / capDensity * j;
+
+						float x = FMath::Cos(angle);
+						float y = FMath::Sin(angle);
+
+						roadCont.Points.Add(startPoint - FVector(0, 0, 2) - (pointDelta * x + yDelta * y));
+					}
+
+					roadCont.Points.Append({
+						point0
+						});
+
+					roadPolygon.Outer.Add(roadCont);
+					roadPolygon.Tags = way->Tags;
+					polygon.Origin = osmReader->GeoCoords;
+					roadPolygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
+
+					polygons.Add(roadPolygon);
 				}
-
-				roadCont.Points.Append({
-					point3,
-					point1
-				});
-
-				for (int j = 1; j < capDensity; j++)
-				{
-					float angle = PI / capDensity * j;
-
-					float x = FMath::Cos(angle);
-					float y = FMath::Sin(angle);
-
-					roadCont.Points.Add(startPoint - FVector(0, 0, 2) - (pointDelta * x + yDelta * y));
-				}
-				
-				roadCont.Points.Append({
-					point0
-				});
-				
-				roadPolygon.Outer.Add(roadCont);
-				roadPolygon.Tags = way->Tags;
-				polygon.Origin = osmReader->GeoCoords;
-				roadPolygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
-
-				polygons.Add(roadPolygon);
 			}
 		}
 	}
@@ -223,9 +237,26 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 					unclosedConts.Add(contour);
 				}
 			}
+			//bool goodRelation = true;
+			//polygon.Outer.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours, relation->Id, goodRelation, ErrorRelations));
+			//polygon.Holes.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours, relation->Id, goodRelation, ErrorRelations));
+
 			bool goodRelation = true;
-			polygon.Outer.Append(ULoaderHelper::FixRelationContours(UnclosedOuterContours, relation->Id, goodRelation, ErrorRelations));
-			polygon.Holes.Append(ULoaderHelper::FixRelationContours(UnclosedInnerContours, relation->Id, goodRelation, ErrorRelations));
+
+			auto fixedOuters = ULoaderHelper::FixRelationContours(UnclosedOuterContours, relation->Id, goodRelation, ErrorRelations);
+			auto fixedInnres = ULoaderHelper::FixRelationContours(UnclosedInnerContours, relation->Id, goodRelation, ErrorRelations);
+
+			DataParsedSuccessfully = DataParsedSuccessfully && goodRelation;
+			if (!goodRelation)
+			{
+				continue;
+			}
+
+			polygon.Outer.Append(fixedOuters);
+			polygon.Holes.Append(fixedInnres);
+			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->BoundsRect);
+			polygon.Holes = ULoaderHelper::CutPolygonsByBounds(polygon.Holes, osmReader->BoundsRect);
+
 
 			polygon.Tags = relation->Tags;
 			polygon.Origin = osmReader->GeoCoords;

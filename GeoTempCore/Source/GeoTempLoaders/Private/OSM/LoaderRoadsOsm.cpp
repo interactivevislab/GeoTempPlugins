@@ -39,18 +39,28 @@ FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 		OsmWay* way = wayData.Value;
 		if (way->Tags.Contains("highway"))
 		{
-			FOsmRoadSegment segment;
-
-			TArray<FVector> points;
+			auto contour = FContour();
 			for (auto node : way->Nodes)
 			{
-				points.Add(node->Point);
+				contour.Points.Add(node->Point);
 			}
+			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->BoundsRect);
 
-			segment.Points = points;
-			segment.Tags = way->Tags;
+			for (auto contourPiece : cutContour)
+			{
+				FOsmRoadSegment segment;
 
-			segments.Add(way->Id, segment);
+				TArray<FVector> points;
+				for (auto point : contourPiece.Points)
+				{
+					points.Add(point);
+				}
+
+				segment.Points = points;
+				segment.Tags = way->Tags;
+
+				segments.Add(way->Id, segment);
+			}
 		}
 	}
 

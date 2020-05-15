@@ -30,9 +30,11 @@ public:
 
 	static TArray<FContour> FixAndCutRelationContours(TArray<FContour>& inUnclosedContour, FVector4 inBounds, int inRelationId, bool& outGoodData, TSet<int>& outErrorRelations);
 
-	static TArray<FContour> CutContoursByBounds(TArray<FContour>& inContour, FVector4 inBounds);
+	static TArray<FContour> CutPolygonsByBounds(TArray<FContour>& inContour, FVector4 inBounds);
 
-	static FContour CutContourByBounds(FContour inContour, FVector4 inBounds);
+	static FContour CutPolygonByBounds(FContour inContour, FVector4 inBounds);
+
+	static TArray<FContour> CutContourByBounds(FContour inContour, FVector4 inBounds);
 
 #pragma region Tags
 
