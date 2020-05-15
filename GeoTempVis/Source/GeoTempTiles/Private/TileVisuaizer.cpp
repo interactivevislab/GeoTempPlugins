@@ -15,7 +15,86 @@ UTilesController::UTilesController(const FObjectInitializer& ObjectInitializer) 
 }
 
 
-// Called when the game starts
+UElevationRequest* UTilesController::GetElevationForCoordinatesAsync(FVector inCoords)
+{
+	auto ret = NewObject<UElevationRequest>();
+	ret->RequestPosition = inCoords;
+	ret->Result = NAN;
+	ret->isComplete = false;
+	AsyncRequests.Add(ret);
+	return ret;
+}
+
+void UTilesController::ProcessRequests()
+{
+	int actualI = -1;
+	int toRemove = 0;
+	for (int i = 0; i < AsyncRequests.Num(); i++)
+	{
+		float h = GetElevationForLoadedTile(AsyncRequests[i]->RequestPosition);
+		if (isnan(h))
+		{
+			actualI++;
+			AsyncRequests[actualI] = AsyncRequests[i];
+		}
+		else
+		{
+			AsyncRequests[i]->isComplete = true;
+			AsyncRequests[i]->Result = h;
+			AsyncRequests[i]->Callback.Broadcast(h);
+			toRemove++;
+		}
+	}
+	AsyncRequests.SetNum(AsyncRequests.Num() - toRemove);
+}
+
+float UTilesController::GetElevationForLoadedTile(FVector inCoords)
+{
+	float x, y;
+	GetMercatorXYFromOffsetFloat(inCoords, BaseLevel, x, y);
+	int ix = FMath::FloorToInt(x), iy = FMath::FloorToInt(y);
+
+	auto tileCoords = FTileCoordinates{ix, iy, BaseLevel};
+
+
+	if (!Tiles.Contains(tileCoords))
+	{
+		BeginCreateTileMesh(tileCoords);
+		return NAN;
+	}
+	auto tile = Tiles.FindRef(tileCoords);
+	if (!tile || !tile->IsLoaded.FindRef(ElevationChannel))
+	{
+		return NAN;
+	}
+	int size = FMath::Sqrt(tile->HeightMap.Num());
+	int cx = int(FMath::Frac(x) * (size));
+	int cy = int(FMath::Frac(y) * (size));
+	if (cx > size)
+	{
+		cx = 0;
+		ix += 1;
+	}
+	if (cy > size)
+	{
+		cy = 0;
+		iy += 1;
+	}
+	tileCoords = FTileCoordinates{ix, iy, BaseLevel};
+	if (!Tiles.Contains(tileCoords))
+	{
+		return NAN;
+	}
+	tile = Tiles.FindRef(tileCoords);
+	if (!tile || !tile->IsLoaded.FindRef(ElevationChannel))
+	{
+		return NAN;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%f; %f"), FMath::Frac(x), FMath::Frac(y));
+
+	return GeometryGenerator->RequestElevation(tile->HeightMap[cx + size * cy]);
+} // Called when the game starts
 void UTilesController::BeginPlay()
 {
     Super::BeginPlay();
@@ -26,7 +105,8 @@ void UTilesController::BeginPlay()
 void UTilesController::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)
 {
     
-    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);    
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    ProcessRequests();
     return;
     int x0, y0;
     GetMercatorXYFromOffset(FVector::ZeroVector, BaseLevel, x0, y0);
@@ -131,6 +211,7 @@ void UTilesController::EditorTick_Implementation(float inDeltaTime)
     {
         Cast<IEditorTickable>(TileLoader)->Execute_EditorTick(TileLoader, inDeltaTime);
     }
+    ProcessRequests();
 }
 
 void UTilesController::PostLoad()

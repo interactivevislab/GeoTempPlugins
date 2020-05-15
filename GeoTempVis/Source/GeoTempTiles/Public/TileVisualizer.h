@@ -18,6 +18,32 @@ class UTileTextureContainer;
 
 class UTileData;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnElevationRequestCompleteDelegate, float, value);
+
+/** Container for storing async elevation requests*/
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class GEOTEMPTILES_API UElevationRequest : public UObject
+{
+    GENERATED_BODY()
+
+public:
+	/** Coordinates to request elevation*/
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
+    FVector RequestPosition;
+
+	/** Result elevation */
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
+    float Result;
+
+	/** Is this request processed and complete*/
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
+    bool isComplete;
+
+	/** Callback to call when this request is complete */
+    UPROPERTY(BlueprintAssignable, Category = "Tiles")
+    FOnElevationRequestCompleteDelegate Callback;
+};
+
 /** Actor component for tiles handling and visualization*/
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class GEOTEMPTILES_API UTilesController : public URuntimeMeshComponent, public IEditorTickable
@@ -29,71 +55,21 @@ public:
     UTilesController(const FObjectInitializer& ObjectInitializer);
 
 protected:
+    /** List of stored async requests for elevation */
+    TArray<UElevationRequest*> AsyncRequests;
 
+	/** Iterate through async requests and process these ready to complete */
+    void ProcessRequests();
 public:
 
-    //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnElevationRequestCompleteDelegate, float, value);
-    	
-    //TMap<FVector, FOnElevationRequestCompleteDelegate&> AsyncRequests;
+	/** Create async elevation request for provided coordinates*/
+    UFUNCTION(BlueprintCallable, Category = "Elevation")
+    UElevationRequest* GetElevationForCoordinatesAsync(FVector inCoords);
 
-	
-    //UFUNCTION(BlueprintCallable, Category = "Tiles")
-    //    void GetElevationForCoordinatesAsync(FVector inCoords, UPARAM(ref) TBaseDelegate<>& inDelegate)
-    //{
-    //    //AsyncRequests.Add(inCoords, inDelegate);
-    //    //return new FOnElevationRequestCompleteDelegate();
-    //}
+    /** Attempt to calculate elevation for provided coordinates. If data is not yet loaded, return NaN and place tile to queue*/
+    UFUNCTION(BlueprintCallable, Category = "Elevation")
+    float GetElevationForLoadedTile(FVector inCoords);
 
-    UFUNCTION(BlueprintCallable, Category = "Tiles")
-	float GetElevationForLoadedTile(FVector inCoords)
-    {
-        float x, y;
-        GetMercatorXYFromOffsetFloat(inCoords, BaseLevel, x, y);
-        int ix = FMath::FloorToInt(x), iy = FMath::FloorToInt(y);
-    	
-        auto tileCoords = FTileCoordinates{ ix, iy, BaseLevel };
-
-        
-    	
-        if (!Tiles.Contains(tileCoords))
-        {
-            return NAN;
-        }
-        auto tile = Tiles.FindRef(tileCoords);
-        if (!tile || !tile->IsLoaded.FindRef(ElevationChannel))
-        {
-            return NAN;
-        }
-        int size = FMath::Sqrt(tile->HeightMap.Num());
-        int cx = int(FMath::Frac(x) * (size));
-    	int cy = int(FMath::Frac(y) * (size));
-    	if (cx > size)
-    	{
-            cx = 0;
-            ix += 1;
-    	}
-    	if (cy > size)
-    	{
-            cy = 0;
-            iy += 1;
-    	}
-        tileCoords = FTileCoordinates{ ix, iy, BaseLevel };
-        if (!Tiles.Contains(tileCoords))
-        {
-            return NAN;
-        }
-        tile = Tiles.FindRef(tileCoords);
-        if (!tile || !tile->IsLoaded.FindRef(ElevationChannel))
-        {
-            return NAN;
-        }
-    	
-        UE_LOG(LogTemp, Warning, TEXT("%f; %f"), FMath::Frac(x), FMath::Frac(y));
-    	
-        return GeometryGenerator->RequestElevation(tile->HeightMap[cx + size * cy]);
-        
-    }
-	
     /** @name Implementation of UActorComponent default functions */
     ///@{    
     bool tickEnabled = false;
