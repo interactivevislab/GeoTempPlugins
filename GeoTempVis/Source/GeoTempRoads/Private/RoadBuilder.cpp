@@ -208,15 +208,15 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 				? secondSegment.DistanceFromStartCrossroad
 				: secondSegment.DistanceFromEndCrossroad;
 
-			if (isSpecialCase)
-			{
-				crossroad.Arcs.Add(ArcType::NO_ARC);
-				crossroad.ArcsCenters.Add(FVector());
-			}
-			else if (angle >= PI)
+			if (angle >= PI)
 			{
 				isSpecialCase = true;
 				crossroad.Arcs.Add(ArcType::OUTER_ARC);
+				crossroad.ArcsCenters.Add(FVector());
+			}
+			else if(isSpecialCase)
+			{
+				crossroad.Arcs.Add(ArcType::NO_ARC);
 				crossroad.ArcsCenters.Add(FVector());
 			}
 
@@ -641,8 +641,47 @@ TArray<FVector> URoadBuilder::GetCupsPointsOffsets(TArray<FVector2D> inPointsDir
 #pragma endregion
 
 
+void FindSegmentToCrossroadConnection(RoadNetworkGeometry inNetworkGeometry, int inCrossroadId, int inSegmentId,
+	bool isClockWise, FVector & outConnectionPoint, FVector & outBorderPoint)
+{
+	auto crossroad = inNetworkGeometry.Crossroads[inCrossroadId];
+	auto segment = inNetworkGeometry.Segments[inSegmentId];
+
+	int otherCrossroadId;
+	float distanceFromCenter;
+	if (inCrossroadId == segment.StartCrossroadId)
+	{
+		otherCrossroadId = segment.EndCrossroadId;
+		distanceFromCenter = segment.DistanceFromStartCrossroad;
+	}
+	else
+	{
+		otherCrossroadId = segment.StartCrossroadId;
+		distanceFromCenter = segment.DistanceFromEndCrossroad;
+	}
+
+	auto otherCrossroadCenter = inNetworkGeometry.Crossroads[otherCrossroadId].Center;
+	auto direction = (otherCrossroadCenter - crossroad.Center).GetSafeNormal();
+	outConnectionPoint = crossroad.Center + distanceFromCenter * direction;
+	auto delta = segment.Width / 2 * FVector::CrossProduct(FVector::UpVector, direction);
+	outBorderPoint = outConnectionPoint + (isClockWise ? 1 : -1) * delta;
+}
+
+
+float GetDirectionAngleForOuterArc(FVector inCrossroadCenter, FVector inConnectionPoint, FVector inBorderPoint, 
+	float inArcRadius)
+{
+	float a = (inCrossroadCenter - inConnectionPoint).Size();
+	float b = (inConnectionPoint - inBorderPoint).Size();
+	float pSquare = a * a + b * b;
+	float c = FMath::Sqrt(pSquare - inArcRadius * inArcRadius);
+	float d = inArcRadius;
+	return FMath::Acos((a * a + d * d - b * b - c * c) / (a * d + b * c) / 2);
+}
+
+
 MeshSectionData CalculateNewMeshDataForRoad(RoadNetworkGeometry inNetworkGeometry, MeshSectionData& outCurtainsMeshData,
-	float inRoadZ, float inRoadHeight, float inCurtainsWidth, float inStretch)
+	float inRoadHeight, float inCurtainsWidth, float inStretch)
 {
 	MeshSectionData sectionData;
 
@@ -662,9 +701,6 @@ MeshSectionData CalculateNewMeshDataForRoad(RoadNetworkGeometry inNetworkGeometr
 		auto direction = (endPoint - startPoint).GetSafeNormal();
 		startPoint += segment.DistanceFromStartCrossroad * direction;
 		endPoint -= segment.DistanceFromEndCrossroad * direction;
-
-		startPoint.Z = inRoadZ;
-		endPoint.Z = inRoadZ;
 
 		auto pointDelta = URoadBuilder::CalculatePerpendicularToLine(startPoint, endPoint);
 		auto curtainsDelta1 = pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
@@ -747,34 +783,115 @@ MeshSectionData CalculateNewMeshDataForRoad(RoadNetworkGeometry inNetworkGeometr
 	{
 		auto crossroadId = crossroadsData.Key;
 		auto crossroad = crossroadsData.Value;
+		auto segmentsNum = crossroad.SegmentsIds.Num();
 
-		if (crossroad.SegmentsIds.Num() > 1)
+		//road turn or crossroad
+		if (segmentsNum > 1)
 		{
 			TArray<FVector> allPoints;
-			for (auto id : crossroad.SegmentsIds)
+			
+			for (int i = 0; i < segmentsNum; i++)
 			{
-				auto segment = inNetworkGeometry.Segments[id];
+				auto firstSegmentId = crossroad.SegmentsIds[i];
+				auto secondSegmentId = crossroad.SegmentsIds[(i + 1) % segmentsNum];
+				auto firstSegment = inNetworkGeometry.Segments[firstSegmentId];
+				auto secondSegment = inNetworkGeometry.Segments[secondSegmentId];
 
-				int otherCrossroadId;
-				float distanceFromCenter;
-				if (crossroadId == segment.StartCrossroadId)
-				{
-					otherCrossroadId = segment.EndCrossroadId;
-					distanceFromCenter = segment.DistanceFromStartCrossroad;
-				}
-				else
-				{
-					otherCrossroadId = segment.StartCrossroadId;
-					distanceFromCenter = segment.DistanceFromEndCrossroad;
-				}
+				FVector firstConnectionPoint;
+				FVector secondConnectionPoint;
+				FVector firstBorderPoint;
+				FVector secondBorderPoint;
+				FindSegmentToCrossroadConnection(inNetworkGeometry, crossroadId, firstSegmentId, 
+					true, firstConnectionPoint, firstBorderPoint);
+				FindSegmentToCrossroadConnection(inNetworkGeometry, crossroadId, secondSegmentId, 
+					false, secondConnectionPoint, secondBorderPoint);
 
-				auto otherPoint = inNetworkGeometry.Crossroads[otherCrossroadId].Center;
-				auto direction = (otherPoint - crossroad.Center).GetSafeNormal();
-				otherPoint = crossroad.Center + distanceFromCenter * direction;
-				auto delta = segment.Width / 2 * FVector::CrossProduct(FVector::UpVector, direction);
-				otherPoint.Z = inRoadZ;
-				allPoints.Add(otherPoint - delta);
-				allPoints.Add(otherPoint + delta);
+				auto arcType = crossroad.Arcs[i];
+				auto arcCenter = crossroad.ArcsCenters[i];
+
+				switch (arcType)
+				{
+					case ArcType::INNER_ARC:
+					{
+						auto turningRadius = FMath::Min(firstSegment.TurningRadius, secondSegment.TurningRadius);
+
+						auto firstDirection = (firstConnectionPoint - crossroad.Center).GetSafeNormal();
+						firstDirection = FVector::CrossProduct(firstDirection, FVector::UpVector);
+						auto secondDirection = (secondConnectionPoint - crossroad.Center).GetSafeNormal();
+						secondDirection = FVector::CrossProduct(secondDirection, FVector::DownVector);
+
+						auto firstAngle = FMath::Atan2(firstDirection.Y, firstDirection.X);
+						auto secondAngle = FMath::Atan2(secondDirection.Y, secondDirection.X);
+						if (firstAngle < secondAngle)
+						{
+							firstAngle += 2 * PI;
+						}
+						auto fullAngle = firstAngle - secondAngle;
+						auto angleStepNums = FMath::Max(FMath::RoundToInt(fullAngle / URoadBuilder::ArcsAngleStep), 1);
+						auto angleStep = fullAngle / angleStepNums;
+
+						allPoints.Add(firstBorderPoint);
+						for (int j = 0; j <= angleStepNums; j++)
+						{
+							auto currentAngle = firstAngle - j * angleStep;
+							auto currentPoint = arcCenter 
+								+ turningRadius * FVector(FMath::Cos(currentAngle), FMath::Sin(currentAngle), 0);
+							allPoints.Add(currentPoint);
+						}
+						allPoints.Add(secondBorderPoint);
+					}
+					break;
+
+					case ArcType::OUTER_ARC:
+					{
+						auto turningRadius = FMath::Min(firstSegment.Width, secondSegment.Width) / 2;
+
+						auto firstDeltaAngle = GetDirectionAngleForOuterArc(crossroad.Center,
+							firstConnectionPoint, firstBorderPoint, turningRadius);
+						auto secondDeltaAngle = GetDirectionAngleForOuterArc(crossroad.Center,
+							secondConnectionPoint, secondBorderPoint, turningRadius);
+
+						auto firstDirection = (firstConnectionPoint - crossroad.Center).GetSafeNormal();
+						auto secondDirection = (secondConnectionPoint - crossroad.Center).GetSafeNormal();
+
+						auto firstAngle = FMath::Atan2(firstDirection.Y, firstDirection.X);
+						auto secondAngle = FMath::Atan2(secondDirection.Y, secondDirection.X);
+
+						firstAngle += firstDeltaAngle;
+						secondAngle -= secondDeltaAngle;
+
+						if (secondAngle < firstAngle)
+						{
+							secondAngle += 2 * PI;
+						}
+						auto fullAngle = secondAngle - firstAngle;
+						auto angleStepNums = FMath::Max(FMath::RoundToInt(fullAngle / URoadBuilder::ArcsAngleStep), 1);
+						auto angleStep = fullAngle / angleStepNums;
+
+						allPoints.Add(firstBorderPoint);
+						for (int j = 0; j <= angleStepNums; j++)
+						{
+							auto currentAngle = firstAngle + j * angleStep;
+							auto currentPoint = crossroad.Center
+								+ turningRadius * FVector(FMath::Cos(currentAngle), FMath::Sin(currentAngle), 0);
+							allPoints.Add(currentPoint);
+						}
+						allPoints.Add(secondBorderPoint);
+					}
+					break;
+
+					case ArcType::NO_ARC:
+					{
+						auto specialDelta = (firstSegment.Width > secondSegment.Width)
+							? firstBorderPoint - firstConnectionPoint
+							: secondBorderPoint - secondConnectionPoint;
+
+						allPoints.Add(firstBorderPoint);
+						allPoints.Add(crossroad.Center + specialDelta);
+						allPoints.Add(secondBorderPoint);
+					}
+					break;
+				}
 			}
 
 			auto centerIndex = sectionData.Vertices.Num();
@@ -788,22 +905,23 @@ MeshSectionData CalculateNewMeshDataForRoad(RoadNetworkGeometry inNetworkGeometr
 
 			sectionData.Vertices.Append(allPoints);
 			auto pointsNum = allPoints.Num();
-			for (int i = 0; i < pointsNum; i++)
+			for (int j = 0; j < pointsNum; j++)
 			{
 				sectionData.Indices.Append({
 					centerIndex + 0,
-					centerIndex + (i + 1) % pointsNum + 1,
-					centerIndex + i + 1,
+					centerIndex + (j + 1) % pointsNum + 1,
+					centerIndex + j + 1,
 					});
 
-				sectionData.Uv0.Add(FVector2D());
+				sectionData.Uv0.Add(FVector2D(0, 0));
 				sectionData.Uv1.Add(FVector2D());
 				sectionData.Normals.Add(FVector::UpVector);
 				sectionData.VertexColors.Add(FColor(1, 1, 1, 1));
 				sectionData.Tangents.Add(FRuntimeMeshTangent());
 			}
 		}
-		else if (crossroad.SegmentsIds.Num() == 1)
+		//dead end
+		else if (segmentsNum == 1)
 		{
 			auto segment = inNetworkGeometry.Segments[crossroad.SegmentsIds[0]];
 
@@ -815,13 +933,12 @@ MeshSectionData CalculateNewMeshDataForRoad(RoadNetworkGeometry inNetworkGeometr
 			auto direction = (otherPoint - crossroad.Center).GetSafeNormal();
 			auto delta = segment.Width / 2 * FVector::CrossProduct(FVector::UpVector, direction);
 			auto point = crossroad.Center;
-			point.Z = inRoadZ;
 
 			auto indicesDelta = sectionData.Vertices.Num();
 			auto indicesDelta_curtains = outCurtainsMeshData.Vertices.Num();
 
 			sectionData.Vertices.Add(point);
-			sectionData.Uv0.Add(FVector2D());
+			sectionData.Uv0.Add(FVector2D(static_cast<float>(segment.Lanes) / 2, 0));
 			sectionData.Uv1.Add(FVector2D());
 			sectionData.Normals.Add(FVector::UpVector);
 			sectionData.VertexColors.Add(FColor::White);
@@ -890,7 +1007,7 @@ void URoadBuilder::ConstructNewRoadMeshSection(URuntimeMeshComponent* inRuntimeM
 	int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData)
 {
 	auto sectionData = CalculateNewMeshDataForRoad(inNetworkGeometry, outCurtainsMeshData,
-		AutoRoadZ, RoadHeight, CurtainsWidth, Stretch);
+		RoadHeight, CurtainsWidth, Stretch);
 	if (sectionData.Indices.Num() == 0 || sectionData.Vertices.Num() == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Attempt to create an empty mesh"));
@@ -912,7 +1029,7 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "RoadNetworkActor";
-	roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+	roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector(0, 0, AutoRoadZ), FRotator::ZeroRotator, SpawnInfo);
 	roadNetworkActor->SetActorLabel(SpawnInfo.Name.ToString());
 	roadNetworkActor->SetMobility(EComponentMobility::Movable);
 	auto runtimeMesh = roadNetworkActor->GetRuntimeMeshComponent();
@@ -946,7 +1063,6 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	return;
 
 #pragma region Debug Drawing
-
 	
 	auto world = GetWorld();
 	float debugDuration = 120;
@@ -956,14 +1072,19 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 		auto crossroadId = crossroadData.Key;
 		auto crossroad = crossroadData.Value;
 		DrawDebugBox(world, crossroad.Center, FVector(100), FColor::Blue, false, debugDuration, 0, 50);
-		for (int i = 0; i < crossroad.Arcs.Num(); i++)
-		{
-			if (crossroad.Arcs[i] == ArcType::INNER_ARC)
-			{
-				DrawDebugBox(world, crossroad.ArcsCenters[i], FVector(50), FColor::Cyan, false, debugDuration, 0, 25);
-				DrawDebugLine(world, crossroad.ArcsCenters[i], crossroad.Center, FColor::Cyan, false, debugDuration, 0, 20);
-			}
-		}
+		//for (int i = 0; i < crossroad.Arcs.Num(); i++)
+		//{
+		//	auto arcType = crossroad.Arcs[i];
+		//	if (arcType == ArcType::INNER_ARC)
+		//	{
+		//		DrawDebugBox(world, crossroad.ArcsCenters[i], FVector(50), FColor::Cyan, false, debugDuration, 0, 25);
+		//		DrawDebugLine(world, crossroad.ArcsCenters[i], crossroad.Center, FColor::Cyan, false, debugDuration, 0, 20);
+		//	}
+		//	if (arcType == ArcType::NO_ARC)
+		//	{
+		//		DrawDebugBox(world, crossroad.Center, FVector(75), FColor::Magenta, false, debugDuration, 0, 25);
+		//	}
+		//}
 	}
 
 	for (auto segmentData : geometry.Segments)
