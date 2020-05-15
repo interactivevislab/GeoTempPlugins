@@ -32,6 +32,8 @@ public:
 
 	static TArray<FContour> CutContoursByBounds(TArray<FContour>& inContour, FVector4 inBounds);
 
+	static FContour CutContourByBounds(FContour inContour, FVector4 inBounds);
+
 #pragma region Tags
 
 	/** Casts FString to another type. */
