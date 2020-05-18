@@ -957,8 +957,8 @@ TPair<MeshSectionData, MeshSectionData> CalculateNewMeshDataForRoad(RoadNetworkG
 					secondBorderLength += step;
 				}
 
-				auto turnLength = static_cast<float>(FMath::RoundToInt((firstBorderLength + secondBorderLength) / 2
-					/ (firstTurnSegment.Width * inStretch) * lanes));
+				auto turnLength = static_cast<float>(FMath::Max(FMath::RoundToInt((firstBorderLength + secondBorderLength) / 2
+					/ (firstTurnSegment.Width * inStretch) * lanes), 1));
 
 				auto secondBorderSize = allPoints.Num() - turnSeparatorPointIndex;
 				auto firstBorderCenter = (turnSeparatorPointIndex % 2 == 0)
@@ -1023,14 +1023,12 @@ TPair<MeshSectionData, MeshSectionData> CalculateNewMeshDataForRoad(RoadNetworkG
 			segmentsSectionData.Tangents.Add(FRuntimeMeshTangent());
 
 			int capDensity = FMath::RoundToInt(PI / URoadBuilder::ArcsAngleStep);
-			TArray<FVector2D>	uvs;
-			TArray<FVector2D>	uvs_curtains = URoadBuilder::GetRoadCupsPointsDirections(capDensity);
-			TArray<FVector>		radiusDeltas = URoadBuilder::GetCupsPointsOffsets(uvs_curtains, delta, false);
+			TArray<FVector2D> uvs;
+			TArray<FVector2D> cupsPointsDirections = URoadBuilder::GetRoadCupsPointsDirections(capDensity);
+			TArray<FVector> radiusDeltas = URoadBuilder::GetCupsPointsOffsets(cupsPointsDirections, delta, false);
 
 			for (int j = 0; j <= capDensity; j++)
 			{
-				uvs.Add(FVector2D(0, static_cast<float>(j) / capDensity * segment.Lanes));
-
 				auto radiusDelta = radiusDeltas[j];
 				auto size = radiusDelta.Size();
 				auto curtainsDelta = radiusDelta / size * inCurtainsWidth - FVector(0, 0, inRoadHeight);
@@ -1038,23 +1036,24 @@ TPair<MeshSectionData, MeshSectionData> CalculateNewMeshDataForRoad(RoadNetworkG
 					(radiusDeltas[FMath::Max(j - 1, 0)] - radiusDelta).GetSafeNormal(),
 					(-curtainsDelta).GetSafeNormal());
 
+				auto uv0Y = static_cast<float>(j) / capDensity * segment.Lanes;
 
 				segmentsSectionData.Vertices.Add(point + radiusDelta);
-				segmentsSectionData.Uv0.Add(uvs[j]);
+				segmentsSectionData.Uv0.Add(FVector2D(0, uv0Y));
 				segmentsSectionData.Uv1.Add(FVector2D());
 				segmentsSectionData.Normals.Add(FVector::UpVector);
 				segmentsSectionData.VertexColors.Add(FColor::White);
 				segmentsSectionData.Tangents.Add(FRuntimeMeshTangent());
 
 				outCurtainsMeshData.Vertices.Add(point + radiusDelta);
-				outCurtainsMeshData.Uv0.Add(uvs_curtains[j]);
+				outCurtainsMeshData.Uv0.Add(FVector2D(0, uv0Y));
 				outCurtainsMeshData.Uv1.Add(FVector2D());
 				outCurtainsMeshData.Normals.Add(curtainNormal);
 				outCurtainsMeshData.VertexColors.Add(FColor::White);
 				outCurtainsMeshData.Tangents.Add(FRuntimeMeshTangent());
 
 				outCurtainsMeshData.Vertices.Add(point + radiusDelta + curtainsDelta);
-				outCurtainsMeshData.Uv0.Add(2 * uvs_curtains[j]);
+				outCurtainsMeshData.Uv0.Add(FVector2D(1, uv0Y));
 				outCurtainsMeshData.Uv1.Add(FVector2D());
 				outCurtainsMeshData.Normals.Add(curtainNormal);
 				outCurtainsMeshData.VertexColors.Add(FColor::White);
@@ -1122,7 +1121,7 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	const int SEGMENTS_MATERIAL_INDEX	= 1;
 	const int CROSSROADS_MATERIAL_INDEX	= 2;
 	TMap<int, UMaterialInstanceDynamic*> roadMaterials = {
-		{ CURTAINS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadSegmentsMaterial, this) },
+		{ CURTAINS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(CurtainsMaterial, this) },
 		{ SEGMENTS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadSegmentsMaterial, this) },
 		{ CROSSROADS_MATERIAL_INDEX,	UMaterialInstanceDynamic::Create(CrossroadsMaterial, this) },
 	};
@@ -1133,14 +1132,9 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	ConstructNewRoadMeshSection(runtimeMesh, geometry, SEGMENTS_MATERIAL_INDEX, CROSSROADS_MATERIAL_INDEX,
 		roadMaterials[SEGMENTS_MATERIAL_INDEX], roadMaterials[CROSSROADS_MATERIAL_INDEX], curtainsMeshData);
 
-	//if (curtainsMeshData.Indices.Num() == 0 || curtainsMeshData.Vertices.Num() == 0)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("Attempt to create an empty mesh"));
-	//	return;
-	//}
-	//runtimeMesh->CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normals,
-	//	curtainsMeshData.Uv0, curtainsMeshData.Uv1, curtainsMeshData.VertexColors, curtainsMeshData.Tangents, false);
-	//runtimeMesh->SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
+	runtimeMesh->CreateMeshSection(CURTAINS_MATERIAL_INDEX, curtainsMeshData.Vertices, curtainsMeshData.Indices, curtainsMeshData.Normals,
+		curtainsMeshData.Uv0, curtainsMeshData.Uv1, curtainsMeshData.VertexColors, curtainsMeshData.Tangents, false);
+	runtimeMesh->SetMaterial(CURTAINS_MATERIAL_INDEX, roadMaterials[CURTAINS_MATERIAL_INDEX]);
 
 	roadNetworkActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 
@@ -1156,19 +1150,6 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 		auto crossroadId = crossroadData.Key;
 		auto crossroad = crossroadData.Value;
 		DrawDebugBox(world, crossroad.Center, FVector(100), FColor::Blue, false, debugDuration, 0, 50);
-		//for (int i = 0; i < crossroad.Arcs.Num(); i++)
-		//{
-		//	auto arcType = crossroad.Arcs[i];
-		//	if (arcType == ArcType::INNER_ARC)
-		//	{
-		//		DrawDebugBox(world, crossroad.ArcsCenters[i], FVector(50), FColor::Cyan, false, debugDuration, 0, 25);
-		//		DrawDebugLine(world, crossroad.ArcsCenters[i], crossroad.Center, FColor::Cyan, false, debugDuration, 0, 20);
-		//	}
-		//	if (arcType == ArcType::NO_ARC)
-		//	{
-		//		DrawDebugBox(world, crossroad.Center, FVector(75), FColor::Magenta, false, debugDuration, 0, 25);
-		//	}
-		//}
 	}
 
 	for (auto segmentData : geometry.Segments)
@@ -1179,15 +1160,7 @@ void URoadBuilder::SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork)
 		auto startPoint = geometry.Crossroads[segment.StartCrossroadId].Center;
 		auto endPoint = geometry.Crossroads[segment.EndCrossroadId].Center;
 
-		auto direction = (endPoint - startPoint).GetSafeNormal();
-
-		if (segment.IsValid)
-		{
-			//startPoint += segment.DistanceFromStartCrossroad * direction;
-			//endPoint -= segment.DistanceFromEndCrossroad * direction;
-			//DrawDebugLine(world, startPoint, endPoint, FColor::Green, false, debugDuration, 0, 100);
-		}
-		else
+		if (!segment.IsValid)
 		{
 			DrawDebugLine(world, startPoint, endPoint, FColor::Red, false, debugDuration, 0, 150);
 		}

@@ -42,6 +42,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* CrossroadsMaterial;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UMaterialInterface* CurtainsMaterial;
+
 	/** Z-coordinate of highway surface. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AutoRoadZ;
