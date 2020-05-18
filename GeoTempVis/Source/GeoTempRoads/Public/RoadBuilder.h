@@ -105,7 +105,9 @@ private:
 		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
 
 	void ConstructNewRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, RoadNetworkGeometry inNetworkGeometry,
-		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
+		int inSegmentsSectionIndex, int inCrossroadsSectionIndex,
+		UMaterialInstanceDynamic* inSegmentsMaterial, UMaterialInstanceDynamic* inCrossroadsMaterial,
+		MeshSectionData& outCurtainsMeshData);
 
 	/** Spawned RoadNetworkActor. */
 	UPROPERTY()
