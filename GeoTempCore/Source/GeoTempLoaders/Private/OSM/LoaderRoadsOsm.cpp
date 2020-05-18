@@ -44,7 +44,7 @@ FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 			{
 				contour.Points.Add(node->Point);
 			}
-			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->BoundsRect);
+			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->CutRect);
 
 			for (auto contourPiece : cutContour)
 			{

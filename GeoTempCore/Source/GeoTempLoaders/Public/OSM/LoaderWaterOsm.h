@@ -37,6 +37,9 @@ public:
 	/** Whether there were none of incomplete relations to parse */
 	bool DataParsedSuccessfully = true;
 
+	UPROPERTY()
+	bool CutExcessData = true;
+
 	/** A set of ids of incompleted relations */
 	TSet<int> ErrorRelations = {};
 

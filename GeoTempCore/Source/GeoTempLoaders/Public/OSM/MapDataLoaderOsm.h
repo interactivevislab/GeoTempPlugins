@@ -55,6 +55,10 @@ public:
 	/** Load OSM data that was incompleted. */
 	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
 	void ReloadIncompleteData(FString inXmlData);
+
+	/** Sets additional radius for data cutting. */
+	UFUNCTION(BlueprintCallable, Category = "Geoprocessing")
+	void SetBoundsRadius(int inBoundsRadius);
 	
 	/** Loaded and processed buildings data. */
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
@@ -78,6 +82,10 @@ public:
 	/** Delegate for reporting completion of data loading. */
 	UPROPERTY(BlueprintAssignable, Category = "Geoprocessing")
 	FOnDataLoadedDelegate OnDataLoaded;
+
+	/** Value to add to cutting bounds to determine data cutting area */
+	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
+	int CutRadius;
 
 private:
 

@@ -43,6 +43,9 @@ public:
 	/** Rectangle that represents bounds in format FVector4(minX, maxX, minY, maxY) */
 	FVector4 BoundsRect;
 
+	/** Rectangle that represents cutting bounds in format FVector4(minX, maxX, minY, maxY) */
+	FVector4 CutRect;
+
 	/** Load data from XML string. */
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "Default")
 	void InitWithXML(FString inXmlString);

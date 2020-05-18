@@ -40,6 +40,17 @@ void UMapDataLoaderOsm::UpdateGeoCoords(FGeoCoords inGeoCoords)
 }
 
 
+void UMapDataLoaderOsm::SetBoundsRadius(int inBoundsRadius)
+{
+	if (osmReader)
+	{
+		auto Bounds = osmReader->BoundsRect;
+
+		osmReader->CutRect = FVector4(Bounds.X - inBoundsRadius, Bounds.Y + inBoundsRadius, Bounds.Z - inBoundsRadius, Bounds.W + inBoundsRadius);
+	}
+}
+
+
 void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, float inRightDegrees, float inTopDegrees)
 {	
 	
@@ -70,6 +81,8 @@ void UMapDataLoaderOsm::LoadData(float inLeftDegrees, float inBottomDegrees, flo
 void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 {		
 	osmReader->InitWithXML(inXmlData);
+
+	SetBoundsRadius(CutRadius);
 
 	auto roadNetwork =				IProviderRoads::Execute_GetRoadNetwork(roadsLoader);
 	LoadedRoadNetwork.Segments.Append(roadNetwork.Segments);

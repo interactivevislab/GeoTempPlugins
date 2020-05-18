@@ -48,7 +48,16 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 			//{
 			//	cutOuters.Append(ULoaderHelper::CutContoursByBounds(TArray<FContour>() = { poly }, osmReader->BoundsRect));
 			//}
-			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->BoundsRect);
+			bool cutData;
+			if (CutExcessData)
+			{
+				cutData = true;
+				polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->CutRect);
+			}
+			else
+			{
+				//polygon.Outer[0].LeftmostIndex;
+			}
 
 			polygon.Tags = way->Tags;
 			polygon.Origin = osmReader->GeoCoords;
@@ -69,7 +78,7 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 			{
 				contour.Points.Add(node->Point);
 			}
-			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->BoundsRect);
+			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->CutRect);
 
 			for (auto contourPiece : cutContour)
 			{
@@ -205,8 +214,8 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 			//	cutHoles.Append(ULoaderHelper::CutContoursByBounds(TArray<FContour>() = { poly }, osmReader->BoundsRect));
 			//}
 
-			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->BoundsRect);
-			polygon.Holes = ULoaderHelper::CutPolygonsByBounds(polygon.Holes, osmReader->BoundsRect);
+			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->CutRect);
+			polygon.Holes = ULoaderHelper::CutPolygonsByBounds(polygon.Holes, osmReader->CutRect);
 
 			polygon.Tags = relation->Tags;
 			polygon.Origin = osmReader->GeoCoords;
@@ -217,11 +226,11 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 					FContour filler = FContour();
 					filler.Points.Append(
 						{
-							FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.Z,0),
-							FVector(osmReader->BoundsRect.Y,osmReader->BoundsRect.Z,0),
-							FVector(osmReader->BoundsRect.Y,osmReader->BoundsRect.W,0),
-							FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.W,0),
-							FVector(osmReader->BoundsRect.X,osmReader->BoundsRect.Z,0),
+							FVector(osmReader->CutRect.X,osmReader->CutRect.Z,0),
+							FVector(osmReader->CutRect.Y,osmReader->CutRect.Z,0),
+							FVector(osmReader->CutRect.Y,osmReader->CutRect.W,0),
+							FVector(osmReader->CutRect.X,osmReader->CutRect.W,0),
+							FVector(osmReader->CutRect.X,osmReader->CutRect.Z,0),
 						}
 					);
 					polygon.Outer.Add(filler);

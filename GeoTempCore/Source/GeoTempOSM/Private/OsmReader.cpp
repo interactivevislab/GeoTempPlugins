@@ -52,6 +52,7 @@ void UOsmReader::ReadData()
 		auto bottomRightCorner = UGeoHelpers::GetLocalCoordinates(maxX, minY, 0, GeoCoords);
 
 		BoundsRect = FVector4(topLeftCorner.X, bottomRightCorner.X, topLeftCorner.Y, bottomRightCorner.Y);
+		CutRect = BoundsRect;
 	}
 
 	tinyxml2::XMLElement* xmlNode = root->FirstChildElement("node");

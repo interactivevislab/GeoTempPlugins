@@ -58,7 +58,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 			auto cont = FContour(points);
 			polygon.Outer.Add(cont);
-			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->BoundsRect);
+			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->CutRect);
 
 
 			polygon.Tags = way->Tags;
@@ -106,7 +106,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			{
 				contour.Points.Add(node->Point);
 			}
-			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->BoundsRect);
+			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->CutRect);
 
 			for (auto contourPiece : cutContour)
 			{
@@ -254,8 +254,8 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 			polygon.Outer.Append(fixedOuters);
 			polygon.Holes.Append(fixedInnres);
-			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->BoundsRect);
-			polygon.Holes = ULoaderHelper::CutPolygonsByBounds(polygon.Holes, osmReader->BoundsRect);
+			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->CutRect);
+			polygon.Holes = ULoaderHelper::CutPolygonsByBounds(polygon.Holes, osmReader->CutRect);
 
 
 			polygon.Tags = relation->Tags;

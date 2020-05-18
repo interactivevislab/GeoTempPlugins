@@ -32,7 +32,7 @@ public:
 
 	static TArray<FContour> CutPolygonsByBounds(TArray<FContour>& inContour, FVector4 inBounds);
 
-	static FContour CutPolygonByBounds(FContour inContour, FVector4 inBounds);
+	static TArray<FContour> CutPolygonByBounds(FContour inContour, FVector4 inBounds);
 
 	static TArray<FContour> CutContourByBounds(FContour inContour, FVector4 inBounds);
 
