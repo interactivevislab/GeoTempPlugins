@@ -18,7 +18,7 @@ protected:
 
 
     /** Map of currently loaded and cached tiles */
-    UPROPERTY()
+    UPROPERTY(Transient)
     TMap< FTileCoordinates, UTileData*> CachedTiles;
 
     /** Mapping of texture getters on channels*/

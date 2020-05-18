@@ -15,7 +15,7 @@ UTilesController::UTilesController(const FObjectInitializer& ObjectInitializer) 
 }
 
 
-UElevationRequest* UTilesController::GetElevationForCoordinatesAsync(FVector inCoords)
+UElevationRequest* UTilesController::RequestElevation_Implementation(FVector inCoords)
 {
 	auto ret = NewObject<UElevationRequest>();
 	ret->RequestPosition = inCoords;
@@ -31,7 +31,7 @@ void UTilesController::ProcessRequests()
 	int toRemove = 0;
 	for (int i = 0; i < AsyncRequests.Num(); i++)
 	{
-		float h = GetElevationForLoadedTile(AsyncRequests[i]->RequestPosition);
+		float h = TryGetElevation_Implementation(AsyncRequests[i]->RequestPosition);
 		if (isnan(h))
 		{
 			actualI++;
@@ -48,7 +48,7 @@ void UTilesController::ProcessRequests()
 	AsyncRequests.SetNum(AsyncRequests.Num() - toRemove);
 }
 
-float UTilesController::GetElevationForLoadedTile(FVector inCoords)
+float UTilesController::TryGetElevation_Implementation(FVector inCoords)
 {
 	float x, y;
 	GetMercatorXYFromOffsetFloat(inCoords, BaseLevel, x, y);
@@ -217,7 +217,7 @@ void UTilesController::EditorTick_Implementation(float inDeltaTime)
 void UTilesController::PostLoad()
 {
     Super::PostLoad();
-    
+	if (TileLoader) TileLoader->ElevationChannel = ElevationChannel;
     //NeedInitOnTick = true;
 }
 
@@ -418,7 +418,8 @@ int UTilesController::BeginCreateTileMesh(int inX, int inY, int inZ)
 }
 
 int UTilesController::BeginCreateTileMesh(FTileCoordinates inTileCoords, bool inInitNeighbours)
-{    
+{
+    if (!TileLoader) return -1;
     if (TileIndecies.Contains(inTileCoords))
     {
         return TileIndecies[inTileCoords];

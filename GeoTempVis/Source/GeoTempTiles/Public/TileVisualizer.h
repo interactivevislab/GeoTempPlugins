@@ -10,6 +10,7 @@
 #include "RuntimeMeshComponent.h"
 #include "TileGeometryGenerator.h"
 #include "TilesBasics.h"
+#include "GeoTempLandscape/Public/ElevationProvider.h"
 #include "MainFrame/Public/Interfaces/IMainFrameModule.h"
 
 #include "TileVisualizer.generated.h"
@@ -18,35 +19,13 @@ class UTileTextureContainer;
 
 class UTileData;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnElevationRequestCompleteDelegate, float, value);
 
-/** Container for storing async elevation requests*/
-UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class GEOTEMPTILES_API UElevationRequest : public UObject
-{
-    GENERATED_BODY()
 
-public:
-	/** Coordinates to request elevation*/
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
-    FVector RequestPosition;
 
-	/** Result elevation */
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
-    float Result;
-
-	/** Is this request processed and complete*/
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
-    bool isComplete;
-
-	/** Callback to call when this request is complete */
-    UPROPERTY(BlueprintAssignable, Category = "Tiles")
-    FOnElevationRequestCompleteDelegate Callback;
-};
 
 /** Actor component for tiles handling and visualization*/
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class GEOTEMPTILES_API UTilesController : public URuntimeMeshComponent, public IEditorTickable
+class GEOTEMPTILES_API UTilesController : public URuntimeMeshComponent, public IEditorTickable, public IElevationProvider
 {
     GENERATED_BODY()
 
@@ -64,11 +43,11 @@ public:
 
 	/** Create async elevation request for provided coordinates*/
     UFUNCTION(BlueprintCallable, Category = "Elevation")
-    UElevationRequest* GetElevationForCoordinatesAsync(FVector inCoords);
+    UElevationRequest* RequestElevation_Implementation(FVector inCoords);
 
     /** Attempt to calculate elevation for provided coordinates. If data is not yet loaded, return NaN and place tile to queue*/
     UFUNCTION(BlueprintCallable, Category = "Elevation")
-    float GetElevationForLoadedTile(FVector inCoords);
+    float TryGetElevation_Implementation(FVector inCoords);
 
     /** @name Implementation of UActorComponent default functions */
     ///@{    
@@ -125,7 +104,7 @@ public:
     UTileTextureContainer* TileLoader;
     
     /** Array of all Tiles currently loaded*/
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tiles")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Transient, Category = "Tiles")
     TMap<FTileCoordinates, UTileData*> Tiles;
 
     /** Default zoom level for tiles generation */
@@ -160,15 +139,15 @@ private:
     TArray<int> freeIndices;
 
     /** Map of tile indices in array */
-    UPROPERTY(NoClear)
+    UPROPERTY(Transient)
     TMap<FTileCoordinates, int> TileIndecies;
 
     /** indices of reserved, but not loaded, tiles */
-    UPROPERTY(NoClear)
+    UPROPERTY(Transient)
     TMap<FTileCoordinates, int> ReservedIndecies;
 
     /** Tiles which are not currently present, but preserved in memory a them are parents of other tiles */
-    UPROPERTY()
+    UPROPERTY(Transient)
     TSet<FTileCoordinates> SplitTiles;
 
     /** Get tile coordinates based on offset vector in scene space

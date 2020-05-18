@@ -7,7 +7,7 @@ public class GeoTempBuildings : ModuleRules
     public GeoTempBuildings(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicDependencyModuleNames.AddRange(new string[] { "GeoTempCore", "RuntimeMeshComponent", "ProceduralMeshComponent" });      
+        PublicDependencyModuleNames.AddRange(new string[] { "GeoTempCore", "RuntimeMeshComponent", "ProceduralMeshComponent", "GeoTempLandscape" });      
 
 
         if (Target.Type == TargetRules.TargetType.Editor)

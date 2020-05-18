@@ -44,6 +44,11 @@
             "Name": "GeoTempLoaders",
             "Type": "Runtime",
             "LoadingPhase": "PostConfigInit"
+        },
+        {
+            "Name": "GeoTempLandscape",
+            "Type": "Runtime",
+            "LoadingPhase": "PostConfigInit"
         }
     ]
 }
