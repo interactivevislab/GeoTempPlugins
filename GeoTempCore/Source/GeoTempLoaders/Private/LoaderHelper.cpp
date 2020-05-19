@@ -375,6 +375,7 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 	FVector topRightBoundsCorner	= FVector(inBounds.Y, inBounds.Z, 0);
 	FVector bottomRightBoundsCorner	= FVector(inBounds.Y, inBounds.W, 0);
 
+
 	TArray<FVector> boundsPolygon	= {
 		topLeftBoundsCorner,
 		bottomLeftBoundsCorner,
