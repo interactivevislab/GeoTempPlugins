@@ -359,12 +359,12 @@ TArray<FVector> URoadBuilder::ConvertLineToRect(FVector inStartPoint, FVector in
 }
 
 
-TArray<FVector2D> URoadBuilder::GetRoadCupsPointsDirections(int capDensity)
+TArray<FVector2D> URoadBuilder::GetRoadCupsPointsDirections(int inCapDensity)
 {
 	TArray<FVector2D> pointsDirections = {};
-	for (int j = 0; j <= capDensity; j++)
+	for (int j = 0; j <= inCapDensity; j++)
 	{
-		float angle = PI / capDensity * j;
+		float angle = PI / inCapDensity * j;
 
 		float x = FMath::Cos(angle);
 		float y = FMath::Sin(angle);
@@ -390,8 +390,8 @@ TArray<FVector> URoadBuilder::GetCupsPointsOffsets(TArray<FVector2D> inPointsDir
 void FindSegmentToCrossroadConnection(RoadNetworkGeometry inNetworkGeometry, int inCrossroadId, int inSegmentId,
 	bool isClockWise, FVector & outConnectionPoint, FVector & outBorderPoint, FVector & outDirectionPoint)
 {
-	auto crossroad = inNetworkGeometry.Crossroads[inCrossroadId];
-	auto segment = inNetworkGeometry.Segments[inSegmentId];
+	auto crossroad	= inNetworkGeometry.Crossroads[inCrossroadId];
+	auto segment	= inNetworkGeometry.Segments[inSegmentId];
 
 	int otherCrossroadId;
 	float distanceFromCenter;
@@ -433,26 +433,27 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 	MeshSectionData segmentsSectionData;
 	MeshSectionData crossroadsSectionData;
 
+	//mesh data for segments
 	for (auto segmentData : inNetworkGeometry.Segments)
 	{
-		auto segmentId = segmentData.Key;
-		auto segment = segmentData.Value;
+		auto segmentId	= segmentData.Key;
+		auto segment	= segmentData.Value;
 
 		if (!segment.IsValid)
 		{
 			continue;
 		}
 
-		auto startPoint = inNetworkGeometry.Crossroads[segment.StartCrossroadId].Center;
-		auto endPoint = inNetworkGeometry.Crossroads[segment.EndCrossroadId].Center;
+		auto startPoint	= inNetworkGeometry.Crossroads[segment.StartCrossroadId].Center;
+		auto endPoint	= inNetworkGeometry.Crossroads[segment.EndCrossroadId].Center;
 
 		auto direction = (endPoint - startPoint).GetSafeNormal();
 		startPoint += segment.DistanceFromStartCrossroad * direction;
 		endPoint -= segment.DistanceFromEndCrossroad * direction;
 
 		auto pointDelta = URoadBuilder::CalculatePerpendicularToLine(startPoint, endPoint);
-		auto curtainsDelta1 = pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
-		auto curtainsDelta2 = -pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
+		auto curtainsDelta1 =	pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
+		auto curtainsDelta2 = -	pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
 
 		pointDelta *= segment.Width / 2;
 
@@ -501,9 +502,7 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 			2 + indicesDelta,
 			});
 
-		auto curtainsNormal1 = FVector::UpVector;
-		auto curtainsNormal2 = FVector::UpVector;
-
+		//lenght in "width" units, rounded for not to cut texture
 		auto lenght = FMath::Max(FMath::RoundToInt((startPoint - endPoint).Size()
 			/ (segment.Width * inStretch) * segment.Lanes), 1);
 
@@ -514,23 +513,26 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 		auto uv03 = FVector2D(segment.Lanes, lenght);
 		auto uv03c = FVector2D(1, lenght);
 
-		segmentsSectionData.Uv0.Append({ uv00, uv01, uv02, uv03 });
-		segmentsSectionData.Uv1.Append({ LIST_4_TIMES(FVector2D()) });
-		segmentsSectionData.Normals.Append({ LIST_4_TIMES(FVector::UpVector) });
-		segmentsSectionData.VertexColors.Append({ LIST_4_TIMES(FColor(1, 1, 1, 1)) });
-		segmentsSectionData.Tangents.Append({ LIST_4_TIMES(FRuntimeMeshTangent()) });
+		segmentsSectionData.Uv0				.Append({ uv00, uv01, uv02, uv03 });
+		segmentsSectionData.Uv1				.Append({ LIST_4_TIMES(FVector2D(0, 0)) });
+		segmentsSectionData.Normals			.Append({ LIST_4_TIMES(FVector::UpVector) });
+		segmentsSectionData.VertexColors	.Append({ LIST_4_TIMES(FColor(1, 1, 1, 1)) });
+		segmentsSectionData.Tangents		.Append({ LIST_4_TIMES(FRuntimeMeshTangent()) });
 
-		outCurtainsMeshData.Uv0.Append({ uv00, uv01c, uv02, uv03c, uv00, uv01c, uv02, uv03c });
-		outCurtainsMeshData.Uv1.Append({ LIST_8_TIMES(FVector2D()) });
-		outCurtainsMeshData.Normals.Append({ LIST_4_TIMES(curtainsNormal1), LIST_4_TIMES(curtainsNormal2) });
-		outCurtainsMeshData.VertexColors.Append({ LIST_8_TIMES(FColor(1, 1, 1, 1)) });
-		outCurtainsMeshData.Tangents.Append({ LIST_8_TIMES(FRuntimeMeshTangent()) });
+		outCurtainsMeshData.Uv0				.Append({ uv00, uv01c, uv02, uv03c, uv00, uv01c, uv02, uv03c });
+		outCurtainsMeshData.Uv1				.Append({ LIST_8_TIMES(FVector2D(0, 0)) });
+		//normals are always Up for a good combination with the landscape
+		outCurtainsMeshData.Normals			.Append({ LIST_8_TIMES(FVector::UpVector) });
+		outCurtainsMeshData.VertexColors	.Append({ LIST_8_TIMES(FColor(1, 1, 1, 1)) });
+		outCurtainsMeshData.Tangents		.Append({ LIST_8_TIMES(FRuntimeMeshTangent()) });
 	}
 
+	//mesh data for not segments (crossroads, turns, dead ends)
 	for (auto crossroadsData : inNetworkGeometry.Crossroads)
 	{
-		auto crossroadId = crossroadsData.Key;
-		auto crossroad = crossroadsData.Value;
+		auto crossroadId	= crossroadsData.Key;
+		auto crossroad		= crossroadsData.Value;
+
 		auto crossroadCenter = crossroad.Center;
 		auto segmentsNum = crossroad.SegmentsIds.Num();
 
@@ -542,30 +544,35 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 			TArray<int> curtainsSeparatorsIndeces;
 			curtainsSeparatorsIndeces.Add(0);
 
+			// variables for turn geometry data, recorded once
 			int turnSeparatorPointIndex;
 			RoadSegmentGeometry firstTurnSegment;
 			RoadSegmentGeometry secondTurnSegment;
 
 			for (int i = 0; i < segmentsNum; i++)
 			{
-				auto firstSegmentId = crossroad.SegmentsIds[i];
-				auto secondSegmentId = crossroad.SegmentsIds[(i + 1) % segmentsNum];
-				auto firstSegment = inNetworkGeometry.Segments[firstSegmentId];
-				auto secondSegment = inNetworkGeometry.Segments[secondSegmentId];
+				auto firstSegmentId		= crossroad.SegmentsIds[i];
+				auto secondSegmentId	= crossroad.SegmentsIds[(i + 1) % segmentsNum];
+				auto firstSegment		= inNetworkGeometry.Segments[firstSegmentId];
+				auto secondSegment		= inNetworkGeometry.Segments[secondSegmentId];
 
 				if (i == 1)
 				{
 					turnSeparatorPointIndex = mainPoints.Num();
-					firstTurnSegment = firstSegment;
-					secondTurnSegment = secondSegment;
+					firstTurnSegment	= firstSegment;
+					secondTurnSegment	= secondSegment;
 				}
 
+				//connectionPoint - point in the middle axis of a segment at its border with crossroad/turn
 				FVector firstConnectionPoint;
 				FVector secondConnectionPoint;
+				//borderPoint - point in the "corner" of a segment at its border with crossroad/turn
 				FVector firstBorderPoint;
 				FVector secondBorderPoint;
+				//directionPoint - point forming a direction to a neighboring crossroad with borderPoint
 				FVector firstDirectionPoint;
 				FVector secondDirectionPoint;
+
 				FindSegmentToCrossroadConnection(inNetworkGeometry, crossroadId, firstSegmentId, 
 					true, firstConnectionPoint, firstBorderPoint, firstDirectionPoint);
 				FindSegmentToCrossroadConnection(inNetworkGeometry, crossroadId, secondSegmentId, 
@@ -581,13 +588,13 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 					{
 						auto turningRadius = FMath::Min(firstSegment.TurningRadius, secondSegment.TurningRadius);
 
-						auto firstDirection = (firstConnectionPoint - crossroadCenter).GetSafeNormal();
-						firstDirection = FVector::CrossProduct(firstDirection, FVector::UpVector);
-						auto secondDirection = (secondConnectionPoint - crossroadCenter).GetSafeNormal();
-						secondDirection = FVector::CrossProduct(secondDirection, FVector::DownVector);
+						auto firstDirection		= (firstConnectionPoint		- crossroadCenter).GetSafeNormal();
+						auto secondDirection	= (secondConnectionPoint	- crossroadCenter).GetSafeNormal();
+						firstDirection	= FVector::CrossProduct(firstDirection,		FVector::UpVector);
+						secondDirection	= FVector::CrossProduct(secondDirection,	FVector::DownVector);
 
-						auto firstAngle = FMath::Atan2(firstDirection.Y, firstDirection.X);
-						auto secondAngle = FMath::Atan2(secondDirection.Y, secondDirection.X);
+						auto firstAngle		= FMath::Atan2(firstDirection.Y,	firstDirection.X);
+						auto secondAngle	= FMath::Atan2(secondDirection.Y,	secondDirection.X);
 						if (firstAngle < secondAngle)
 						{
 							firstAngle += 2 * PI;
@@ -617,14 +624,14 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 						auto secondDeltaAngle = GetDirectionAngleForOuterArc(crossroadCenter,
 							secondConnectionPoint, secondBorderPoint, turningRadius);
 
-						auto firstDirection = (firstConnectionPoint - crossroadCenter).GetSafeNormal();
-						auto secondDirection = (secondConnectionPoint - crossroadCenter).GetSafeNormal();
+						auto firstDirection		= (firstConnectionPoint		- crossroadCenter).GetSafeNormal();
+						auto secondDirection	= (secondConnectionPoint	- crossroadCenter).GetSafeNormal();
 
-						auto firstAngle = FMath::Atan2(firstDirection.Y, firstDirection.X);
-						auto secondAngle = FMath::Atan2(secondDirection.Y, secondDirection.X);
+						auto firstAngle		= FMath::Atan2(firstDirection.Y,	firstDirection.X);
+						auto secondAngle	= FMath::Atan2(secondDirection.Y,	secondDirection.X);
 
-						firstAngle += firstDeltaAngle;
-						secondAngle -= secondDeltaAngle;
+						firstAngle	+= firstDeltaAngle;
+						secondAngle	-= secondDeltaAngle;
 
 						if (secondAngle < firstAngle)
 						{
@@ -648,12 +655,12 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 
 					case ArcType::NO_ARC:
 					{
-						auto specialDelta = (firstSegment.Width > secondSegment.Width)
+						auto stepFromCrossroad = (firstSegment.Width > secondSegment.Width)
 							? firstBorderPoint - firstConnectionPoint
 							: secondBorderPoint - secondConnectionPoint;
 
 						arcPoints.Add(firstBorderPoint);
-						arcPoints.Add(crossroadCenter + specialDelta);
+						arcPoints.Add(crossroadCenter + stepFromCrossroad);
 						arcPoints.Add(secondBorderPoint);
 					}
 					break;
@@ -664,19 +671,21 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 				curtainsPoints.Add(firstDirectionPoint);
 				curtainsPoints.Append(arcPoints);
 				curtainsPoints.Add(secondDirectionPoint);
+
 				curtainsSeparatorsIndeces.Add(curtainsPoints.Num());
 			}
 
+			//isTurn determines, among other things, whether to use segments or crossroads material
 			bool isTurn = (segmentsNum == 2) && (firstTurnSegment.Lanes == secondTurnSegment.Lanes);
 			auto & sectionData = isTurn ? segmentsSectionData : crossroadsSectionData;
 
 			auto centerIndex = sectionData.Vertices.Num();
 
-			sectionData.Vertices.Add(crossroadCenter);
-			sectionData.Uv1.Add(FVector2D());
-			sectionData.Normals.Add(FVector::UpVector);
-			sectionData.VertexColors.Add(FColor(1, 1, 1, 1));
-			sectionData.Tangents.Add(FRuntimeMeshTangent());
+			sectionData.Vertices		.Add(crossroadCenter);
+			sectionData.Uv1				.Add(FVector2D());
+			sectionData.Normals			.Add(FVector::UpVector);
+			sectionData.VertexColors	.Add(FColor(1, 1, 1, 1));
+			sectionData.Tangents		.Add(FRuntimeMeshTangent());
 
 			sectionData.Vertices.Append(mainPoints);
 			auto pointsNum = mainPoints.Num();
@@ -688,13 +697,13 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 					centerIndex + j + 1,
 					});
 
-				sectionData.Uv1.Add(FVector2D());
-				sectionData.Normals.Add(FVector::UpVector);
-				sectionData.VertexColors.Add(FColor(1, 1, 1, 1));
-				sectionData.Tangents.Add(FRuntimeMeshTangent());
+				sectionData.Uv1				.Add(FVector2D());
+				sectionData.Normals			.Add(FVector::UpVector);
+				sectionData.VertexColors	.Add(FColor(1, 1, 1, 1));
+				sectionData.Tangents		.Add(FRuntimeMeshTangent());
 			}
 
-			//UV0 for turns / crossroads
+			//UV0 for turns/crossroads
 			if (isTurn)
 			{
 				auto lanes = firstTurnSegment.Lanes;
@@ -722,6 +731,7 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 				auto turnLength = static_cast<float>(FMath::Max(FMath::RoundToInt((firstBorderLength + secondBorderLength) / 2
 					/ (firstTurnSegment.Width * inStretch) * lanes), 1));
 
+				//calculations for turn center's U texture coordinate
 				auto secondBorderSize = mainPoints.Num() - turnSeparatorPointIndex;
 				auto firstBorderCenter = (turnSeparatorPointIndex % 2 == 0)
 					? (mainPoints[turnSeparatorPointIndex / 2 - 1] + mainPoints[turnSeparatorPointIndex / 2]) / 2
@@ -734,6 +744,7 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 				auto centerToSecondBorderDistance = (secondBorderCenter - crossroadCenter).Size();
 				auto turnCenterRatioX = centerToFirstBorderDistance / (centerToFirstBorderDistance + centerToSecondBorderDistance);
 
+				//calculations for turn center's V texture coordinate
 				auto turnStartPoint = (mainPoints[0] + mainPoints[mainPoints.Num() - 1]) / 2;
 				auto turnEndPoint = (mainPoints[turnSeparatorPointIndex - 1] + mainPoints[turnSeparatorPointIndex]) / 2;
 				auto centerToTurnStartDistance = (turnStartPoint - crossroadCenter).Size();
@@ -751,7 +762,8 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 					sectionData.Uv0.Add(FVector2D(lanes, (secondBorderLength - secondBorderRatio) / secondBorderLength * turnLength));
 				}
 			}
-			else
+			//crossroad's UVs
+			else 
 			{
 				sectionData.Uv0.Add(FVector2D(0.5f, 0.5f));
 				for (int j = 0; j < pointsNum; j++)
@@ -767,24 +779,24 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 				borderRatios.Add(0);
 				float borderLength = 0;
 
-				int startIndex = curtainsSeparatorsIndeces[i] + 1;
-				int endIndex = curtainsSeparatorsIndeces[i + 1] - 2;
+				int startIndex	= curtainsSeparatorsIndeces[i] + 1;
+				int endIndex	= curtainsSeparatorsIndeces[i + 1] - 2;
 				int startVertexIndex = outCurtainsMeshData.Vertices.Num();
 				for (int j = startIndex; j <= endIndex; j++)
 				{
-					auto currentPoint = curtainsPoints[j];
-					auto prevPoint = curtainsPoints[j - 1];
-					auto nextPoint = curtainsPoints[j + 1];
+					auto currentPoint	= curtainsPoints[j];
+					auto prevPoint		= curtainsPoints[j - 1];
+					auto nextPoint		= curtainsPoints[j + 1];
 
 					auto pointDelta = URoadBuilder::CalculatePerpendicularToLine(nextPoint, prevPoint);
 					auto curtainsDelta = pointDelta * inCurtainsWidth - FVector(0, 0, inRoadHeight);
 
-					outCurtainsMeshData.Vertices.Add(currentPoint);
-					outCurtainsMeshData.Vertices.Add(currentPoint + curtainsDelta);
-					outCurtainsMeshData.Uv1.Append({ LIST_2_TIMES(FVector2D()) });
-					outCurtainsMeshData.Normals.Append({ LIST_2_TIMES(FVector::UpVector) });
-					outCurtainsMeshData.VertexColors.Append({ LIST_2_TIMES(FColor(1, 1, 1, 1)) });
-					outCurtainsMeshData.Tangents.Append({ LIST_2_TIMES(FRuntimeMeshTangent()) });
+					outCurtainsMeshData.Vertices		.Add(currentPoint);
+					outCurtainsMeshData.Vertices		.Add(currentPoint + curtainsDelta);
+					outCurtainsMeshData.Uv1				.Append({ LIST_2_TIMES(FVector2D()) });
+					outCurtainsMeshData.Normals			.Append({ LIST_2_TIMES(FVector::UpVector) });
+					outCurtainsMeshData.VertexColors	.Append({ LIST_2_TIMES(FColor(1, 1, 1, 1)) });
+					outCurtainsMeshData.Tangents		.Append({ LIST_2_TIMES(FRuntimeMeshTangent()) });
 
 					if (j != endIndex)
 					{
@@ -827,14 +839,14 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 			auto point = crossroadCenter;
 
 			auto indicesDelta = segmentsSectionData.Vertices.Num();
-			auto indicesDelta_curtains = outCurtainsMeshData.Vertices.Num();
+			auto indicesDeltaCurtains = outCurtainsMeshData.Vertices.Num();
 
-			segmentsSectionData.Vertices.Add(point);
-			segmentsSectionData.Uv0.Add(FVector2D(static_cast<float>(segment.Lanes) / 2, 0));
-			segmentsSectionData.Uv1.Add(FVector2D());
-			segmentsSectionData.Normals.Add(FVector::UpVector);
-			segmentsSectionData.VertexColors.Add(FColor::White);
-			segmentsSectionData.Tangents.Add(FRuntimeMeshTangent());
+			segmentsSectionData.Vertices		.Add(point);
+			segmentsSectionData.Uv0				.Add(FVector2D(static_cast<float>(segment.Lanes) / 2, 0));
+			segmentsSectionData.Uv1				.Add(FVector2D());
+			segmentsSectionData.Normals			.Add(FVector::UpVector);
+			segmentsSectionData.VertexColors	.Add(FColor::White);
+			segmentsSectionData.Tangents		.Add(FRuntimeMeshTangent());
 
 			int capDensity = FMath::RoundToInt(PI / URoadBuilder::ArcsAngleStep);
 			TArray<FVector2D> uvs;
@@ -846,35 +858,29 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 				auto radiusDelta = radiusDeltas[j];
 				auto size = radiusDelta.Size();
 				auto curtainsDelta = radiusDelta / size * inCurtainsWidth - FVector(0, 0, inRoadHeight);
-				auto curtainNormal = FVector::UpVector;
 
 				auto uv0Y = static_cast<float>(j) / capDensity * segment.Lanes;
 
-				segmentsSectionData.Vertices.Add(point + radiusDelta);
-				segmentsSectionData.Uv0.Add(FVector2D(0, uv0Y));
-				segmentsSectionData.Uv1.Add(FVector2D());
-				segmentsSectionData.Normals.Add(FVector::UpVector);
-				segmentsSectionData.VertexColors.Add(FColor::White);
-				segmentsSectionData.Tangents.Add(FRuntimeMeshTangent());
+				segmentsSectionData.Vertices		.Add(point + radiusDelta);
+				segmentsSectionData.Uv0				.Add(FVector2D(0, uv0Y));
+				segmentsSectionData.Uv1				.Add(FVector2D());
+				segmentsSectionData.Normals			.Add(FVector::UpVector);
+				segmentsSectionData.VertexColors	.Add(FColor::White);
+				segmentsSectionData.Tangents		.Add(FRuntimeMeshTangent());
 
-				outCurtainsMeshData.Vertices.Add(point + radiusDelta);
-				outCurtainsMeshData.Uv0.Add(FVector2D(0, uv0Y));
-				outCurtainsMeshData.Uv1.Add(FVector2D());
-				outCurtainsMeshData.Normals.Add(curtainNormal);
-				outCurtainsMeshData.VertexColors.Add(FColor::White);
-				outCurtainsMeshData.Tangents.Add(FRuntimeMeshTangent());
-
-				outCurtainsMeshData.Vertices.Add(point + radiusDelta + curtainsDelta);
-				outCurtainsMeshData.Uv0.Add(FVector2D(1, uv0Y));
-				outCurtainsMeshData.Uv1.Add(FVector2D());
-				outCurtainsMeshData.Normals.Add(curtainNormal);
-				outCurtainsMeshData.VertexColors.Add(FColor::White);
-				outCurtainsMeshData.Tangents.Add(FRuntimeMeshTangent());
+				outCurtainsMeshData.Vertices		.Add(point + radiusDelta);
+				outCurtainsMeshData.Vertices		.Add(point + radiusDelta + curtainsDelta);
+				outCurtainsMeshData.Uv0				.Add(FVector2D(0, uv0Y));
+				outCurtainsMeshData.Uv0				.Add(FVector2D(1, uv0Y));
+				outCurtainsMeshData.Uv1				.Append({ LIST_2_TIMES(FVector2D()) });
+				outCurtainsMeshData.Normals			.Append({ LIST_2_TIMES(FVector::UpVector) });
+				outCurtainsMeshData.VertexColors	.Append({ LIST_2_TIMES(FColor::White) });
+				outCurtainsMeshData.Tangents		.Append({ LIST_2_TIMES(FRuntimeMeshTangent()) });
 
 				if (j > 0)
 				{
 					segmentsSectionData.Indices.Append({ indicesDelta, indicesDelta + j, indicesDelta + j + 1 });
-					auto baseIndex = indicesDelta_curtains + 2 * j;
+					auto baseIndex = indicesDeltaCurtains + 2 * j;
 					outCurtainsMeshData.Indices.Append({
 						baseIndex - 2,
 						baseIndex - 1,
@@ -899,18 +905,19 @@ void URoadBuilder::ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh
 {
 	auto sectionsData = CalculateMeshDataForRoad(inNetworkGeometry, outCurtainsMeshData,
 		RoadHeight, CurtainsWidth, Stretch);
-	auto segmentsSectionData = sectionsData.Key;
-	auto crossroadsSectionData = sectionsData.Value;
+	auto segmentsSectionData	= sectionsData.Key;
+	auto crossroadsSectionData	= sectionsData.Value;
 
 	inRuntimeMesh->CreateMeshSection(inSegmentsSectionIndex, segmentsSectionData.Vertices, segmentsSectionData.Indices,
 		segmentsSectionData.Normals, segmentsSectionData.Uv0, segmentsSectionData.Uv1, segmentsSectionData.VertexColors, 
 		segmentsSectionData.Tangents, false);
-	inRuntimeMesh->SetMaterial(inSegmentsSectionIndex, inSegmentsMaterial);
 
 	inRuntimeMesh->CreateMeshSection(inCrossroadsSectionIndex, crossroadsSectionData.Vertices, crossroadsSectionData.Indices,
 		crossroadsSectionData.Normals, crossroadsSectionData.Uv0, crossroadsSectionData.Uv1, crossroadsSectionData.VertexColors,
 		crossroadsSectionData.Tangents, false);
-	inRuntimeMesh->SetMaterial(inCrossroadsSectionIndex, inCrossroadsMaterial);
+
+	inRuntimeMesh->SetMaterial(inSegmentsSectionIndex,		inSegmentsMaterial);
+	inRuntimeMesh->SetMaterial(inCrossroadsSectionIndex,	inCrossroadsMaterial);
 }
 
 
@@ -933,9 +940,9 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	const int SEGMENTS_MATERIAL_INDEX	= 1;
 	const int CROSSROADS_MATERIAL_INDEX	= 2;
 	TMap<int, UMaterialInstanceDynamic*> roadMaterials = {
-		{ CURTAINS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(CurtainsMaterial, this) },
-		{ SEGMENTS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadSegmentsMaterial, this) },
-		{ CROSSROADS_MATERIAL_INDEX,	UMaterialInstanceDynamic::Create(CrossroadsMaterial, this) },
+		{ CURTAINS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(CurtainsMaterial,		this) },
+		{ SEGMENTS_MATERIAL_INDEX,		UMaterialInstanceDynamic::Create(RoadSegmentsMaterial,	this) },
+		{ CROSSROADS_MATERIAL_INDEX,	UMaterialInstanceDynamic::Create(CrossroadsMaterial,	this) },
 	};
 
 	auto geometry = GetRoadNetworkGeometry(inRoadNetwork);

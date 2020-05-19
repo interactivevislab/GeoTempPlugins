@@ -65,7 +65,7 @@ FRoadNetwork ULoaderHelper::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegm
 			for (auto point : segmentPoints)
 			{
 				bool isAlreadyCrossroad = crossroadIds.Contains(point);
-				auto isAlreadyCrossroadRef = pointsTypes.Find(point);
+				bool* isAlreadyCrossroadRef = pointsTypes.Find(point);
 				if (isAlreadyCrossroadRef == nullptr)
 				{
 					pointsTypes.Add(point, isAlreadyCrossroad);
@@ -99,6 +99,7 @@ FRoadNetwork ULoaderHelper::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegm
 				}
 			}
 
+			//separate segments from end
 			for (int i = splitIndeces.Num() - 1; i >= 0; i--)
 			{
 				auto splitIndex = splitIndeces[i];
@@ -114,19 +115,21 @@ FRoadNetwork ULoaderHelper::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegm
 				auto firstCrossroadId = segment.StartCrossroadId;
 				auto secondCrossroadId = newSegment.EndCrossroadId;
 
-				auto splitCrossroad = *crossroads.Find(splitCrossroadId);
+				auto splitCrossroad		= *crossroads.Find(splitCrossroadId);
+				auto firstCrossroad		= *crossroads.Find(firstCrossroadId);
+				auto secondCrossroad	= *crossroads.Find(secondCrossroadId);
+
 				splitCrossroad.Roads.Add(segmentId, firstCrossroadId);
 				splitCrossroad.Roads.Add(newSegmentId, secondCrossroadId);
-				crossroads.Emplace(splitCrossroadId, splitCrossroad);
 
-				auto firstCrossroad = *crossroads.Find(firstCrossroadId);
 				firstCrossroad.Roads.Emplace(segmentId, splitCrossroadId);
-				crossroads.Emplace(firstCrossroadId, firstCrossroad);
 
-				auto secondCrossroad = *crossroads.Find(secondCrossroadId);
 				secondCrossroad.Roads.Remove(segmentId);
 				secondCrossroad.Roads.Add(newSegmentId, splitCrossroadId);
-				crossroads.Emplace(secondCrossroadId, secondCrossroad);
+
+				crossroads.Emplace(splitCrossroadId,	splitCrossroad);
+				crossroads.Emplace(firstCrossroadId,	firstCrossroad);
+				crossroads.Emplace(secondCrossroadId,	secondCrossroad);
 
 				segments.Add(newSegmentId, newSegment);
 			}

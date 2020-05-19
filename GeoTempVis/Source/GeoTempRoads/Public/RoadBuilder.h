@@ -86,7 +86,7 @@ public:
 
 	/** Calculate direction vectors for road segment round edges. Used in UVs and calculating points for edges cups. */
 	UFUNCTION(BlueprintCallable)
-	static TArray<FVector2D> GetRoadCupsPointsDirections(int capDensity);
+	static TArray<FVector2D> GetRoadCupsPointsDirections(int inCapDensity);
 
 	/** Calculate points for edges cups. */
 	UFUNCTION(BlueprintCallable)
