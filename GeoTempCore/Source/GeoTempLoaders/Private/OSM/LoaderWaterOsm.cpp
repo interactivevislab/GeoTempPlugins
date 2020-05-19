@@ -42,21 +42,28 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 			polygon.Outer.Add(cont);
 
 
-
-			//TArray<FContour> cutOuters = {};
-			//for (auto poly : polygon.Outer)
-			//{
-			//	cutOuters.Append(ULoaderHelper::CutContoursByBounds(TArray<FContour>() = { poly }, osmReader->BoundsRect));
-			//}
 			bool cutData;
+			FVector4 cutBounds;
 			if (CutExcessData)
 			{
 				cutData = true;
-				polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->CutRect);
+				cutBounds = osmReader->CutRect;
 			}
 			else
 			{
-				//polygon.Outer[0].LeftmostIndex;
+				cutData =		polygon.Outer[0].LeftmostIndex() - polygon.Outer[0].RightmostIndex() > ExcessDataLimit
+							||	polygon.Outer[0].BottommostIndex() - polygon.Outer[0].TopmostIndex() > ExcessDataLimit;
+				cutBounds = FVector4(
+					osmReader->CutRect.X - ExcessDataLimit,
+					osmReader->CutRect.Y + ExcessDataLimit,
+					osmReader->CutRect.Z - ExcessDataLimit,
+					osmReader->CutRect.W + ExcessDataLimit
+				);
+			}
+
+			if (cutData)
+			{
+				polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->CutRect);
 			}
 
 			polygon.Tags = way->Tags;
@@ -202,17 +209,6 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 
 			polygon.Outer.Append(fixedOuters);
 			polygon.Holes.Append(fixedInnres);
-
-			//TArray<FContour> cutOuters = {};
-			//TArray<FContour> cutHoles = {};
-			//for (auto poly : polygon.Outer)
-			//{
-			//	cutOuters.Append(ULoaderHelper::CutContoursByBounds(TArray<FContour>() = { poly }, osmReader->BoundsRect));
-			//}
-			//for (auto poly : polygon.Holes)
-			//{
-			//	cutHoles.Append(ULoaderHelper::CutContoursByBounds(TArray<FContour>() = { poly }, osmReader->BoundsRect));
-			//}
 
 			polygon.Outer = ULoaderHelper::CutPolygonsByBounds(polygon.Outer, osmReader->CutRect);
 			polygon.Holes = ULoaderHelper::CutPolygonsByBounds(polygon.Holes, osmReader->CutRect);

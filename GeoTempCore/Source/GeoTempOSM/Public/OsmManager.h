@@ -38,7 +38,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UHttpRequest* GetOsmDataForIds(TSet<int> inIDs);
 
-	/** Creates request for loading OSM data for relation. */
+	/** Creates request for loading full OSM data for relation. */
 	UFUNCTION(BlueprintCallable)
 	UHttpRequest* GetFullOsmDataForRelation(FString inRelationId);
 

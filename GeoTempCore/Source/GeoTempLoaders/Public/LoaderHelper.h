@@ -26,14 +26,19 @@ public:
 	/** Creates a complete road network structure based on data from road segments. */
 	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
 
+	/** Combines polygons from multiple lines. */
 	static TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours, int inRelationId, bool& outGoodData, TSet<int>& outErrorRelations);
 
+	/** Combines and cuts polygons from multiple lines. */
 	static TArray<FContour> FixAndCutRelationContours(TArray<FContour>& inUnclosedContour, FVector4 inBounds, int inRelationId, bool& outGoodData, TSet<int>& outErrorRelations);
 
+	/** Cut multiple polygons to fit inside specific bounds. */
 	static TArray<FContour> CutPolygonsByBounds(TArray<FContour>& inContour, FVector4 inBounds);
 
+	/** Cut single polygon to fit inside specific bounds. */
 	static TArray<FContour> CutPolygonByBounds(FContour inContour, FVector4 inBounds);
 
+	/** Cut contour to fit inside specific bounds. */
 	static TArray<FContour> CutContourByBounds(FContour inContour, FVector4 inBounds);
 
 #pragma region Tags

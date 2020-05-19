@@ -191,3 +191,17 @@ double UGeometryHelpers::PointToLineRelativePosition(FVector inLineStart, FVecto
 {
 	return FMath::Sign((inLineEnd.X - inLineStart.X) * (inPoint.Y - inLineStart.Y) - (inLineEnd.Y - inLineStart.Y) * (inPoint.X - inLineStart.X));
 }
+
+
+bool UGeometryHelpers::DoRectanglesOverlap(FVector inUpperLeftFirst, FVector inLowerRightFirst, FVector inUpperLeftSecond, FVector inLowerRightSecond)
+{
+	// If one rectangle is on left side of other 
+	if (inUpperLeftFirst.X >= inLowerRightSecond.X || inUpperLeftSecond.X >= inLowerRightFirst.X)
+		return false;
+
+	// If one rectangle is above other 
+	if (inUpperLeftFirst.Y <= inLowerRightSecond.Y || inUpperLeftSecond.Y <= inLowerRightFirst.Y)
+		return false;
+
+	return true;
+}

@@ -29,23 +29,23 @@ public:
 
 	/** Material that be used in creating water actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		UMaterialInterface* WaterMaterial;
+	UMaterialInterface* WaterMaterial;
 
 	/** Z-coordinate of water surface. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float WaterZ;
+	float WaterZ;
 
 	/** Spawns AWaterActor based on water polygon data. */
 	UFUNCTION(BlueprintCallable)
-		void SpawnWaterActor(const TArray<FMultipolygonData>& inPolygonData);
+	void SpawnWaterActor(const TArray<FMultipolygonData>& inPolygonData);
 
 	/** Destroy spawned AWaterActor. */
 	UFUNCTION(BlueprintCallable)
-		void RemoveWaterActor();
+	void RemoveWaterActor();
 
 	/**Add new mesh section in RuntimeMeshComponent. */
 	UFUNCTION(BlueprintCallable)
-		void AddWaterToMeshSingleSection(URuntimeMeshComponent * meshComponent, const TArray<FMultipolygonData>& inPolygonData, UMaterialInterface * material);
+	void AddWaterToMeshSingleSection(URuntimeMeshComponent * meshComponent, const TArray<FMultipolygonData>& inPolygonData, UMaterialInterface * material);
 
 private:
 

@@ -37,8 +37,13 @@ public:
 	/** Whether there were none of incomplete relations to parse */
 	bool DataParsedSuccessfully = true;
 
-	UPROPERTY()
+	/** Whether to cut data out of cutting radius */
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 	bool CutExcessData = true;
+
+	/** Radius of cutting gabarite data */
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
+	int ExcessDataLimit = 500000;
 
 	/** A set of ids of incompleted relations */
 	TSet<int> ErrorRelations = {};

@@ -188,4 +188,14 @@ public:
 	* @return double negative value (<0) if point is to the left of a line, positive value (>0) if point is to the right of a line, zero (==0) if point is on a line
 	*/
 	static double PointToLineRelativePosition(FVector inLineStart, FVector inLineEnd, FVector inPoint);
+
+	/** Get point position relatively to a line looking in direction from line start point to line end point
+	* @param inUpperLeftFirst upper-left point of the first rectangle
+	* @param inLowerRightFirst lower-right point of the first rectangle
+	* @param inUpperLeftSecond upper-left point of the second rectangle
+	* @param inLowerRightSecond lower-right point of the second rectangle
+	* @return bool true if two rectangles overlap 
+	*/
+	static bool DoRectanglesOverlap(FVector inUpperLeftFirst, FVector inLowerRightFirst, FVector inUpperLeftSecond, FVector inLowerRightSecond);
+	
 };

@@ -147,7 +147,6 @@ TArray<FContour> ULoaderHelper::FixRelationContours(TArray<FContour>& inUnclosed
 }
 
 
-
 TArray<FContour> ULoaderHelper::FixAndCutRelationContours(TArray<FContour>& inUnclosedContours, FVector4 inBounds, int inRelationId, bool& outGoodData, TSet<int>& outErrorRelations)
 {
 	auto closedContours = ULoaderHelper::FixRelationContours(inUnclosedContours, inRelationId, outGoodData, outErrorRelations);
@@ -288,7 +287,6 @@ TArray<FContour> ULoaderHelper::CutContourByBounds(FContour inContour, FVector4 
 				}
 				auto cont = FContour(cutPoints);
 				cutPolygons.Add(cont);
-				//cutPolysDirections.Add(UGeometryHelpers::PolygonDirectionSign(inContour.Points));
 				cutPoints.Empty();
 			}
 		}
@@ -298,7 +296,6 @@ TArray<FContour> ULoaderHelper::CutContourByBounds(FContour inContour, FVector4 
 		if (polygonIsInsideBounds)
 		{
 			auto cont = FContour(cutPoints);
-			//resultPolygon.Points.Append(cutPoints);
 			cutPolygons.Add(cont);
 		}
 		else
@@ -312,7 +309,6 @@ TArray<FContour> ULoaderHelper::CutContourByBounds(FContour inContour, FVector4 
 			{
 				auto cont = FContour(cutPoints);
 				cutPolygons.Add(cont);
-				//cutPolysDirections.Add(UGeometryHelpers::PolygonDirectionSign(inContour.Points));
 			}
 		}
 		cutPoints.Empty();
@@ -339,160 +335,21 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 		bottomRight,
 		bottomLeft,
 	};
-
-	//bool recordingPoints = false;
-	//bool polygonIsInsideBounds = true;
 	TArray<FContour> cutPolygons = {};
 	double cutPolyDirection;
 	TArray<FContour> resultPolygon;
 	TArray<FVector> cutPoints = {};
-	//for (auto& contour : inContours)
-	//{
-		//recordingPoints = false;
-		//polygonIsInsideBounds = true;
 		if (inContour.IsClosed())
 		{
 			cutPolygons = ULoaderHelper::CutContourByBounds(inContour, inBounds);
 			cutPolyDirection = UGeometryHelpers::PolygonDirectionSign(inContour.Points);
-			/*for (int i = 0; i < inContour.Points.Num(); i++)
-			{
-				if (UGeometryHelpers::IsPointInPolygon(boundsPolygon, inContour.Points[i]))
-				{
-					if (!recordingPoints)
-					{
-						recordingPoints = true;
-						if (i > 0)
-						{
-							FVector lineStart = FVector(0);
-							FVector lineEnd = FVector(0);
-							if (inContour.Points[i - 1].X < inBounds.X)
-							{
-								lineStart.X = inBounds.X;
-							}
-							else
-							{
-								lineStart.X = inBounds.Y;
-							}
-							if (inContour.Points[i - 1].Y < inBounds.Z)
-							{
-								lineStart.Y = inBounds.Z;
-							}
-							else
-							{
-								lineStart.Y = inBounds.W;
-							}
-							auto position = UGeometryHelpers::PointToLineRelativePosition(inContour.Points[i - 1], lineStart, inContour.Points[i]);
-							if (position <= 0)
-							{
-								lineEnd.X = (lineStart.Y == inBounds.Z) ? inBounds.Y : inBounds.X;
-								lineEnd.Y = (lineStart.X == inBounds.X) ? inBounds.Z : inBounds.W;
-							}
-							else
-							{
-								lineEnd.X = (lineStart.Y == inBounds.Z) ? inBounds.X : inBounds.Y;
-								lineEnd.Y = (lineStart.X == inBounds.X) ? inBounds.W : inBounds.Z;
-							}
-							FVector intersection;
-							auto foundIntersection = UGeometryHelpers::DoLineSegmentsIntersect(lineStart, lineEnd, inContour.Points[i - 1], inContour.Points[i], intersection);
-							if (foundIntersection)
-							{
-								cutPoints.Add(intersection);
-							}
-							else
-							{
-								cutPoints.Add(inContour.Points[i - 1]);
-							}
-						}
-					}
-					cutPoints.Add(inContour.Points[i]);
-				}
-				else
-				{
-					polygonIsInsideBounds = false;
-					if (recordingPoints)
-					{
-						recordingPoints = false;
-						FVector lineStart = FVector(0);
-						FVector lineEnd = FVector(0);
-						if (inContour.Points[i].X < inBounds.X)
-						{
-							lineStart.X = inBounds.X;
-						}
-						else
-						{
-							lineStart.X = inBounds.Y;
-						}
-						if (inContour.Points[i].Y < inBounds.Z)
-						{
-							lineStart.Y = inBounds.Z;
-						}
-						else
-						{
-							lineStart.Y = inBounds.W;
-						}
-						auto position = UGeometryHelpers::PointToLineRelativePosition(inContour.Points[i], lineStart, inContour.Points[i - 1]);
-						if (position <= 0)
-						{
-							lineEnd.X = (lineStart.Y == inBounds.Z) ? inBounds.Y : inBounds.X;
-							lineEnd.Y = (lineStart.X == inBounds.X) ? inBounds.Z : inBounds.W;
-						}
-						else
-						{
-							lineEnd.X = (lineStart.Y == inBounds.Z) ? inBounds.X : inBounds.Y;
-							lineEnd.Y = (lineStart.X == inBounds.X) ? inBounds.W : inBounds.Z;
-						}
-
-						FVector intersection;
-						auto foundIntersection = UGeometryHelpers::DoLineSegmentsIntersect(lineStart, lineEnd, inContour.Points[i - 1], inContour.Points[i], intersection);
-						if (foundIntersection)
-						{
-							cutPoints.Add(intersection);
-						}
-						else
-						{
-							cutPoints.Add(inContour.Points[i]);
-						}
-						auto cont = FContour(cutPoints);
-						cutPolygons.Add(cont);
-						cutPolysDirections.Add(UGeometryHelpers::PolygonDirectionSign(inContour.Points));
-						cutPoints.Empty();
-					}
-				}
-			}
-			if (cutPoints.Num() > 0)
-			{
-				if (polygonIsInsideBounds)
-				{
-					auto cont = FContour(cutPoints);
-					resultPolygon.Points.Append(cutPoints);
-				}
-				else
-				{
-					if (cutPolygons.Num() > 0)
-					{
-						cutPolygons[0].Points.RemoveAt(0);
-						cutPolygons[0].Points.Insert(cutPoints, 0);
-					}
-					else
-					{
-						auto cont = FContour(cutPoints);
-						cutPolygons.Add(cont);
-						cutPolysDirections.Add(UGeometryHelpers::PolygonDirectionSign(inContour.Points));
-					}
-				}
-				cutPoints.Empty();
-			}*/
 		}
-	//}
 
 	TArray<FContour> combinedContours = {};
-	//TArray<double> combinedContsDirection = {};
 	if (cutPolygons.Num() > 0)
 	{
 		combinedContours.Add(cutPolygons[0]);
-		//combinedContsDirection.Add(cutPolysDirections[0]);
 		cutPolygons.RemoveAt(0);
-		//cutPolysDirections.RemoveAt(0);
 	}
 	while (cutPolygons.Num() > 0)
 	{
@@ -520,7 +377,7 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 				}
 				else
 				{
-					if (UGeometryHelpers::HasNumbersSameSign(relativePosition, cutPolyDirection/*combinedContsDirection[j]*/))
+					if (UGeometryHelpers::HasNumbersSameSign(relativePosition, cutPolyDirection))
 					{
 						TArray<FVector> corners = {};
 						int startIndex = 0;
@@ -544,7 +401,7 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 						for (int k = 0; k < boundsCorners.Num(); k++)
 						{
 							int borderDirection;
-							if (/*combinedContsDirection[j]*/cutPolyDirection >= 0)
+							if (cutPolyDirection >= 0)
 							{
 								borderDirection = k;
 							}
@@ -554,9 +411,8 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 							}
 							int newIndex = (borderDirection + startIndex) % 4;
 							auto cornerRelativePosition = UGeometryHelpers::PointToLineRelativePosition(lastPoint, cutPolygons[i].Points[0], boundsCorners[newIndex]);
-							//auto cornerCheckSideCorrection = -FMath::Sign(/*combinedContsDirection[j]*/cutPolyDirection);
 
-							if (cornerRelativePosition != 0 && UGeometryHelpers::HasNumbersSameSign(/*cornerCheckSideCorrection**/cornerRelativePosition, -cutPolyDirection/*combinedContsDirection[j]*/))
+							if (cornerRelativePosition != 0 && UGeometryHelpers::HasNumbersSameSign(cornerRelativePosition, -cutPolyDirection))
 							{
 								corners.Add(boundsCorners[newIndex]);
 							}
@@ -585,9 +441,7 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 		if (!hasConnections)
 		{
 			combinedContours.Add(cutPolygons[0]);
-			//combinedContsDirection.Add(cutPolysDirections[0]);
 			cutPolygons.RemoveAt(0);
-			//cutPolysDirections.RemoveAt(0);
 			continue;
 		}
 	}
@@ -599,10 +453,6 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 		auto relativePosition = UGeometryHelpers::PointToLineRelativePosition(combinedContours[j].Points[combinedContours[j].Points.Num() - 2], lastPoint, combinedContours[j].Points[0]);
 		if (relativePosition != 0)
 		{
-			//if (UGeometryHelpers::HasNumbersSameSign(relativePosition, cutPolyDirection/*combinedContsDirection[j]*/))
-			//{
-
-
 				if (lastPoint.Y == inBounds.Z)
 				{
 					startIndex += 0;
@@ -623,7 +473,7 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 				for (int i = 0; i < boundsCorners.Num(); i++)
 				{
 					int borderDirection;
-					if (/*combinedContsDirection[j]*/cutPolyDirection >= 0)
+					if (cutPolyDirection >= 0)
 					{
 						borderDirection = i;
 					}
@@ -633,16 +483,14 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 					}
 					int newIndex = (borderDirection + startIndex) % 4;
 					auto cornerRelativePosition = UGeometryHelpers::PointToLineRelativePosition(lastPoint, combinedContours[j].Points[0], boundsCorners[newIndex]);
-					//auto cornerCheckSideCorrection = -UGeometryHelpers::PointToLineRelativePosition(combinedContours[j].Points[combinedContours[j].Points.Num() - 2], lastPoint, combinedContours[j].Points[0]);
 
-					if (cornerRelativePosition != 0 && UGeometryHelpers::HasNumbersSameSign(cornerRelativePosition, -cutPolyDirection/*combinedContsDirection[j]*/))
+					if (cornerRelativePosition != 0 && UGeometryHelpers::HasNumbersSameSign(cornerRelativePosition, -cutPolyDirection))
 					{
 						corners.Add(boundsCorners[newIndex]);
 					}
 				}
 
 				combinedContours[j].Points.Append(corners);
-			//}
 		}
 
 		combinedContours[j].FixClockwise();

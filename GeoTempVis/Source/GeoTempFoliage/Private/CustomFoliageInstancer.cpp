@@ -5,63 +5,63 @@
 #include "Materials/MaterialInstanceDynamic.h"
 
 
-bool IsPointInPolygon(TArray<FVector> simPoly, FVector point)
-{
-	int j = simPoly.Num() - 1;
-	bool oddNodes = false;
-	for (int i = 0; i < simPoly.Num(); i++)
-	{
-		if ((simPoly[i].Y < point.Y && simPoly[j].Y >= point.Y || simPoly[j].Y < point.Y && simPoly[i].Y >= point.Y) && (simPoly[i].X <= point.X || simPoly[j].X <= point.X))
-		{
-			oddNodes ^= (simPoly[i].X + (point.Y - simPoly[i].Y) / (simPoly[j].Y - simPoly[i].Y) * (simPoly[j].X - simPoly[i].X) < point.X);
-		}
-		j = i;
-	}
+//bool IsPointInPolygon(TArray<FVector> simPoly, FVector point)
+//{
+//	int j = simPoly.Num() - 1;
+//	bool oddNodes = false;
+//	for (int i = 0; i < simPoly.Num(); i++)
+//	{
+//		if ((simPoly[i].Y < point.Y && simPoly[j].Y >= point.Y || simPoly[j].Y < point.Y && simPoly[i].Y >= point.Y) && (simPoly[i].X <= point.X || simPoly[j].X <= point.X))
+//		{
+//			oddNodes ^= (simPoly[i].X + (point.Y - simPoly[i].Y) / (simPoly[j].Y - simPoly[i].Y) * (simPoly[j].X - simPoly[i].X) < point.X);
+//		}
+//		j = i;
+//	}
+//
+//	return oddNodes;
+//}
 
-	return oddNodes;
-}
+//FVector LineIntersection(FVector A, FVector B, FVector C, FVector D)
+//{
+//	// Line AB represented as a1x + b1y = c1 
+//	double a1 = B.Y - A.Y;
+//	double b1 = A.X - B.X;
+//	double c1 = a1 * (A.X) + b1 * (A.Y);
+//
+//	// Line CD represented as a2x + b2y = c2 
+//	double a2 = D.Y - C.Y;
+//	double b2 = C.X - D.X;
+//	double c2 = a2 * (C.X) + b2 * (C.Y);
+//
+//	double determinant = a1 * b2 - a2 * b1;
+//
+//	if (determinant == 0)
+//	{
+//		// The lines are parallel. This is simplified 
+//		// by returning a pair of FLT_MAX 
+//		return FVector(FLT_MAX, FLT_MAX, 0);
+//	}
+//	else
+//	{
+//		double x = (b2*c1 - b1 * c2) / determinant;
+//		double y = (a1*c2 - a2 * c1) / determinant;
+//		return FVector(x, y, 0);
+//	}
+//}
 
-FVector LineIntersection(FVector A, FVector B, FVector C, FVector D)
-{
-	// Line AB represented as a1x + b1y = c1 
-	double a1 = B.Y - A.Y;
-	double b1 = A.X - B.X;
-	double c1 = a1 * (A.X) + b1 * (A.Y);
-
-	// Line CD represented as a2x + b2y = c2 
-	double a2 = D.Y - C.Y;
-	double b2 = C.X - D.X;
-	double c2 = a2 * (C.X) + b2 * (C.Y);
-
-	double determinant = a1 * b2 - a2 * b1;
-
-	if (determinant == 0)
-	{
-		// The lines are parallel. This is simplified 
-		// by returning a pair of FLT_MAX 
-		return FVector(FLT_MAX, FLT_MAX, 0);
-	}
-	else
-	{
-		double x = (b2*c1 - b1 * c2) / determinant;
-		double y = (a1*c2 - a2 * c1) / determinant;
-		return FVector(x, y, 0);
-	}
-}
-
-// Returns true if two rectangles (l1, r1) and (l2, r2) overlap 
-bool DoRectanglesOverlap(FVector l1, FVector r1, FVector l2, FVector r2)
-{
-	// If one rectangle is on left side of other 
-	if (l1.X >= r2.X || l2.X >= r1.X)
-		return false;
-
-	// If one rectangle is above other 
-	if (l1.Y <= r2.Y || l2.Y <= r1.Y)
-		return false;
-
-	return true;
-}
+//// Returns true if two rectangles (l1, r1) and (l2, r2) overlap 
+//bool DoRectanglesOverlap(FVector l1, FVector r1, FVector l2, FVector r2)
+//{
+//	// If one rectangle is on left side of other 
+//	if (l1.X >= r2.X || l2.X >= r1.X)
+//		return false;
+//
+//	// If one rectangle is above other 
+//	if (l1.Y <= r2.Y || l2.Y <= r1.Y)
+//		return false;
+//
+//	return true;
+//}
 
 TArray<FContour> GetIntersectedPolygons(FContour inMainPolygon, TArray<FContour>& inPolygonsTocheck)
 {
@@ -80,7 +80,7 @@ TArray<FContour> GetIntersectedPolygons(FContour inMainPolygon, TArray<FContour>
 		l2 = FVector(excludePoly.Points[excludePoly.LeftmostIndex()].X, excludePoly.Points[excludePoly.BottommostIndex()].Y, 0);
 		r2 = FVector(excludePoly.Points[excludePoly.RightmostIndex()].X, excludePoly.Points[excludePoly.TopmostIndex()].Y, 0);
 
-		if (DoRectanglesOverlap(l1, r1, l2, r2))
+		if (UGeometryHelpers::DoRectanglesOverlap(l1, r1, l2, r2))
 			firstIter.Add(excludePoly);
 	}
 	for (auto excludePoly : firstIter)
@@ -88,7 +88,7 @@ TArray<FContour> GetIntersectedPolygons(FContour inMainPolygon, TArray<FContour>
 		bool foundIntersection = false;
 		for (auto point : excludePoly.Points)
 		{
-			if (IsPointInPolygon(inMainPolygon.Points, point))
+			if (UGeometryHelpers::IsPointInPolygon(inMainPolygon.Points, point))
 			{
 				foundIntersection = true;
 				exclude.Add(excludePoly);
@@ -105,7 +105,7 @@ TArray<FContour> GetIntersectedPolygons(FContour inMainPolygon, TArray<FContour>
 		bool foundIntersection = false;
 		for (auto point : inMainPolygon.Points)
 		{
-			if (IsPointInPolygon(excludePoly.Points, point))
+			if (UGeometryHelpers::IsPointInPolygon(excludePoly.Points, point))
 			{
 				foundIntersection = true;
 				exclude.Add(excludePoly);
@@ -473,9 +473,6 @@ void UCustomFoliageInstancer::PrepareInstancers(
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue("Interpolation", 0.0f);
 		}
 	}
-
-	//foliageActor->SetActorLabel(SpawnInfo.Name.ToString());
-	//foliageActor->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void UCustomFoliageInstancer::FillFoliageWithMeshes(
@@ -653,7 +650,7 @@ void UCustomFoliageInstancer::FillFoliageByPolygon(
 				bool isInHole = false;
 				for (auto hole : inExcludeHoles)
 				{
-					if (IsPointInPolygon(hole.Points, FVector(X, Y, 0)))
+					if (UGeometryHelpers::IsPointInPolygon(hole.Points, FVector(X, Y, 0)))
 					{
 						isInHole = true;
 						break;
@@ -664,7 +661,7 @@ void UCustomFoliageInstancer::FillFoliageByPolygon(
 				{
 					for (auto exclude : inExcludePolygons)
 					{
-						if (IsPointInPolygon(exclude.Points, FVector(X, Y, 0)))
+						if (UGeometryHelpers::IsPointInPolygon(exclude.Points, FVector(X, Y, 0)))
 						{
 							treeSupressed = true;
 							break;
@@ -673,7 +670,7 @@ void UCustomFoliageInstancer::FillFoliageByPolygon(
 				}
 
 				float spawnRandomValue = rs.FRandRange(0.0f, 1.0f);
-				bool presenceSuppressed = treeSupressed || !IsPointInPolygon(inPolygon, FVector(X, Y, 0));
+				bool presenceSuppressed = treeSupressed || !UGeometryHelpers::IsPointInPolygon(inPolygon, FVector(X, Y, 0));
 
 				if (!presenceSuppressed && inPresenceChance > 0 && spawnRandomValue <= inPresenceChance)
 				//if (!treeSupressed && IsPointInPolygon(inPolygon, FVector(X, Y, 0)))
