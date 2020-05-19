@@ -33,15 +33,18 @@ public:
 	/** Number of points used to create round road edges. */
 	static const int DefaultCapDensity;
 
+	/** Maximum angle between triangles for arcs in road turns and crossroads. */
 	static const float ArcsAngleStep;
 
-	/** Material that be used in creating road network actors. */
+	/** Material for road segments that be used in creating road network actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* RoadSegmentsMaterial;
 
+	/** Material for crossroads that be used in creating road network actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* CrossroadsMaterial;
 
+	/** Material for road curtains that be used in creating road network actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* CurtainsMaterial;
 
@@ -69,9 +72,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork);
 
-	UFUNCTION(BlueprintCallable)
-	void SpawnNewRoadNetworkActor(FRoadNetwork inRoadNetwork);
-
 	/** Destroy spawned RoadNetworkActor. */
 	UFUNCTION(BlueprintCallable)
 	void RemoveRoadNetworkActor();
@@ -98,16 +98,15 @@ private:
 	* \fn ConstructRoadMeshSection
 	* \brief Add new mesh section in RuntimeMeshComponent.
 	*
-	* @param inRuntimeMesh			Target RuntimeMesh.
-	* @param inSegments				Array of road segments for mesh data calculation.
-	* @param inSectionIndex			Index of target mesh section.
-	* @param inMaterial				Material for mesh section.
-	* @param outCurtainsMeshData	Calculated data for roadsides' mesh section.
+	* @param inRuntimeMesh				Target RuntimeMesh.
+	* @param inNetworkGeometry			Road network geometry for mesh data calculation.
+	* @param inSegmentsSectionIndex		Index of mesh section for road segments.
+	* @param inCrossroadsSectionIndex	Index of mesh section for crossroads.
+	* @param inSegmentsMaterial			Material for road segments' mesh section.
+	* @param inCrossroadsMaterial		Material for crossroads' mesh section.
+	* @param outCurtainsMeshData		Calculated data for roadsides' mesh section.
 	*/
-	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, TArray<FRoadSegment> inSegments, 
-		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
-
-	void ConstructNewRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, RoadNetworkGeometry inNetworkGeometry,
+	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, RoadNetworkGeometry inNetworkGeometry,
 		int inSegmentsSectionIndex, int inCrossroadsSectionIndex,
 		UMaterialInstanceDynamic* inSegmentsMaterial, UMaterialInstanceDynamic* inCrossroadsMaterial,
 		MeshSectionData& outCurtainsMeshData);
