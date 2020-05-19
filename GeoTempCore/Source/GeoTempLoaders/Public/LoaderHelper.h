@@ -41,6 +41,9 @@ public:
 	/** Cut contour to fit inside specific bounds. */
 	static TArray<FContour> CutContourByBounds(FContour inContour, FVector4 inBounds);
 
+	/** Gets point of intersection of a segment with square bounds. */
+	static FVector GetSegmentIntersectionWithBounds(FVector inOuterPoint, FVector inInnerPoint, FVector4 inBounds);
+
 #pragma region Tags
 
 	/** Casts FString to another type. */
