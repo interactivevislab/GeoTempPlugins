@@ -32,9 +32,9 @@ void FVertexShaderExample::SetUniformBuffers(FRHICommandList& outRhiCmdList,
 	constParamsBuffer	= FPsConstParamsRef	::CreateUniformBufferImmediate(outConstParams,	UniformBuffer_SingleDraw);
 	varParamsBuffer		= FPsVarParamsRef	::CreateUniformBufferImmediate(outVarParams,	UniformBuffer_SingleDraw);
 
-	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(),
+	SetUniformBufferParameter(outRhiCmdList, outRhiCmdList.GetBoundVertexShader(),
 		GetUniformBufferParameter<FPixelShaderConstantParameters>(), constParamsBuffer);
-	SetUniformBufferParameter(outRhiCmdList, GetVertexShader(),
+	SetUniformBufferParameter(outRhiCmdList, outRhiCmdList.GetBoundVertexShader(),
 		GetUniformBufferParameter<FPixelShaderVariableParameters>(), varParamsBuffer);
 }
 
@@ -75,12 +75,12 @@ bool FPixelShaderExample::ShouldCompilePermutation(const FGlobalShaderPermutatio
 }
 
 
-bool FPixelShaderExample::Serialize(FArchive& inArchive)
-{
-	bool bShaderHasOutdatedParams = FGlobalShader::Serialize(inArchive);
-	inArchive << textureParameter;
-	return bShaderHasOutdatedParams;
-}
+//bool FPixelShaderExample::Serialize(FArchive& inArchive)
+//{
+//	bool bShaderHasOutdatedParams = FGlobalShader::Serialize(inArchive);
+//	inArchive << textureParameter;
+//	return bShaderHasOutdatedParams;
+//}
 
 
 void FPixelShaderExample::SetUniformBuffers(FRHICommandList& outRhiCmdList, 
@@ -92,16 +92,16 @@ void FPixelShaderExample::SetUniformBuffers(FRHICommandList& outRhiCmdList,
 	constParamsBuffer	= FPsConstParamsRef	::CreateUniformBufferImmediate(outConstParams,	UniformBuffer_SingleDraw);
 	varParamsBuffer		= FPsVarParamsRef	::CreateUniformBufferImmediate(outVarParams,	UniformBuffer_SingleDraw);
 	
-	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(), 
+	SetUniformBufferParameter(outRhiCmdList, outRhiCmdList.GetBoundPixelShader(),
 		GetUniformBufferParameter<FPixelShaderConstantParameters>(), constParamsBuffer);
-	SetUniformBufferParameter(outRhiCmdList, GetPixelShader(), 
+	SetUniformBufferParameter(outRhiCmdList, outRhiCmdList.GetBoundPixelShader(),
 		GetUniformBufferParameter<FPixelShaderVariableParameters>(), varParamsBuffer);
 }
 
 
 void FPixelShaderExample::SetOutputTexture(FRHICommandList& outRhiCmdList, FShaderResourceViewRHIRef inTexParamSrv)
 {
-	FRHIPixelShader* PixelShaderRHI = GetPixelShader();
+	FRHIPixelShader* PixelShaderRHI = outRhiCmdList.GetBoundPixelShader();
 
 	if (textureParameter.IsBound())
 	{
@@ -113,7 +113,7 @@ void FPixelShaderExample::SetOutputTexture(FRHICommandList& outRhiCmdList, FShad
 
 void FPixelShaderExample::UnbindBuffers(FRHICommandList& outRhiCmdList)
 {
-	FRHIPixelShader* PixelShaderRHI = GetPixelShader();
+	FRHIPixelShader* PixelShaderRHI = outRhiCmdList.GetBoundPixelShader();
 
 	if (textureParameter.IsBound()) {
 		outRhiCmdList.SetShaderResourceViewParameter(PixelShaderRHI, textureParameter.GetBaseIndex(), nullptr);

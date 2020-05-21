@@ -18,7 +18,8 @@ public class GeoTempLoaders : ModuleRules
 			"GeoTempCore",
 			"GeoTempOsm",
 			"GeoTempPostGis",
-			"GeoTempJson"
+			"GeoTempJson",
+			"HTTP"
 		});
 		PublicIncludePaths.AddRange(
 			new string[] {

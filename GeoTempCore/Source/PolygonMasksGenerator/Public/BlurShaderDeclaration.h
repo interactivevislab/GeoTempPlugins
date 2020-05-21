@@ -74,7 +74,7 @@ public:
 
 	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& inParams);
 
-	virtual bool Serialize(FArchive& outArchive) override;
+	//virtual bool Serialize(FArchive& outArchive) override;
 
 	/** This function is required to let us bind our runtime surface to the shader using an SRV. */
 	void SetInputTexture(FRHICommandList& outRhiCmdList, FShaderResourceViewRHIRef inTexParamSrv);
@@ -86,5 +86,5 @@ public:
 
 private:
 	//This is how you declare resources that are going to be made available in the HLSL
-	FShaderResourceParameter textureParameter;
+	LAYOUT_FIELD(FShaderResourceParameter, textureParameter);
 };

@@ -246,8 +246,12 @@ void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "RoadNetworkActor";
+	SpawnInfo.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
 	roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+#if UE_EDITOR
 	roadNetworkActor->SetActorLabel(SpawnInfo.Name.ToString());
+#endif
+	
 	roadNetworkActor->SetMobility(EComponentMobility::Movable);
 	auto runtimeMesh = roadNetworkActor->GetRuntimeMeshComponent();
 
