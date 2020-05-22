@@ -12,6 +12,7 @@
 
 struct MeshSectionData;
 
+struct RoadNetworkGeometry;
 
 class ARoadNetworkActor;
 
@@ -30,11 +31,22 @@ class GEOTEMPROADS_API	URoadBuilder : public UActorComponent
 public:
 
 	/** Number of points used to create round road edges. */
-	static const int capDensity = 8;
+	static const int DefaultCapDensity;
 
-	/** Material that be used in creating road network actors. */
+	/** Maximum angle between triangles for arcs in road turns and crossroads. */
+	static const float ArcsAngleStep;
+
+	/** Material for road segments that be used in creating road network actors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInterface* RoadMaterial;
+	UMaterialInterface* RoadSegmentsMaterial;
+
+	/** Material for crossroads that be used in creating road network actors. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UMaterialInterface* CrossroadsMaterial;
+
+	/** Material for road curtains that be used in creating road network actors. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UMaterialInterface* CurtainsMaterial;
 
 	/** Z-coordinate of highway surface. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -58,7 +70,7 @@ public:
 
 	/** Spawns ARoadNetworkActor based on road network structure. */
 	UFUNCTION(BlueprintCallable)
-	void SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork);
+	void SpawnRoadNetworkActor(const FRoadNetwork& inRoadNetwork);
 
 	/** Destroy spawned RoadNetworkActor. */
 	UFUNCTION(BlueprintCallable)
@@ -74,11 +86,11 @@ public:
 
 	/** Calculate direction vectors for road segment round edges. Used in UVs and calculating points for edges cups. */
 	UFUNCTION(BlueprintCallable)
-	static TArray<FVector2D> GetRoadCupsPointsDirections();
+	static TArray<FVector2D> GetRoadCupsPointsDirections(int inCapDensity);
 
 	/** Calculate points for edges cups. */
 	UFUNCTION(BlueprintCallable)
-	static TArray<FVector> GetCupsPointsOffsets(TArray<FVector2D> inPointsDirections, FVector inPerpendicularToLine, bool inIsReversedCup);
+	static TArray<FVector> GetCupsPointsOffsets(const TArray<FVector2D>& inPointsDirections, FVector inPerpendicularToLine, bool inIsReversedCup);
 
 private:
 
@@ -86,14 +98,18 @@ private:
 	* \fn ConstructRoadMeshSection
 	* \brief Add new mesh section in RuntimeMeshComponent.
 	*
-	* @param inRuntimeMesh			Target RuntimeMesh.
-	* @param inSegments				Array of road segments for mesh data calculation.
-	* @param inSectionIndex			Index of target mesh section.
-	* @param inMaterial				Material for mesh section.
-	* @param outCurtainsMeshData	Calculated data for roadsides' mesh section.
+	* @param inRuntimeMesh				Target RuntimeMesh.
+	* @param inNetworkGeometry			Road network geometry for mesh data calculation.
+	* @param inSegmentsSectionIndex		Index of mesh section for road segments.
+	* @param inCrossroadsSectionIndex	Index of mesh section for crossroads.
+	* @param inSegmentsMaterial			Material for road segments' mesh section.
+	* @param inCrossroadsMaterial		Material for crossroads' mesh section.
+	* @param outCurtainsMeshData		Calculated data for roadsides' mesh section.
 	*/
-	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, TArray<FRoadSegment> inSegments, 
-		int inSectionIndex, UMaterialInstanceDynamic* inMaterial, MeshSectionData& outCurtainsMeshData);
+	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, const RoadNetworkGeometry& inNetworkGeometry,
+		int inSegmentsSectionIndex, int inCrossroadsSectionIndex,
+		UMaterialInstanceDynamic* inSegmentsMaterial, UMaterialInstanceDynamic* inCrossroadsMaterial,
+		MeshSectionData& outCurtainsMeshData);
 
 	/** Spawned RoadNetworkActor. */
 	UPROPERTY()
