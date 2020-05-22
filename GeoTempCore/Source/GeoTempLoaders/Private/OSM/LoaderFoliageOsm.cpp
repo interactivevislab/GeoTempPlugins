@@ -25,6 +25,8 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 		auto FoliageIterLanduse = way->Tags.Find("landuse");
 		auto FoliageIterLeisure = way->Tags.Find("leisure");
 
+		bool water = FoliageIterNatural ? FoliageIterNatural->Equals("water") : false;
+
 		auto buildIter = way->Tags.Find("building");
 		auto partIter = way->Tags.Find("building:part");
 
@@ -33,7 +35,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
 			||	FoliageIterLanduse && FoliageIterLanduse->Equals("forest")
 			||	FoliageIterLeisure && (FoliageIterLeisure->Equals("park") || FoliageIterLeisure->Equals("garden"))
-			||	buildIter || partIter
+			||	buildIter || partIter || water
 			)
 		{
 
@@ -50,7 +52,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 
 			polygon.Tags = way->Tags;
 
-			if (buildIter || partIter)
+			if (buildIter || partIter || water)
 			{
 				polygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
 			}
@@ -64,6 +66,15 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				{
 					polygon.Tags.Add(TPair<FString, FString>("typeRole", "forest"));
 				}
+				auto leafTag = way->Tags.Find("leaf_type");
+				if (leafTag)
+				{
+					polygon.Tags.Add(TPair<FString, FString>("leaf_type", *leafTag));
+				}
+				else
+				{
+					polygon.Tags.Add(TPair<FString, FString>("leaf_type", "mixed"));
+				}
 			}
 
 			polygon.Origin = osmReader->GeoCoords;
@@ -71,7 +82,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			polygons.Add(polygon);
 		}
 
-		if (way->Tags.Contains("highway"))
+		if (way->Tags.Contains("highway") || way->Tags.Contains("waterway"))
 		{
 			FVector pointDelta;
 
@@ -147,13 +158,16 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 		auto FoliageIterLanduse = relation->Tags.Find("landuse");
 		auto FoliageIterLeisure = relation->Tags.Find("leisure");
 
+		bool water = FoliageIterNatural ? FoliageIterNatural->Equals("water") : false;
+
+		auto buildIter = relation->Tags.Find("building");
 		auto partIter = relation->Tags.Find("building:part");
 
 		//if this relation is building
 		if	(	FoliageIterNatural && FoliageIterNatural->Equals("wood")
 			||	FoliageIterLanduse && FoliageIterLanduse->Equals("forest")
 			||	FoliageIterLeisure && (FoliageIterLeisure->Equals("park") || FoliageIterLeisure->Equals("garden"))
-			||	partIter
+			||	partIter || buildIter || water
 			)
 		{
 			FMultipolygonData polygon;
@@ -198,7 +212,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 			polygon.Tags = relation->Tags;
 			polygon.Origin = osmReader->GeoCoords;
 
-			if (partIter)
+			if (partIter || buildIter || water)
 			{
 				polygon.Tags.Add(TPair<FString, FString>("Type", "Exclude"));
 			}
@@ -211,6 +225,15 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 				else
 				{
 					polygon.Tags.Add(TPair<FString, FString>("typeRole", "forest"));
+				}
+				auto leafTag = relation->Tags.Find("leaf_type");
+				if (leafTag)
+				{
+					polygon.Tags.Add(TPair<FString, FString>("leaf_type", *leafTag));
+				}
+				else
+				{
+					polygon.Tags.Add(TPair<FString, FString>("leaf_type", "mixed"));
 				}
 			}
 

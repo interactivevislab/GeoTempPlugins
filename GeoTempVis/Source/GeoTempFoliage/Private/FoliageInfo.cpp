@@ -7,6 +7,8 @@ FFoliageMeshInfo::FFoliageMeshInfo()
 {
 	Mesh				= nullptr;
 
+	LeafType			= ELeafType::Broadleaved;
+
 	MinScale			= 1.0f;
 	MaxScale			= 1.0f;
 	RotationOrigin		= 0.0f;
