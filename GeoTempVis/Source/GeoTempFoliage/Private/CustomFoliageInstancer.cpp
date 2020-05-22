@@ -291,6 +291,7 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "FoliageActor";
+	SpawnInfo.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
 	foliageActor = GetWorld()->SpawnActor<AFoliageActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 
 
@@ -389,6 +390,7 @@ void UCustomFoliageInstancer::PrepareInstancers(
 		}
 
 		UHierarchicalInstancedStaticMeshComponent* InstancedMesh;
+		meshInfo.MaterialInstances.Empty();
 
 		for (int x = 0; x < meshInfo.Mesh->StaticMaterials.Num(); ++x)
 		{
