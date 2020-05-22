@@ -24,7 +24,7 @@ public:
 	const static float DEFAULT_LANE_WIDTH;
 
 	/** Creates a complete road network structure based on data from road segments. */
-	static FRoadNetwork ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments);
+	static FRoadNetwork ConstructRoadNetwork(const TArray<FRoadSegment>& inRoadSegments);
 
 	/** Combines polygons from multiple lines. */
 	static TArray<FContour> FixRelationContours(TArray<FContour>& inUnclosedContours, int inRelationId, bool& outGoodData, TSet<int>& outErrorRelations);
