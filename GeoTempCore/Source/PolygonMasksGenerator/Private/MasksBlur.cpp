@@ -146,8 +146,8 @@ void UMaskBlurer::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 		graphicsPsoInit.DepthStencilState	= TStaticDepthStencilState<false, CF_Always>::GetRHI();
 		graphicsPsoInit.PrimitiveType		= PT_TriangleStrip;
 		graphicsPsoInit.BoundShaderState.VertexDeclarationRHI	= GTextureVertexDeclarationBlur.VertexDeclarationRhi;
-		graphicsPsoInit.BoundShaderState.VertexShaderRHI		= GETSAFERHISHADER_VERTEX(*vertexShader);
-		graphicsPsoInit.BoundShaderState.PixelShaderRHI			= GETSAFERHISHADER_PIXEL(*pixelShader);
+		graphicsPsoInit.BoundShaderState.VertexShaderRHI		= vertexShader.GetVertexShader();
+		graphicsPsoInit.BoundShaderState.PixelShaderRHI			= pixelShader.GetPixelShader();
 
 		SetGraphicsPipelineState(outRhiCmdList, graphicsPsoInit);
 
@@ -190,8 +190,8 @@ void UMaskBlurer::ExecutePixelShaderInternal(FRHICommandListImmediate& outRhiCmd
 		graphicsPsoInit.DepthStencilState	= TStaticDepthStencilState<false, CF_Always>::GetRHI();
 		graphicsPsoInit.PrimitiveType		= PT_TriangleStrip;
 		graphicsPsoInit.BoundShaderState.VertexDeclarationRHI	= GTextureVertexDeclarationBlur.VertexDeclarationRhi;
-		graphicsPsoInit.BoundShaderState.VertexShaderRHI		= GETSAFERHISHADER_VERTEX(*vertexShader);
-		graphicsPsoInit.BoundShaderState.PixelShaderRHI			= GETSAFERHISHADER_PIXEL(*pixelShader);
+		graphicsPsoInit.BoundShaderState.VertexShaderRHI		= vertexShader.GetVertexShader();
+		graphicsPsoInit.BoundShaderState.PixelShaderRHI			= pixelShader.GetPixelShader();
 
 		SetGraphicsPipelineState(outRhiCmdList, graphicsPsoInit);
 

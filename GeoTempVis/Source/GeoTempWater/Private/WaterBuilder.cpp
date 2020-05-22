@@ -80,6 +80,7 @@ void UWaterBuilder::SpawnWaterActor(const TArray<FMultipolygonData>& inPolygonDa
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "WaterActor";
+	SpawnInfo.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
 	waterActor = GetWorld()->SpawnActor<AWaterActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
 	waterActor->SetActorLabel(SpawnInfo.Name.ToString());
 	waterActor->SetMobility(EComponentMobility::Movable);
