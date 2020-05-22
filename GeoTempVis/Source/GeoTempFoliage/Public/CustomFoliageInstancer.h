@@ -255,7 +255,7 @@ public:
 	* @param inContours		Contours with dates to parse.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Default")
-	void ParseDates(TArray<FMultipolygonData>& inContours);
+	void ParseDates(TArray<FMultipolygonData> inContours);
 
 	/**
 	* \fn ParseTimeTags
