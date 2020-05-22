@@ -201,9 +201,9 @@ public:
 
 	UFUNCTION()
 		void FillFoliageByPolygon(
-			TArray<FVector> inPolygon, 
-			TArray<FContour> inExcludePolygons,
-			TArray<FContour> inExcludeHoles,
+			TArray<FVector>& inPolygon, 
+			TArray<FContour>& inExcludePolygons,
+			TArray<FContour>& inExcludeHoles,
 			TArray<FFoliageMeshInfo>& inInfos,
 			TArray<UHierarchicalInstancedStaticMeshComponent*>& inInstancers,
 			float inPresenceChance
