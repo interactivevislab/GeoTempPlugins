@@ -931,6 +931,7 @@ void URoadBuilder::SpawnRoadNetworkActor(const FRoadNetwork& inRoadNetwork)
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = GetOwner();
 	SpawnInfo.Name = "RoadNetworkActor";
+	SpawnInfo.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
 	roadNetworkActor = GetWorld()->SpawnActor<ARoadNetworkActor>(FVector(0, 0, AutoRoadZ), FRotator::ZeroRotator, SpawnInfo);
 	roadNetworkActor->SetActorLabel(SpawnInfo.Name.ToString());
 	roadNetworkActor->SetMobility(EComponentMobility::Movable);
