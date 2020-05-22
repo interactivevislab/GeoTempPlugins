@@ -70,7 +70,7 @@ public:
 
 	/** Spawns ARoadNetworkActor based on road network structure. */
 	UFUNCTION(BlueprintCallable)
-	void SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork);
+	void SpawnRoadNetworkActor(const FRoadNetwork& inRoadNetwork);
 
 	/** Destroy spawned RoadNetworkActor. */
 	UFUNCTION(BlueprintCallable)
@@ -90,7 +90,7 @@ public:
 
 	/** Calculate points for edges cups. */
 	UFUNCTION(BlueprintCallable)
-	static TArray<FVector> GetCupsPointsOffsets(TArray<FVector2D> inPointsDirections, FVector inPerpendicularToLine, bool inIsReversedCup);
+	static TArray<FVector> GetCupsPointsOffsets(const TArray<FVector2D>& inPointsDirections, FVector inPerpendicularToLine, bool inIsReversedCup);
 
 private:
 
@@ -106,7 +106,7 @@ private:
 	* @param inCrossroadsMaterial		Material for crossroads' mesh section.
 	* @param outCurtainsMeshData		Calculated data for roadsides' mesh section.
 	*/
-	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, RoadNetworkGeometry inNetworkGeometry,
+	void ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, const RoadNetworkGeometry& inNetworkGeometry,
 		int inSegmentsSectionIndex, int inCrossroadsSectionIndex,
 		UMaterialInstanceDynamic* inSegmentsMaterial, UMaterialInstanceDynamic* inCrossroadsMaterial,
 		MeshSectionData& outCurtainsMeshData);

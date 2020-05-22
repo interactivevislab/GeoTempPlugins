@@ -51,7 +51,7 @@ struct RoadNetworkGeometry
 };
 
 
-RoadSegmentGeometry GetSegmentGeometry(FRoadSegment inSegment)
+RoadSegmentGeometry GetSegmentGeometry(const FRoadSegment& inSegment)
 {
 	float speedOnSegment = 8.0f; // m/s
 	float turningRadius = 18.6f * FMath::Sqrt(speedOnSegment / FMath::Abs(10 * inSegment.Width + 65 - speedOnSegment));
@@ -59,7 +59,7 @@ RoadSegmentGeometry GetSegmentGeometry(FRoadSegment inSegment)
 }
 
 
-RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
+RoadNetworkGeometry GetRoadNetworkGeometry(const FRoadNetwork& inRoadNetwork)
 {
 	RoadNetworkGeometry convertedGeometry;
 
@@ -67,7 +67,7 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 	int nextSegmentId = 0;
 	
 	//getting base crossroads
-	for (auto crossroadData : inRoadNetwork.Crossroads)
+	for (auto& crossroadData : inRoadNetwork.Crossroads)
 	{
 		auto id = crossroadData.Key;
 		auto crossroad = crossroadData.Value;
@@ -76,7 +76,7 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 	}
 
 	//cutting segments into minimal parts
-	for (auto segmentData : inRoadNetwork.Segments)
+	for (auto& segmentData : inRoadNetwork.Segments)
 	{
 		auto segment = segmentData.Value;
 
@@ -128,14 +128,14 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 	}
 
 	//segments sorting by angle
-	for (auto crossroadData : convertedGeometry.Crossroads)
+	for (auto& crossroadData : convertedGeometry.Crossroads)
 	{
 		auto crossroadId = crossroadData.Key;
 		auto crossroad = crossroadData.Value;
 
 		TMap<float, int> atansMap;
 		TArray<float> atans;
-		for (auto segmentsId : crossroad.SegmentsIds)
+		for (auto& segmentsId : crossroad.SegmentsIds)
 		{
 			auto segment = convertedGeometry.Segments[segmentsId];
 			auto otherCrossroadId = (segment.StartCrossroadId == crossroadId)
@@ -150,7 +150,7 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 		atans.Sort();
 
 		CrossroadGeometry sortedCrossroadGeometry { crossroad.Center };
-		for (auto atan : atans)
+		for (auto& atan : atans)
 		{
 			sortedCrossroadGeometry.SegmentsIds.Add(*atansMap.Find(atan));
 		}
@@ -159,10 +159,10 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 	}
 
 	//calculation crossroads borders
-	for (auto crossroadData : convertedGeometry.Crossroads)
+	for (auto& crossroadData : convertedGeometry.Crossroads)
 	{
 		auto crossroadId = crossroadData.Key;
-		auto crossroad = crossroadData.Value;
+		auto& crossroad = crossroadData.Value;
 		auto centerPoint = crossroad.Center;
 		auto segmentsNum = crossroad.SegmentsIds.Num();
 
@@ -173,22 +173,22 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 
 		for (int i = 0; i < segmentsNum; i++)
 		{
-			auto firstSegmentId = crossroad.SegmentsIds[i];
-			auto secondSegmentId = crossroad.SegmentsIds[(i + 1) % segmentsNum];
-			auto firstSegment = convertedGeometry.Segments[firstSegmentId];
-			auto secondSegment = convertedGeometry.Segments[secondSegmentId];
+			auto firstSegmentId		= crossroad.SegmentsIds[i];
+			auto secondSegmentId	= crossroad.SegmentsIds[(i + 1) % segmentsNum];
+			auto& firstSegment		= convertedGeometry.Segments[firstSegmentId];
+			auto& secondSegment		= convertedGeometry.Segments[secondSegmentId];
 
-			bool isStartForFirst = (firstSegment.StartCrossroadId == crossroadId);
-			bool isStartForSecond = (secondSegment.StartCrossroadId == crossroadId);
-			auto firstOtherCrossroadId = isStartForFirst ? firstSegment.EndCrossroadId : firstSegment.StartCrossroadId;
-			auto secondOtherCrossroadId = isStartForSecond ? secondSegment.EndCrossroadId : secondSegment.StartCrossroadId;
-			auto firstPoint = convertedGeometry.Crossroads[firstOtherCrossroadId].Center;
-			auto secondPoint = convertedGeometry.Crossroads[secondOtherCrossroadId].Center;
+			bool isStartForFirst		= (firstSegment.StartCrossroadId == crossroadId);
+			bool isStartForSecond		= (secondSegment.StartCrossroadId == crossroadId);
+			auto firstOtherCrossroadId	= isStartForFirst ?	firstSegment.EndCrossroadId : firstSegment.StartCrossroadId;
+			auto secondOtherCrossroadId	= isStartForSecond ? secondSegment.EndCrossroadId : secondSegment.StartCrossroadId;
+			auto firstPoint				= convertedGeometry.Crossroads[firstOtherCrossroadId].Center;
+			auto secondPoint			= convertedGeometry.Crossroads[secondOtherCrossroadId].Center;
 			
-			auto firstDirection = (firstPoint - centerPoint).GetSafeNormal();
-			auto secondDirection = (secondPoint - centerPoint).GetSafeNormal();
-			auto firstDelta = firstSegment.Width / 2 * FVector::CrossProduct(FVector::UpVector, firstDirection);
-			auto secondDelta = secondSegment.Width / 2 * FVector::CrossProduct(FVector::DownVector, secondDirection);
+			auto firstDirection		= (firstPoint - centerPoint).GetSafeNormal();
+			auto secondDirection	= (secondPoint - centerPoint).GetSafeNormal();
+			auto firstDelta			= firstSegment.Width / 2 * FVector::CrossProduct(FVector::UpVector, firstDirection);
+			auto secondDelta		= secondSegment.Width / 2 * FVector::CrossProduct(FVector::DownVector, secondDirection);
 
 			FVector pointBuffer;
 			bool isSpecialCase = !FMath::SegmentIntersection2D(firstPoint + firstDelta, centerPoint + firstDelta,
@@ -271,7 +271,7 @@ RoadNetworkGeometry GetRoadNetworkGeometry(FRoadNetwork inRoadNetwork)
 	}
 
 	//fixing negative distance values
-	for (auto segmentData : convertedGeometry.Segments)
+	for (auto& segmentData : convertedGeometry.Segments)
 	{
 		auto segmentId = segmentData.Key;
 		auto segment = segmentData.Value;
@@ -375,7 +375,7 @@ TArray<FVector2D> URoadBuilder::GetRoadCupsPointsDirections(int inCapDensity)
 }
 
 
-TArray<FVector> URoadBuilder::GetCupsPointsOffsets(TArray<FVector2D> inPointsDirections, FVector inPerpendicularToLine, bool inIsReversedCup)
+TArray<FVector> URoadBuilder::GetCupsPointsOffsets(const TArray<FVector2D>& inPointsDirections, FVector inPerpendicularToLine, bool inIsReversedCup)
 {
 	TArray<FVector> radiusDeltas = {};
 	auto yDelta = FVector::CrossProduct(inPerpendicularToLine, FVector::UpVector);
@@ -387,8 +387,8 @@ TArray<FVector> URoadBuilder::GetCupsPointsOffsets(TArray<FVector2D> inPointsDir
 }
 
 
-void FindSegmentToCrossroadConnection(RoadNetworkGeometry inNetworkGeometry, int inCrossroadId, int inSegmentId,
-	bool isClockWise, FVector & outConnectionPoint, FVector & outBorderPoint, FVector & outDirectionPoint)
+void FindSegmentToCrossroadConnection(const RoadNetworkGeometry& inNetworkGeometry, int inCrossroadId, int inSegmentId,
+	bool isClockWise, FVector& outConnectionPoint, FVector& outBorderPoint, FVector& outDirectionPoint)
 {
 	auto crossroad	= inNetworkGeometry.Crossroads[inCrossroadId];
 	auto segment	= inNetworkGeometry.Segments[inSegmentId];
@@ -427,17 +427,17 @@ float GetDirectionAngleForOuterArc(FVector inCrossroadCenter, FVector inConnecti
 }
 
 
-TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeometry inNetworkGeometry, 
+TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(const RoadNetworkGeometry& inNetworkGeometry,
 	MeshSectionData& outCurtainsMeshData, float inRoadHeight, float inCurtainsWidth, float inStretch)
 {
 	MeshSectionData segmentsSectionData;
 	MeshSectionData crossroadsSectionData;
 
 	//mesh data for segments
-	for (auto segmentData : inNetworkGeometry.Segments)
+	for (auto& segmentData : inNetworkGeometry.Segments)
 	{
 		auto segmentId	= segmentData.Key;
-		auto segment	= segmentData.Value;
+		auto& segment	= segmentData.Value;
 
 		if (!segment.IsValid)
 		{
@@ -506,12 +506,12 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 		auto lenght = FMath::Max(FMath::RoundToInt((startPoint - endPoint).Size()
 			/ (segment.Width * inStretch) * segment.Lanes), 1);
 
-		auto uv00 = FVector2D(0, 0);
-		auto uv01 = FVector2D(segment.Lanes, 0);
-		auto uv01c = FVector2D(1, 0);
-		auto uv02 = FVector2D(0, lenght);
-		auto uv03 = FVector2D(segment.Lanes, lenght);
-		auto uv03c = FVector2D(1, lenght);
+		auto uv00	= FVector2D(0, 0);
+		auto uv01	= FVector2D(segment.Lanes, 0);
+		auto uv01c	= FVector2D(1, 0);
+		auto uv02	= FVector2D(0, lenght);
+		auto uv03	= FVector2D(segment.Lanes, lenght);
+		auto uv03c	= FVector2D(1, lenght);
 
 		segmentsSectionData.Uv0				.Append({ uv00, uv01, uv02, uv03 });
 		segmentsSectionData.Uv1				.Append({ LIST_4_TIMES(FVector2D(0, 0)) });
@@ -528,7 +528,7 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 	}
 
 	//mesh data for not segments (crossroads, turns, dead ends)
-	for (auto crossroadsData : inNetworkGeometry.Crossroads)
+	for (auto& crossroadsData : inNetworkGeometry.Crossroads)
 	{
 		auto crossroadId	= crossroadsData.Key;
 		auto crossroad		= crossroadsData.Value;
@@ -553,8 +553,8 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 			{
 				auto firstSegmentId		= crossroad.SegmentsIds[i];
 				auto secondSegmentId	= crossroad.SegmentsIds[(i + 1) % segmentsNum];
-				auto firstSegment		= inNetworkGeometry.Segments[firstSegmentId];
-				auto secondSegment		= inNetworkGeometry.Segments[secondSegmentId];
+				auto& firstSegment		= inNetworkGeometry.Segments[firstSegmentId];
+				auto& secondSegment		= inNetworkGeometry.Segments[secondSegmentId];
 
 				if (i == 1)
 				{
@@ -677,7 +677,7 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 
 			//isTurn determines, among other things, whether to use segments or crossroads material
 			bool isTurn = (segmentsNum == 2) && (firstTurnSegment.Lanes == secondTurnSegment.Lanes);
-			auto & sectionData = isTurn ? segmentsSectionData : crossroadsSectionData;
+			auto& sectionData = isTurn ? segmentsSectionData : crossroadsSectionData;
 
 			auto centerIndex = sectionData.Vertices.Num();
 
@@ -898,15 +898,15 @@ TPair<MeshSectionData, MeshSectionData> CalculateMeshDataForRoad(RoadNetworkGeom
 }
 
 
-void URoadBuilder::ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, RoadNetworkGeometry inNetworkGeometry,
+void URoadBuilder::ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh, const RoadNetworkGeometry& inNetworkGeometry,
 	int inSegmentsSectionIndex, int inCrossroadsSectionIndex,
 	UMaterialInstanceDynamic* inSegmentsMaterial, UMaterialInstanceDynamic* inCrossroadsMaterial, 
 	MeshSectionData& outCurtainsMeshData)
 {
 	auto sectionsData = CalculateMeshDataForRoad(inNetworkGeometry, outCurtainsMeshData,
 		RoadHeight, CurtainsWidth, Stretch);
-	auto segmentsSectionData	= sectionsData.Key;
-	auto crossroadsSectionData	= sectionsData.Value;
+	auto& segmentsSectionData	= sectionsData.Key;
+	auto& crossroadsSectionData	= sectionsData.Value;
 
 	inRuntimeMesh->CreateMeshSection(inSegmentsSectionIndex, segmentsSectionData.Vertices, segmentsSectionData.Indices,
 		segmentsSectionData.Normals, segmentsSectionData.Uv0, segmentsSectionData.Uv1, segmentsSectionData.VertexColors, 
@@ -921,7 +921,7 @@ void URoadBuilder::ConstructRoadMeshSection(URuntimeMeshComponent* inRuntimeMesh
 }
 
 
-void URoadBuilder::SpawnRoadNetworkActor(FRoadNetwork inRoadNetwork)
+void URoadBuilder::SpawnRoadNetworkActor(const FRoadNetwork& inRoadNetwork)
 {
 	if (roadNetworkActor)
 	{

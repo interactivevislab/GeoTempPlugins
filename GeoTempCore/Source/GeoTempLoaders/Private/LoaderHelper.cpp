@@ -5,7 +5,7 @@ const int ULoaderHelper::DEFAULT_LANES = 1;
 const float ULoaderHelper::DEFAULT_LANE_WIDTH = 3.5f;
 
 
-FRoadNetwork ULoaderHelper::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegments)
+FRoadNetwork ULoaderHelper::ConstructRoadNetwork(const TArray<FRoadSegment>& inRoadSegments)
 {
 	TMap<int, FRoadSegment> segments;
 	TMap<int, FCrossroad>	crossroads;
@@ -57,12 +57,12 @@ FRoadNetwork ULoaderHelper::ConstructRoadNetwork(TArray<FRoadSegment> inRoadSegm
 
 	if (segments.Num() > 1)
 	{
-		//search for missing corssroads
+		//search for missing crossroads
 		TMap<FVector, bool> pointsTypes; //bool - isCrossroad
-		for (auto segmentData : segments)
+		for (auto& segmentData : segments)
 		{
 			auto segmentPoints = segmentData.Value.AllPoints;
-			for (auto point : segmentPoints)
+			for (auto& point : segmentPoints)
 			{
 				bool isAlreadyCrossroad = crossroadIds.Contains(point);
 				bool* isAlreadyCrossroadRef = pointsTypes.Find(point);
