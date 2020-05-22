@@ -14,9 +14,12 @@ void UBuildingSpawner::SpawnBuildingActors(const TArray<FBuilding>& inBuildingDa
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.Owner = GetOwner();
 		SpawnInfo.Name = FName(*("Building_" + FString::FromInt(building.Id)));
-
+		SpawnInfo.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
+		
 		auto buildingActor = GetWorld()->SpawnActor<ABuildingActor>(FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
+#if UE_EDITOR
 		buildingActor->SetActorLabel(SpawnInfo.Name.ToString());
+#endif
 
 		buildingActor->WallMaterial = UMaterialInstanceDynamic::Create(inWallMaterial, buildingActor);
 		buildingActor->RoofMaterial = UMaterialInstanceDynamic::Create(inRoofMaterial, buildingActor);
