@@ -75,7 +75,7 @@ TArray<FContour> GetIntersectedPolygons(FContour inMainPolygon, TArray<FContour>
 	r1 = FVector(inMainPolygon.Points[inMainPolygon.RightmostIndex()].X, inMainPolygon.Points[inMainPolygon.TopmostIndex()].Y, 0);
 
 
-	for (auto excludePoly : inPolygonsTocheck)
+	for (auto& excludePoly : inPolygonsTocheck)
 	{
 		l2 = FVector(excludePoly.Points[excludePoly.LeftmostIndex()].X, excludePoly.Points[excludePoly.BottommostIndex()].Y, 0);
 		r2 = FVector(excludePoly.Points[excludePoly.RightmostIndex()].X, excludePoly.Points[excludePoly.TopmostIndex()].Y, 0);
@@ -313,7 +313,7 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 	TArray<FMultipolygonData> includePolys = {};
 	TArray<FContour> excludePolys = {};
 	TArray<FContour> excludeHoles = {};
-	for (auto poly: inPolygons)
+	for (auto& poly: inPolygons)
 	{
 		if (poly.Tags.Find("typeRole"))
 		{
@@ -337,11 +337,11 @@ void UCustomFoliageInstancer::FillFoliageWithPolygons_BP(TArray<FMultipolygonDat
 		}
 	}
 
-	for (auto include : includePolys)
+	for (auto& include : includePolys)
 	{
 		float presenceChance = include.Tags.Find("leisure") ? 0.65f : 1.0f;
 
-		for (auto outer : include.Outer)
+		for (auto& outer : include.Outer)
 		{
 			TArray<FContour> exclude = {};
 
@@ -412,32 +412,10 @@ void UCustomFoliageInstancer::PrepareInstancers(
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue("InstancerWidth", Width);
 			meshInfo.MaterialInstances[x]->SetScalarParameterValue("InstancerHeight", Height);
 
-			if (IsValid(StartTarget))
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start", StartTarget);
-			}
-			else
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start", InitialTarget);
-			}
+			meshInfo.MaterialInstances[x]->SetTextureParameterValue("Start",	IsValid(StartTarget) ? StartTarget	: InitialTarget);
+			meshInfo.MaterialInstances[x]->SetTextureParameterValue("End",		IsValid(StartTarget) ? EndTarget	: InitialTarget);
+			meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type",		IsValid(StartTarget) ? TypesTarget	: InitialTarget);
 
-			if (IsValid(EndTarget))
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", EndTarget);
-			}
-			else
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("End", InitialTarget);
-			}
-
-			if (IsValid(TypesTarget))
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", TypesTarget);
-			}
-			else
-			{
-				meshInfo.MaterialInstances[x]->SetTextureParameterValue("Type", InitialTarget);
-			}
 		}
 		auto meshPtr = FoliageInstancers.Find(meshInfo.Mesh);
 
@@ -657,7 +635,7 @@ void UCustomFoliageInstancer::FillFoliageByPolygon(
 
 				bool treeSupressed = false;
 				bool isInHole = false;
-				for (auto hole : inExcludeHoles)
+				for (auto& hole : inExcludeHoles)
 				{
 					if (UGeometryHelpers::IsPointInPolygon(hole.Points, FVector(X, Y, 0)))
 					{
