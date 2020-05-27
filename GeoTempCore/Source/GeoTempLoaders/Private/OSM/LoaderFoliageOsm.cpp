@@ -244,14 +244,7 @@ TArray<FMultipolygonData> ULoaderFoliageOsm::GetFolliage_Implementation()
 					polygon.Tags.Add(TPair<FString, FString>("typeRole", "forest"));
 				}
 				auto leafTag = relation->Tags.Find("leaf_type");
-				if (leafTag)
-				{
-					polygon.Tags.Add(TPair<FString, FString>("leaf_type", *leafTag));
-				}
-				else
-				{
-					polygon.Tags.Add(TPair<FString, FString>("leaf_type", "mixed"));
-				}
+				polygon.Tags.Add(TPair<FString, FString>("leaf_type", leafTag?*leafTag: "mixed"));
 			}
 
 			polygons.Add(polygon);

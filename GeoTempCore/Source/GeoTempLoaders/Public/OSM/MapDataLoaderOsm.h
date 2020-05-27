@@ -84,24 +84,31 @@ private:
 	const float areaMaxSizeDegrees = 0.5f;
 
 	/** Buffer for current HTTP request. */
+	UPROPERTY()
 	UHttpRequest* currentRequest = nullptr;
 
 	/** Reader for OSM data. */
+	UPROPERTY()
 	UOsmReader* osmReader;
 
 	/** Manager for OSM base. */
+	UPROPERTY()
 	UOsmManager* osmManager;
 
 	/** Loader for buildings data. */
+	UPROPERTY()
 	ULoaderBuildingsOsm* buildingsLoader;
 
 	/** Loader for road network data. */
+	UPROPERTY()
 	ULoaderRoadsOsm* roadsLoader;
 
 	/** Loader for foliage data. */
+	UPROPERTY()
 	ULoaderFoliageOsm* foliageLoader;
 
 	/** Loader for water data. */
+	UPROPERTY()
 	ULoaderWaterOsm* waterLoader;
 
 	/** Reads and processes data when HTTP request is completed. */

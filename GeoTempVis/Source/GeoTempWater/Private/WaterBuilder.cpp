@@ -15,7 +15,7 @@ void UWaterBuilder::AddWaterToMeshSingleSection(URuntimeMeshComponent * meshComp
 	//LAKES
 	TArray<FRuntimeMeshTangent> tangentsLakes;
 	TArray<FColor> colors;
-	for (auto lakeData : inPolygonData)
+	for (auto& lakeData : inPolygonData)
 	{
 
 		TArray<FVector> nodes;
@@ -31,7 +31,7 @@ void UWaterBuilder::AddWaterToMeshSingleSection(URuntimeMeshComponent * meshComp
 		TArray<FLinearColor> VertexColors;
 
 		int z = vertices.Num();
-		for (auto node : nodes)
+		for (auto& node : nodes)
 		{
 			auto v = node;
 			v.Z = WaterZ;
@@ -100,7 +100,7 @@ void UWaterBuilder::RemoveWaterActor()
 	}
 
 	TArray<AWaterActor*> toDestroy;
-	for (auto child : GetOwner()->Children)
+	for (auto& child : GetOwner()->Children)
 	{
 		auto castChild = Cast<AWaterActor>(child);
 		if (castChild)
@@ -108,7 +108,7 @@ void UWaterBuilder::RemoveWaterActor()
 			toDestroy.Add(castChild);
 		}
 	}
-	for (auto child : toDestroy)
+	for (auto& child : toDestroy)
 	{
 		child->Destroy();
 	}

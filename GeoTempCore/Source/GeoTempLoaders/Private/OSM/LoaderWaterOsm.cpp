@@ -18,9 +18,9 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 
 	polygons.Empty();
 	//find all building and building parts through ways
-	for (auto wayP : osmReader->Ways)
+	for (auto& wayP : osmReader->Ways)
 	{
-		auto way = wayP.Value;
+		const auto& way = wayP.Value;
 		auto FoliageIterNatural = way->Tags.Find("natural");
 
 		FMultipolygonData polygon;
@@ -31,7 +31,7 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 			//get all points of this way
 			TArray<FVector> points;
 			points.Reserve(way->Nodes.Num());
-			for (auto node : way->Nodes)
+			for (auto& node : way->Nodes)
 			{
 				points.Add(node->Point);
 			}
@@ -113,7 +113,7 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 		}
 	}
 
-	for (auto relationP : osmReader->Relations)
+	for (auto& relationP : osmReader->Relations)
 	{
 		auto relation = relationP.Value;
 		auto FoliageIterNatural = relation->Tags.Find("natural");
@@ -127,7 +127,7 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 			UnclosedInnerContours.Empty();
 
 			//now iterate over the ways in this relation
-			for (auto element : relation->WayRoles)
+			for (auto& element : relation->WayRoles)
 			{
 				auto way = relation->Ways.Find(element.Key);
 				if (!way)
@@ -136,7 +136,7 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 				}
 
 				auto contour = FContour();
-				for (auto node : (*way)->Nodes)
+				for (auto& node : (*way)->Nodes)
 				{
 					contour.Points.Add(node->Point);
 				}
