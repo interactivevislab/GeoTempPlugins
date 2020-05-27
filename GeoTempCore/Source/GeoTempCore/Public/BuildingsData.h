@@ -108,6 +108,7 @@ struct GEOTEMPCORE_API FBuilding
 	TArray<FBuildingPart> Parts;
 
 	/** List of all other parts of the building, except main */
+	UPROPERTY(BlueprintReadOnly)
 	TArray<FVector> Entrances;
 
 	/** Name of roof part style which can be used for further detailization */
