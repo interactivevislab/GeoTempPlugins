@@ -87,6 +87,7 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 	auto roadNetwork =				IProviderRoads::Execute_GetRoadNetwork(roadsLoader);
 	LoadedRoadNetwork.Segments.Append(roadNetwork.Segments);
 	LoadedRoadNetwork.Crossroads.Append(roadNetwork.Crossroads);
+	LoadedRoadNetwork.EntryPoints.Append(roadNetwork.EntryPoints);
 
 	LoadedBuildings			.Append(IProviderBuildings::Execute_GetBuildings(buildingsLoader)	);
 	LoadedFoliageContours	.Append(IProviderFolliage::Execute_GetFolliage(foliageLoader)		);
