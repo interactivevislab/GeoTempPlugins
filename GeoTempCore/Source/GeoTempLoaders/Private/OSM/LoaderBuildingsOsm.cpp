@@ -206,6 +206,10 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 
 				for (auto node : way->Nodes)
 				{
+					if (node->Tags.Find("entrance"))
+					{
+						buildings.Last().Entrances.Add(node->Point);
+					}
 					if (!pointOwners.Contains(node->Point))
 					{
 						pointOwners.Add(node->Point, FOwnersData());
@@ -347,6 +351,10 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					auto contour = FContour();
 					for (auto node : (*way)->Nodes)
 					{
+						if (node->Tags.Find("entrance"))
+						{
+							building.Entrances.Add(node->Point);
+						}
 						contour.Points.Add(node->Point);
 					}
 
