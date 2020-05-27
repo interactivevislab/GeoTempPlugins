@@ -85,7 +85,7 @@ public:
 
 	/** Value to add to cutting bounds to determine data cutting area */
 	UPROPERTY(BlueprintReadWrite, Category = "Geoprocessing")
-	int CutRadius;
+	int CutRadius = 400000;
 
 private:
 
