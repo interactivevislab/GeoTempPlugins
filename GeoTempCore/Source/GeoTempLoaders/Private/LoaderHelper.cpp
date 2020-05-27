@@ -303,7 +303,7 @@ FVector ULoaderHelper::GetSegmentIntersectionWithBounds(FVector inOuterPoint, FV
 }
 
 
-TArray<FContour> ULoaderHelper::CutContourByBounds(FContour inContour, FVector4 inBounds)
+TArray<FContour> ULoaderHelper::CutContourByBounds(FContour inContour, FVector4 inBounds, TArray<FVector>& outIntersectionPoints)
 {
 	FVector topLeftBoundsCorner		= FVector(inBounds.X, inBounds.Z, 0);
 	FVector bottomLeftBoundsCorner	= FVector(inBounds.X, inBounds.W, 0);
@@ -372,7 +372,9 @@ TArray<FContour> ULoaderHelper::CutContourByBounds(FContour inContour, FVector4 
 					{
 						cutPoints.Add(inContour.Points[i - 1]);
 					}*/
-					cutPoints.Add(ULoaderHelper::GetSegmentIntersectionWithBounds(inContour.Points[i - 1], inContour.Points[i], inBounds));
+					auto intersection = ULoaderHelper::GetSegmentIntersectionWithBounds(inContour.Points[i - 1], inContour.Points[i], inBounds);
+					cutPoints.Add(intersection);
+					outIntersectionPoints.Add(intersection);
 				}
 			}
 			cutPoints.Add(inContour.Points[i]);
@@ -424,7 +426,9 @@ TArray<FContour> ULoaderHelper::CutContourByBounds(FContour inContour, FVector4 
 				{
 					cutPoints.Add(inContour.Points[i]);
 				}*/
-				cutPoints.Add(ULoaderHelper::GetSegmentIntersectionWithBounds(inContour.Points[i], inContour.Points[i - 1], inBounds));
+				auto intersection = ULoaderHelper::GetSegmentIntersectionWithBounds(inContour.Points[i], inContour.Points[i - 1], inBounds);
+				cutPoints.Add(intersection);
+				outIntersectionPoints.Add(intersection);
 
 				cutContours.Add(FContour(cutPoints));
 				cutPoints.Empty();
@@ -485,7 +489,8 @@ TArray<FContour> ULoaderHelper::CutPolygonByBounds(FContour inContour, FVector4 
 
 	if (inContour.IsClosed())
 	{
-		cutContours			= ULoaderHelper::CutContourByBounds(inContour, inBounds);
+		TArray<FVector> intersections;
+		cutContours			= ULoaderHelper::CutContourByBounds(inContour, inBounds, intersections);
 		polygonDirection	= UGeometryHelpers::PolygonDirectionSign(inContour.Points);
 	}
 	

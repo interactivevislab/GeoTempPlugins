@@ -85,7 +85,8 @@ TArray<FMultipolygonData> ULoaderWaterOsm::GetWater_Implementation()
 			{
 				contour.Points.Add(node->Point);
 			}
-			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->CutRect);
+			TArray<FVector> intersections;
+			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->CutRect, intersections);
 
 			for (auto contourPiece : cutContour)
 			{

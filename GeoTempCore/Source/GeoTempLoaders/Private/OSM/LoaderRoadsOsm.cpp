@@ -34,6 +34,7 @@ TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork)
 FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 {
 	TMap<int, FOsmRoadSegment> segments;
+	TArray<FVector> intersectionPoints;
 	for (auto wayData : osmReader->Ways)
 	{
 		OsmWay* way = wayData.Value;
@@ -44,7 +45,7 @@ FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 			{
 				contour.Points.Add(node->Point);
 			}
-			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->CutRect);
+			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->CutRect, intersectionPoints);
 
 			for (auto contourPiece : cutContour)
 			{
@@ -63,6 +64,7 @@ FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 			}
 		}
 	}
-
-	return ULoaderHelper::ConstructRoadNetwork(GetRoadSegments(FOsmRoadNetwork{ segments }));
+	auto roadNetwork = ULoaderHelper::ConstructRoadNetwork(GetRoadSegments(FOsmRoadNetwork{ segments }));
+	roadNetwork.EntryPoints = intersectionPoints;
+	return roadNetwork;
 }

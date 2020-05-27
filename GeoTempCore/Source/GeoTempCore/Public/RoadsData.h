@@ -184,6 +184,10 @@ struct GEOTEMPCORE_API FRoadNetwork
 	/** All crossroads by IDs. */
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int, FCrossroad> Crossroads;
+
+	/** Road entries into an area. */
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FVector> EntryPoints;
 };
 
 #pragma endregion

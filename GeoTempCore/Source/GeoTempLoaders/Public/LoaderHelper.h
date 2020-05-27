@@ -39,7 +39,7 @@ public:
 	static TArray<FContour> CutPolygonByBounds(FContour inContour, FVector4 inBounds);
 
 	/** Cut contour to fit inside specific bounds. */
-	static TArray<FContour> CutContourByBounds(FContour inContour, FVector4 inBounds);
+	static TArray<FContour> CutContourByBounds(FContour inContour, FVector4 inBounds, TArray<FVector>& outIntersectionPoints);
 
 	/** Gets point of intersection of a segment with square bounds. */
 	static FVector GetSegmentIntersectionWithBounds(FVector inOuterPoint, FVector inInnerPoint, FVector4 inBounds);
