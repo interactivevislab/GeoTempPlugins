@@ -6,6 +6,7 @@
 #include "Osm/LoaderRoadsOsm.h"
 #include "Osm/LoaderBuildingsOsm.h"
 #include "Osm/LoaderFoliageOsm.h"
+#include "Osm/LoaderWaterOsm.h"
 
 
 
@@ -25,6 +26,9 @@ void UMapDataLoaderOsm::Init()
 
 	foliageLoader = NewObject<ULoaderFoliageOsm>();
 	IParserOsm::Execute_SetOsmReader(foliageLoader, osmReader);
+
+	waterLoader = NewObject<ULoaderWaterOsm>();
+	IParserOsm::Execute_SetOsmReader(waterLoader, osmReader);
 
 	isInitialized = true;
 }
@@ -68,6 +72,7 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 	LoadedBuildings			= IProviderBuildings::Execute_GetBuildings(buildingsLoader);
 	LoadedRoadNetwork		= IProviderRoads::Execute_GetRoadNetwork(roadsLoader);
 	LoadedFoliageContours	= IProviderFolliage::Execute_GetFolliage(foliageLoader);
+	LoadedWaterContours		= IProviderWater::Execute_GetWater(waterLoader);
 	OnDataLoaded.Broadcast(true);
 }
 
@@ -77,4 +82,5 @@ void UMapDataLoaderOsm::ClearLoadedData()
 	LoadedBuildings.Empty();
 	LoadedRoadNetwork = FRoadNetwork();
 	LoadedFoliageContours.Empty();
+	LoadedWaterContours.Empty();
 }

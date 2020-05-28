@@ -17,6 +17,7 @@ class UOsmManager;
 class ULoaderBuildingsOsm;
 class ULoaderRoadsOsm;
 class ULoaderFoliageOsm;
+class ULoaderWaterOsm;
 class UHttpRequest;
 
 
@@ -63,6 +64,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
 	TArray<FMultipolygonData> LoadedFoliageContours;
 
+	/** Loaded and processed water data. */
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Geoprocessing")
+	TArray<FMultipolygonData> LoadedWaterContours;
+
 	/** Delegate type for reporting completion of data loading. */
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataLoadedDelegate, bool, isSuccess);
 
@@ -79,22 +84,32 @@ private:
 	const float areaMaxSizeDegrees = 0.5f;
 
 	/** Buffer for current HTTP request. */
+	UPROPERTY()
 	UHttpRequest* currentRequest = nullptr;
 
 	/** Reader for OSM data. */
+	UPROPERTY()
 	UOsmReader* osmReader;
 
 	/** Manager for OSM base. */
+	UPROPERTY()
 	UOsmManager* osmManager;
 
 	/** Loader for buildings data. */
+	UPROPERTY()
 	ULoaderBuildingsOsm* buildingsLoader;
 
 	/** Loader for road network data. */
+	UPROPERTY()
 	ULoaderRoadsOsm* roadsLoader;
 
 	/** Loader for foliage data. */
+	UPROPERTY()
 	ULoaderFoliageOsm* foliageLoader;
+
+	/** Loader for water data. */
+	UPROPERTY()
+	ULoaderWaterOsm* waterLoader;
 
 	/** Reads and processes data when HTTP request is completed. */
 	UFUNCTION()
