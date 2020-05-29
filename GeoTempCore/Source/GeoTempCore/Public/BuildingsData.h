@@ -96,22 +96,35 @@ struct GEOTEMPCORE_API FBuilding
 	long Id = 0;
 
 	/** type of this building, defined by building tag in osm */
+	UPROPERTY(BlueprintReadOnly)
 	FString Type;
 
 	/** Dictionary of tags applied to the building on load. Can include address, material and other useful data*/
+	UPROPERTY(BlueprintReadOnly)
 	TMap<FString, FString> Tags;
 
 	/** Main part of this building. This may be the real part of building, or contours describing its footprint */
+	UPROPERTY(BlueprintReadOnly)
 	FBuildingPart MainPart;
 
 	/** List of all other parts of the building, except main */
+	UPROPERTY(BlueprintReadOnly)
 	TArray<FBuildingPart> Parts;
 
-	/** List of all other parts of the building, except main */
+	/** List of entrances of the building*/
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FVector> Entrances;
 
+	/** A potential number of residents*/
+	UPROPERTY(BlueprintReadOnly)
+	int ResidentsCount;
+
+	/** A size of a building area*/
+	UPROPERTY(BlueprintReadOnly)
+	float AreaSize;
+
 	/** Name of roof part style which can be used for further detailization */
+	UPROPERTY(BlueprintReadOnly)
 	FString RoofType;
 
 	FBuilding();

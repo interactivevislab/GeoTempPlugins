@@ -200,7 +200,8 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			{
 				auto building = FBuilding(way->Id);
 				building.Type = TCHAR_TO_UTF8(**buildIter);
-				
+				building.Tags = way->Tags;
+
 				building.MainPart = part;
 				buildings.Add(building);
 
@@ -246,6 +247,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 		{
 			FBuildingPart part = FBuildingPart(relation->Id);
 			InitBuildingPart(relation, part);
+			part.Tags = relation->Tags;
 			
 			UnclosedOuterContours.Empty();
 			UnclosedInnerContours.Empty();
@@ -325,6 +327,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			auto building = FBuilding(relation->Id);
 			building.Parts.Empty();
 			building.Type = FString(TCHAR_TO_UTF8(**buildIter));
+			building.Tags = relation->Tags;
 
 
 			//create building part data from relation (it will be the footprint)
