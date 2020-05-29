@@ -21,7 +21,7 @@ const FString* FindBuildingTag(const TMap<FString, FString>& inTags, const FStri
 }
 
 
-void InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart)
+void InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart, int inDefaultFloors = 1)
 {
 	auto floorsTag = FindBuildingTag(inWay->Tags, FLOORS_TAG_STRING);
 	auto heightTag = FindBuildingTag(inWay->Tags, HEIGHT_TAG_STRING);
@@ -31,7 +31,7 @@ void InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart)
 
 	outPart.Floors = floorsTag
 		? FCString::Atoi(**floorsTag)
-		: 1;
+		: inDefaultFloors;
 
 	outPart.Height = heightTag
 		? FCString::Atoi(**heightTag) * UGeoHelpers::SCALE_MULT
@@ -57,7 +57,7 @@ void InitBuildingPart(const OsmWay* inWay, FBuildingPart& outPart)
 }
 
 
-void InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart)
+void InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart, int inDefaultFloors = 1)
 {
 	auto floorsTag = FindBuildingTag(inRelation->Tags, FLOORS_TAG_STRING);
 	auto heightTag = FindBuildingTag(inRelation->Tags, HEIGHT_TAG_STRING);
@@ -66,7 +66,7 @@ void InitBuildingPart(const OsmRelation* inRelation, FBuildingPart& outPart)
 
 	outPart.Floors = floorsTag
 		? FCString::Atoi(**floorsTag)
-		: 1;
+		: inDefaultFloors;
 
 	outPart.MinFloors = minFloorsTag
 		? FCString::Atoi(**minFloorsTag)
@@ -166,6 +166,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 	TArray<FContour> UnclosedOuterContours;
 	TArray<FContour> UnclosedInnerContours;
 
+	int defaultFloorsNum = 5;
 	//find all building and building parts through ways
 	for (auto wayP : osmReader->Ways)
 	{
@@ -181,7 +182,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 			part = FBuildingPart(way->Id);
 
 			//parse heights and floor counts
-			InitBuildingPart(way, part);
+			InitBuildingPart(way, part, defaultFloorsNum);
 		
 			////get all points of this way and add necessary bindings
 			TArray<FVector> points;
@@ -246,7 +247,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 		if (partIter)
 		{
 			FBuildingPart part = FBuildingPart(relation->Id);
-			InitBuildingPart(relation, part);
+			InitBuildingPart(relation, part, defaultFloorsNum);
 			part.Tags = relation->Tags;
 			
 			UnclosedOuterContours.Empty();
@@ -332,7 +333,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 
 			//create building part data from relation (it will be the footprint)
 			FBuildingPart part = FBuildingPart(relation->Id);
-			InitBuildingPart(relation, part);
+			InitBuildingPart(relation, part, defaultFloorsNum);
 			
 			UnclosedOuterContours.Empty();
 			UnclosedInnerContours.Empty();
