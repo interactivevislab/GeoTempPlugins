@@ -116,11 +116,11 @@ struct GEOTEMPCORE_API FBuilding
 	TArray<FVector> Entrances;
 
 	/** A potential number of residents*/
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	int ResidentsCount;
 
 	/** A size of a building area*/
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	float AreaSize;
 
 	/** Name of roof part style which can be used for further detailization */
