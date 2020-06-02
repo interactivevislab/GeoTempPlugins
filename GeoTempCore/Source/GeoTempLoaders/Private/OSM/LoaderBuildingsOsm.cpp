@@ -225,7 +225,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					{
 						auto randomIndex = FMath::RandRange(0, outerCont.Points.Num() - 2);
 						auto pointOne = outerCont.Points[randomIndex];
-						auto pointTwo = outerCont.Points[randomIndex - 1];
+						auto pointTwo = outerCont.Points[randomIndex + 1];
 						buildings.Last().Entrances.Add(
 							FVector(
 								FMath::RandRange(pointOne.X < pointTwo.X ? pointOne.X : pointTwo.X, pointOne.X < pointTwo.X ? pointTwo.X : pointOne.X),
@@ -434,7 +434,7 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 				{
 					auto randomIndex = FMath::RandRange(0, outerCont.Points.Num() - 2);
 					auto pointOne = outerCont.Points[randomIndex];
-					auto pointTwo = outerCont.Points[randomIndex - 1];
+					auto pointTwo = outerCont.Points[randomIndex + 1];
 					building.Entrances.Add(
 						FVector(
 							FMath::RandRange(pointOne.X < pointTwo.X ? pointOne.X : pointTwo.X, pointOne.X < pointTwo.X ? pointTwo.X : pointOne.X),
