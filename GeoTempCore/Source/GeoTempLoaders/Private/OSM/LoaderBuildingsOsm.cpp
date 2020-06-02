@@ -219,13 +219,28 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					FOwnersData& d = *pointOwners.Find(node->Point);
 					d.Buildings.AddUnique(buildings.Num() - 1);
 				}
-				
+				if (buildings.Last().Entrances.Num() == 0)
+				{
+					for (auto& outerCont : buildings.Last().MainPart.OuterConts)
+					{
+						auto randomIndex = FMath::RandRange(0, outerCont.Points.Num() - 2);
+						auto pointOne = outerCont.Points[randomIndex];
+						auto pointTwo = outerCont.Points[randomIndex - 1];
+						buildings.Last().Entrances.Add(
+							FVector(
+								FMath::RandRange(pointOne.X < pointTwo.X ? pointOne.X : pointTwo.X, pointOne.X < pointTwo.X ? pointTwo.X : pointOne.X),
+								FMath::RandRange(pointOne.Y < pointTwo.Y ? pointOne.Y : pointTwo.Y, pointOne.Y < pointTwo.Y ? pointTwo.Y : pointOne.Y),
+								0
+							)
+						);
+					}
+				}
 			} 
 			if (!buildIter || partIter)
 			{
 				wayParts.Add(part.Id, part);
 				for (auto node : way->Nodes)
-				{					
+				{		
 					if (!pointOwners.Contains(node->Point))
 					{
 						pointOwners.Add(node->Point, FOwnersData());
@@ -413,7 +428,22 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					d.Buildings.AddUnique(buildings.Num() - 1);
 				}
 			}
-			
+			if (building.Entrances.Num() == 0)
+			{
+				for (auto& outerCont : building.MainPart.OuterConts)
+				{
+					auto randomIndex = FMath::RandRange(0, outerCont.Points.Num() - 2);
+					auto pointOne = outerCont.Points[randomIndex];
+					auto pointTwo = outerCont.Points[randomIndex - 1];
+					building.Entrances.Add(
+						FVector(
+							FMath::RandRange(pointOne.X < pointTwo.X ? pointOne.X : pointTwo.X, pointOne.X < pointTwo.X ? pointTwo.X : pointOne.X),
+							FMath::RandRange(pointOne.Y < pointTwo.Y ? pointOne.Y : pointTwo.Y, pointOne.Y < pointTwo.Y ? pointTwo.Y : pointOne.Y),
+							0
+						)
+					);
+				}
+			}
 		}
 	}
 
