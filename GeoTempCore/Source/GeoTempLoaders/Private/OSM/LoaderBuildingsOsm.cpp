@@ -226,12 +226,14 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 						auto randomIndex = FMath::RandRange(0, outerCont.Points.Num() - 2);
 						auto pointOne = outerCont.Points[randomIndex];
 						auto pointTwo = outerCont.Points[randomIndex + 1];
-						buildings.Last().Entrances.Add(
-							FVector(
-								FMath::RandRange(pointOne.X < pointTwo.X ? pointOne.X : pointTwo.X, pointOne.X < pointTwo.X ? pointTwo.X : pointOne.X),
-								FMath::RandRange(pointOne.Y < pointTwo.Y ? pointOne.Y : pointTwo.Y, pointOne.Y < pointTwo.Y ? pointTwo.Y : pointOne.Y),
-								0
-							)
+						auto length = FVector::Distance(pointTwo, pointOne);
+						auto newPoint = (pointTwo - pointOne).GetSafeNormal()*FMath::FRandRange(0, length) + pointOne;
+						buildings.Last().Entrances.Add(newPoint
+							//FVector(
+							//	FMath::RandRange(pointOne.X < pointTwo.X ? pointOne.X : pointTwo.X, pointOne.X < pointTwo.X ? pointTwo.X : pointOne.X),
+							//	FMath::RandRange(pointOne.Y < pointTwo.Y ? pointOne.Y : pointTwo.Y, pointOne.Y < pointTwo.Y ? pointTwo.Y : pointOne.Y),
+							//	0
+							//)
 						);
 					}
 				}
@@ -435,12 +437,14 @@ TArray<FBuilding> ULoaderBuildingsOsm::GetBuildings_Implementation()
 					auto randomIndex = FMath::RandRange(0, outerCont.Points.Num() - 2);
 					auto pointOne = outerCont.Points[randomIndex];
 					auto pointTwo = outerCont.Points[randomIndex + 1];
-					building.Entrances.Add(
-						FVector(
-							FMath::RandRange(pointOne.X < pointTwo.X ? pointOne.X : pointTwo.X, pointOne.X < pointTwo.X ? pointTwo.X : pointOne.X),
-							FMath::RandRange(pointOne.Y < pointTwo.Y ? pointOne.Y : pointTwo.Y, pointOne.Y < pointTwo.Y ? pointTwo.Y : pointOne.Y),
-							0
-						)
+					auto length = FVector::Distance(pointTwo, pointOne);
+					auto newPoint = (pointTwo - pointOne).GetSafeNormal()*FMath::FRandRange(0, length) + pointOne;
+					buildings.Last().Entrances.Add(newPoint
+						//FVector(
+						//	FMath::RandRange(pointOne.X < pointTwo.X ? pointOne.X : pointTwo.X, pointOne.X < pointTwo.X ? pointTwo.X : pointOne.X),
+						//	FMath::RandRange(pointOne.Y < pointTwo.Y ? pointOne.Y : pointTwo.Y, pointOne.Y < pointTwo.Y ? pointTwo.Y : pointOne.Y),
+						//	0
+						//)
 					);
 				}
 			}
