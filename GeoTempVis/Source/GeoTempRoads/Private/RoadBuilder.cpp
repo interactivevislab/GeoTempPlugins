@@ -80,7 +80,7 @@ RoadNetworkGeometry GetRoadNetworkGeometry(const FRoadNetwork& inRoadNetwork)
 	{
 		auto segment = segmentData.Value;
 
-		if (segment.Type != EHighwayType::Auto)
+		if (segment.Type != EHighwayType::Auto && segment.Type != EHighwayType::Footway)
 		{
 			continue;
 		}

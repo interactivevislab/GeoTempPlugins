@@ -24,7 +24,8 @@ UENUM(BlueprintType)
 enum class EHighwayType : uint8
 {
 	Auto	UMETA(DisplayName = "Auto"),	/**< Highway. */ 
-	Rail	UMETA(DisplayName = "Rail")		/**< Railroad. */ 
+	Rail	UMETA(DisplayName = "Rail"),	/**< Railroad. */ 
+	Footway	UMETA(DisplayName = "Footway")	/**< Footway. */
 };
 
 

@@ -17,9 +17,16 @@ TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork)
 	{
 		auto osmSegment = osmSegmentPair.Value;
 		auto tags = osmSegment.Tags;
-
+		auto highwayTag = tags.Find("highway");
 		FRoadSegment segment;
-		segment.Type = EHighwayType::Auto;
+		if (!highwayTag)
+		{
+			segment.Type = EHighwayType::Auto;
+		}
+		else
+		{
+			segment.Type = (highwayTag->Equals("footway") || highwayTag->Equals("pedestrian") || highwayTag->Equals("path")) ? EHighwayType::Footway : EHighwayType::Auto;
+		}
 		segment.Lanes = ULoaderHelper::TryGetTag(tags, "lanes", ULoaderHelper::DEFAULT_LANES);
 		segment.Width = ULoaderHelper::TryGetTag(tags, "widht", segment.Lanes * ULoaderHelper::DEFAULT_LANE_WIDTH);
 		segment.AllPoints = osmSegment.Points;
