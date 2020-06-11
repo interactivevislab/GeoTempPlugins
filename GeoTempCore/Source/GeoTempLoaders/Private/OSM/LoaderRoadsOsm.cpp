@@ -18,6 +18,7 @@ TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork)
 		auto osmSegment = osmSegmentPair.Value;
 		auto tags = osmSegment.Tags;
 		auto highwayTag = tags.Find("highway");
+		auto onewayTag = tags.Find("oneway");
 		FRoadSegment segment;
 		if (!highwayTag)
 		{
@@ -27,6 +28,11 @@ TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork)
 		{
 			segment.Type = (highwayTag->Equals("footway") || highwayTag->Equals("pedestrian") || highwayTag->Equals("path")) ? EHighwayType::Footway : EHighwayType::Auto;
 		}
+		if (onewayTag)
+		{
+			segment.Oneway = onewayTag->Equals("yes");
+		}
+
 		segment.Lanes = ULoaderHelper::TryGetTag(tags, "lanes", ULoaderHelper::DEFAULT_LANES);
 		segment.Width = ULoaderHelper::TryGetTag(tags, "widht", segment.Lanes * ULoaderHelper::DEFAULT_LANE_WIDTH);
 		segment.AllPoints = osmSegment.Points;
@@ -42,15 +48,22 @@ FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 {
 	TMap<int, FOsmRoadSegment> segments;
 	TArray<FVector> intersectionPoints;
+	TArray<FVector> trafficLights;
 	for (auto wayData : osmReader->Ways)
 	{
 		OsmWay* way = wayData.Value;
 		if (way->Tags.Contains("highway"))
 		{
+
 			auto contour = FContour();
 			for (auto node : way->Nodes)
 			{
 				contour.Points.Add(node->Point);
+				auto tagHighway = node->Tags.Find("highway");
+				if (tagHighway && tagHighway->Equals("traffic_signals"))
+				{
+					trafficLights.Add(node->Point);
+				}
 			}
 			TArray<FVector> intersections;
 			auto cutContour = ULoaderHelper::CutContourByBounds(contour, osmReader->CutRect, intersections);
@@ -75,5 +88,13 @@ FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 	}
 	auto roadNetwork = ULoaderHelper::ConstructRoadNetwork(GetRoadSegments(FOsmRoadNetwork{ segments }));
 	roadNetwork.EntryPoints = intersectionPoints;
+	for (auto& crossroad : roadNetwork.Crossroads)
+	{
+		int lightsIndex=-1;
+		if (trafficLights.Find(crossroad.Value.Location, lightsIndex))
+		{
+			roadNetwork.TrafficLights.Add(crossroad.Key, trafficLights[lightsIndex]);
+		}
+	}
 	return roadNetwork;
 }

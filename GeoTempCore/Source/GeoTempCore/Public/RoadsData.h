@@ -134,6 +134,10 @@ struct GEOTEMPCORE_API FRoadSegment
 	UPROPERTY(BlueprintReadOnly)
 	EHighwayType Type;
 
+	/** Whether the road is oneway only. */
+	UPROPERTY(BlueprintReadOnly)
+	bool Oneway = false;
+
 	/** Number of lanes. */
 	UPROPERTY(BlueprintReadOnly)
 	int Lanes;
@@ -185,6 +189,10 @@ struct GEOTEMPCORE_API FRoadNetwork
 	/** All crossroads by IDs. */
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int, FCrossroad> Crossroads;
+
+	/** All traffic lights by IDs. */
+	UPROPERTY(BlueprintReadOnly)
+	TMap<int, FVector> TrafficLights;
 
 	/** Road entries into an area. */
 	UPROPERTY(BlueprintReadOnly)

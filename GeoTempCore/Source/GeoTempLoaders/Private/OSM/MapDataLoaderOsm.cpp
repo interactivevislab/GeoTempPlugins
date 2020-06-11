@@ -88,6 +88,7 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 	LoadedRoadNetwork.Segments.Append(roadNetwork.Segments);
 	LoadedRoadNetwork.Crossroads.Append(roadNetwork.Crossroads);
 	LoadedRoadNetwork.EntryPoints.Append(roadNetwork.EntryPoints);
+	LoadedRoadNetwork.TrafficLights.Append(roadNetwork.TrafficLights);
 
 	LoadedBuildings			.Append(IProviderBuildings::Execute_GetBuildings(buildingsLoader)	);
 	LoadedFoliageContours	.Append(IProviderFolliage::Execute_GetFolliage(foliageLoader)		);
@@ -98,7 +99,7 @@ void UMapDataLoaderOsm::OnOsmRequestCompleted(FString inXmlData)
 	if (!successfullParse)
 	{
 		osmReader->ClearReaderData();
-		pendingRequests = waterLoader->ErrorRelations.Num()-1 + foliageLoader->ErrorRelations.Num() - 1;
+		pendingRequests = waterLoader->ErrorRelations.Num() + foliageLoader->ErrorRelations.Num() - 1;
 		pendingIds = waterLoader->ErrorRelations.Array();
 		pendingIds.Append(foliageLoader->ErrorRelations.Array());
 		ReloadIncompleteData("");
