@@ -35,6 +35,10 @@ TArray<FRoadSegment> GetRoadSegments(FOsmRoadNetwork inRoadNetwork)
 
 		segment.Lanes = ULoaderHelper::TryGetTag(tags, "lanes", ULoaderHelper::DEFAULT_LANES);
 		segment.Width = ULoaderHelper::TryGetTag(tags, "widht", segment.Lanes * ULoaderHelper::DEFAULT_LANE_WIDTH);
+
+		segment.LanesForward = ULoaderHelper::TryGetTag(tags, "lanes:forward", segment.Lanes / 2);
+		segment.LanesBackward = ULoaderHelper::TryGetTag(tags, "lanes:backward", segment.Lanes - segment.LanesForward);
+
 		segment.AllPoints = osmSegment.Points;
 
 		segments.Add(segment);
