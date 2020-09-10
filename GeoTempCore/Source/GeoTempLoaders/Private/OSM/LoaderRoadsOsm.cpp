@@ -55,6 +55,13 @@ FRoadNetwork ULoaderRoadsOsm::GetRoadNetwork_Implementation()
 		if (way->Tags.Contains("highway"))
 		{
 
+			auto highwayTag = way->Tags.Find("highway");
+
+			if (highwayTag->Equals("footway") || highwayTag->Equals("pedestrian") || highwayTag->Equals("path"))
+			{
+				continue;
+			}
+
 			auto contour = FContour();
 			for (auto node : way->Nodes)
 			{
