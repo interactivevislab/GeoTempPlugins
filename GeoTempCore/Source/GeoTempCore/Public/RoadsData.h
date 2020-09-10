@@ -142,6 +142,14 @@ struct GEOTEMPCORE_API FRoadSegment
 	UPROPERTY(BlueprintReadOnly)
 	int Lanes;
 
+	/** Number of forward lanes. */
+	UPROPERTY(BlueprintReadOnly)
+	int LanesForward;
+
+	/** Number of backward lanes. */
+	UPROPERTY(BlueprintReadOnly)
+	int LanesBackward;
+
 	/** Width of one lane. */
 	UPROPERTY(BlueprintReadOnly)
 	float Width;
